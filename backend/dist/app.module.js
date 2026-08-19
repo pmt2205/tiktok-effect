@@ -8,16 +8,27 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
+const mongoose_1 = require("@nestjs/mongoose");
 const tiktok_module_1 = require("./features/tiktok/tiktok.module");
 const websocket_module_1 = require("./features/websocket/websocket.module");
 const settings_module_1 = require("./features/settings/settings.module");
 const media_module_1 = require("./features/media/media.module");
+const auth_module_1 = require("./features/auth/auth.module");
+const users_module_1 = require("./features/users/users.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
-        imports: [tiktok_module_1.TiktokModule, websocket_module_1.WebsocketModule, settings_module_1.SettingsModule, media_module_1.MediaModule],
+        imports: [
+            mongoose_1.MongooseModule.forRoot(process.env.MONGO_URI || 'mongodb://localhost:27017/tiktok-effect'),
+            tiktok_module_1.TiktokModule,
+            websocket_module_1.WebsocketModule,
+            settings_module_1.SettingsModule,
+            media_module_1.MediaModule,
+            auth_module_1.AuthModule,
+            users_module_1.UsersModule,
+        ],
     })
 ], AppModule);
 //# sourceMappingURL=app.module.js.map

@@ -9,9 +9,10 @@ import {
 } from '@nestjs/websockets';
 import { Logger, OnModuleInit } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
+import { JwtService } from '@nestjs/jwt';
 import { TiktokService } from '../tiktok/tiktok.service';
 import { SettingsService } from '../settings/settings.service';
-import { TiktokStatus, ChatEvent, GiftEvent, WsPacket } from '../../common/interfaces/events.interface';
+import { TiktokStatus, ChatEvent, GiftEvent } from '../../common/interfaces/events.interface';
 
 @WebSocketGateway({
   cors: {
@@ -27,6 +28,7 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
   constructor(
     private readonly tiktokService: TiktokService,
     private readonly settingsService: SettingsService,
+    private readonly jwtService: JwtService,
   ) {}
 
   onModuleInit() {
@@ -44,6 +46,9 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
       onRoomUser: (data: { viewerCount: number }) => {
         this.server.emit('event', { type: 'roomUser', data });
       },
+      onGiftsList: (gifts: any[]) => {
+        this.server.emit('event', { type: 'gifts-list', data: gifts });
+      },
     });
   }
 
@@ -55,6 +60,15 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
       type: 'status',
       data: this.tiktokService.getStatus(),
     });
+
+    // Send available gifts if populated
+    const gifts = this.tiktokService.getAvailableGifts();
+    if (gifts && gifts.length > 0) {
+      client.emit('event', {
+        type: 'gifts-list',
+        data: gifts,
+      });
+    }
 
     // Send current settings
     client.emit('event', {
@@ -74,8 +88,29 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
   }
 
   @SubscribeMessage('command')
-  handleCommand(@ConnectedSocket() client: Socket, @MessageBody() packet: WsPacket) {
+  handleCommand(@ConnectedSocket() client: Socket, @MessageBody() packet: any) {
     this.logger.log(`Received command: ${packet.type}`);
+
+    // Verify token for administrative/mutation commands
+    const adminCommands = ['connect-stream', 'disconnect-stream', 'simulate-event'];
+    if (adminCommands.includes(packet.type)) {
+      try {
+        if (!packet.token) {
+          throw new Error('No authentication token provided');
+        }
+        const decoded = this.jwtService.verify(packet.token);
+        if (decoded.role !== 'admin') {
+          throw new Error('Unauthorized role: Admin privileges required');
+        }
+      } catch (err: any) {
+        this.logger.warn(`Unauthorized WS command: ${packet.type} - ${err.message}`);
+        client.emit('event', {
+          type: 'error',
+          data: `Unauthorized: ${err.message}`,
+        });
+        return;
+      }
+    }
 
     switch (packet.type) {
       case 'connect-stream':

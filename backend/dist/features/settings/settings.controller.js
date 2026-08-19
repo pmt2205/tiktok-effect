@@ -15,6 +15,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SettingsController = void 0;
 const common_1 = require("@nestjs/common");
 const settings_service_1 = require("./settings.service");
+const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
+const roles_guard_1 = require("../auth/guards/roles.guard");
+const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 let SettingsController = class SettingsController {
     constructor(settingsService) {
         this.settingsService = settingsService;
@@ -41,6 +44,8 @@ __decorate([
 ], SettingsController.prototype, "getSettings", null);
 __decorate([
     (0, common_1.Put)(),
+    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('admin'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -54,6 +59,8 @@ __decorate([
 ], SettingsController.prototype, "getMappings", null);
 __decorate([
     (0, common_1.Put)('mappings'),
+    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('admin'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -61,6 +68,7 @@ __decorate([
 ], SettingsController.prototype, "updateMappings", null);
 exports.SettingsController = SettingsController = __decorate([
     (0, common_1.Controller)('api/settings'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __metadata("design:paramtypes", [settings_service_1.SettingsService])
 ], SettingsController);
 //# sourceMappingURL=settings.controller.js.map

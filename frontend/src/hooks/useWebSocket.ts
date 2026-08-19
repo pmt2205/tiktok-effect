@@ -58,7 +58,8 @@ export function useWebSocket({ onEvent, autoConnect = true }: UseWebSocketOption
 
   const sendCommand = useCallback((command: Record<string, any>) => {
     if (socketRef.current?.connected) {
-      socketRef.current.emit('command', command);
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+      socketRef.current.emit('command', { ...command, token });
     } else {
       console.warn('[WS] Cannot send command - not connected');
     }

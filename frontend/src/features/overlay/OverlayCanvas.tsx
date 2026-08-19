@@ -91,8 +91,21 @@ export default function OverlayCanvas() {
     const settings = settingsRef.current;
     const mappings = mappingsRef.current;
 
+    // Check if this is a duplicate repeat count for an ongoing streak (only for real, non-simulated events)
+    if (!giftData.isSimulated && bannersRef.current.has(bannerKey)) {
+      const info = bannersRef.current.get(bannerKey)!;
+      if (repeatCount === info.combo && !info.lastRepeatEnd) {
+        // Just refresh the duration timer for the existing banner so it doesn't expire early
+        clearTimeout(info.timer);
+        info.timer = setTimeout(() => removeBanner(bannerKey), settings.duration * 1000);
+        info.lastRepeatEnd = !!giftData.repeatEnd;
+        return;
+      }
+    }
+
     // Lookup gift mapping
     const giftKey = giftName.toLowerCase().trim();
+    const idKey = giftData.giftId ? giftData.giftId.toString() : '';
     let mappedEffect = 'sparkle';
     let mappedSound = 'rose';
     let videoUrl = '';
@@ -101,11 +114,19 @@ export default function OverlayCanvas() {
       mappedEffect = mappings[giftKey].effect;
       mappedSound = mappings[giftKey].sound;
       videoUrl = mappings[giftKey].videoUrl || '';
+    } else if (idKey && mappings[idKey]) {
+      mappedEffect = mappings[idKey].effect;
+      mappedSound = mappings[idKey].sound;
+      videoUrl = mappings[idKey].videoUrl || '';
     } else {
       if (giftKey.includes('rose') || giftKey.includes('hồng')) {
         mappedEffect = 'video';
         mappedSound = 'rose';
         videoUrl = 'rose.mp4';
+      } else if (giftKey.includes('tiktok')) {
+        mappedEffect = 'video';
+        mappedSound = 'tiktok';
+        videoUrl = 'tiktok.mp4';
       } else if (giftKey.includes('galaxy') || giftKey.includes('vũ trụ')) {
         mappedEffect = 'star';
         mappedSound = 'galaxy';
@@ -141,6 +162,7 @@ export default function OverlayCanvas() {
       const info = bannersRef.current.get(bannerKey)!;
       clearTimeout(info.timer);
       info.combo = repeatCount;
+      info.lastRepeatEnd = !!giftData.repeatEnd;
 
       const badge = info.bannerEl?.querySelector('.combo-badge');
       if (badge) {
@@ -180,7 +202,7 @@ export default function OverlayCanvas() {
       container.appendChild(bannerEl);
 
       const timer = setTimeout(() => removeBanner(bannerKey), settings.duration * 1000);
-      bannersRef.current.set(bannerKey, { bannerEl, timer, combo: repeatCount });
+      bannersRef.current.set(bannerKey, { bannerEl, timer, combo: repeatCount, lastRepeatEnd: !!giftData.repeatEnd });
     }
   };
 

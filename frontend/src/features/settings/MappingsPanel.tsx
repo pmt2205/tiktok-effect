@@ -7,8 +7,10 @@ import { EFFECT_OPTIONS, SOUND_OPTIONS } from '@/lib/constants';
 
 interface MappingsPanelProps {
   mappings: GiftMappings;
+  availableGifts?: any[];
   onAddMapping: (giftName: string, mapping: GiftMapping) => void;
   onDeleteMapping: (giftName: string) => void;
+  isAdmin?: boolean;
 }
 
 function escapeHtml(str: string) {
@@ -20,7 +22,7 @@ function escapeHtml(str: string) {
     .replace(/'/g, '&#039;');
 }
 
-export default function MappingsPanel({ mappings, onAddMapping, onDeleteMapping }: MappingsPanelProps) {
+export default function MappingsPanel({ mappings, availableGifts = [], onAddMapping, onDeleteMapping, isAdmin = true }: MappingsPanelProps) {
   const [giftName, setGiftName] = useState('');
   const [effect, setEffect] = useState('rose-petal');
   const [sound, setSound] = useState('rose');
@@ -51,49 +53,63 @@ export default function MappingsPanel({ mappings, onAddMapping, onDeleteMapping 
     >
       <p className="card-desc">Assign specific visual effects and sounds to TikTok gifts.</p>
 
-      <form onSubmit={handleSubmit} className="mapping-form">
-        <div className="mapping-row-form">
-          <input
-            type="text"
-            value={giftName}
-            onChange={(e) => setGiftName(e.target.value)}
-            placeholder="Gift Name (e.g. Rose, Hoa hồng)"
-            required
-            className="select-control mapping-input-name"
-          />
-          <select
-            value={effect}
-            onChange={(e) => setEffect(e.target.value)}
-            className="select-control"
-          >
-            {EFFECT_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
-          {effect === 'video' && (
+      {isAdmin ? (
+        <form onSubmit={handleSubmit} className="mapping-form">
+          <div className="mapping-row-form">
             <input
               type="text"
-              value={videoFile}
-              onChange={(e) => setVideoFile(e.target.value)}
-              placeholder="video_name.mp4"
+              value={giftName}
+              onChange={(e) => setGiftName(e.target.value)}
+              placeholder="Gift Name (e.g. Rose, Hoa hồng)"
               required
-              className="select-control mapping-input-video"
+              list="available-gifts-list"
+              className="select-control mapping-input-name"
             />
-          )}
-          <select
-            value={sound}
-            onChange={(e) => setSound(e.target.value)}
-            className="select-control"
-          >
-            {SOUND_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
-          <button type="submit" className="btn btn-primary mapping-add-btn">
-            <i className="fa-solid fa-plus" />
-          </button>
+            <datalist id="available-gifts-list">
+              {availableGifts.map((gift) => (
+                <option key={gift.id} value={gift.name}>
+                  {gift.name} ({gift.diamondCount} coins)
+                </option>
+              ))}
+            </datalist>
+            <select
+              value={effect}
+              onChange={(e) => setEffect(e.target.value)}
+              className="select-control"
+            >
+              {EFFECT_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+            {effect === 'video' && (
+              <input
+                type="text"
+                value={videoFile}
+                onChange={(e) => setVideoFile(e.target.value)}
+                placeholder="video_name.mp4"
+                required
+                className="select-control mapping-input-video"
+              />
+            )}
+            <select
+              value={sound}
+              onChange={(e) => setSound(e.target.value)}
+              className="select-control"
+            >
+              {SOUND_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+            <button type="submit" className="btn btn-primary mapping-add-btn">
+              <i className="fa-solid fa-plus" />
+            </button>
+          </div>
+        </form>
+      ) : (
+        <div className="view-only-msg" style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center', marginBottom: '15px' }}>
+          <i className="fa-solid fa-lock" /> Admin privileges required to manage mappings.
         </div>
-      </form>
+      )}
 
       <div className="mapping-list">
         {Object.entries(mappings).map(([name, mapping]) => (
@@ -104,13 +120,15 @@ export default function MappingsPanel({ mappings, onAddMapping, onDeleteMapping 
                 Effect: {mapping.effect === 'video' ? `Video (${mapping.videoUrl || ''})` : mapping.effect} | Sound: {mapping.sound}
               </span>
             </div>
-            <button
-              type="button"
-              className="btn-small-danger"
-              onClick={() => onDeleteMapping(name)}
-            >
-              <i className="fa-solid fa-trash" />
-            </button>
+            {isAdmin && (
+              <button
+                type="button"
+                className="btn-small-danger"
+                onClick={() => onDeleteMapping(name)}
+              >
+                <i className="fa-solid fa-trash" />
+              </button>
+            )}
           </div>
         ))}
       </div>

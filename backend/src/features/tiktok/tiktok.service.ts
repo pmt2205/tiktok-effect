@@ -2,6 +2,25 @@ import { Injectable, Logger } from '@nestjs/common';
 import { TikTokLiveConnection } from 'tiktok-live-connector';
 import { TiktokStatus, ChatEvent, GiftEvent } from '../../common/interfaces/events.interface';
 
+const TIKTOK_GIFT_IDS: Record<number, string> = {
+  5655: 'Rose',
+  5267: 'TikTok',
+  5269: 'TikTok',
+  5621: 'Finger Heart',
+  5827: 'Ice Cream Cone',
+  5543: 'Glow Stick',
+  5585: 'Wishing Bottle',
+  5613: 'Hearts',
+  5281: 'Doughnut',
+  5617: 'Paper Crane',
+  5313: 'Crown',
+  5601: 'Cap',
+  5565: 'Sunglasses',
+  5661: 'Galaxy',
+  5825: 'Lion',
+  6101: 'TikTok Universe',
+};
+
 @Injectable()
 export class TiktokService {
   private readonly logger = new Logger(TiktokService.name);
@@ -12,22 +31,31 @@ export class TiktokService {
   private viewerCount = 0;
   private lastError: string | null = null;
 
+  private availableGifts: any[] = [];
+
   // Callback functions set by the WebSocket gateway
   private onStatusChange?: (status: TiktokStatus) => void;
   private onChat?: (data: ChatEvent) => void;
   private onGift?: (data: GiftEvent) => void;
   private onRoomUser?: (data: { viewerCount: number }) => void;
+  private onGiftsList?: (gifts: any[]) => void;
 
   registerCallbacks(callbacks: {
     onStatusChange: (status: TiktokStatus) => void;
     onChat: (data: ChatEvent) => void;
     onGift: (data: GiftEvent) => void;
     onRoomUser: (data: { viewerCount: number }) => void;
+    onGiftsList?: (gifts: any[]) => void;
   }) {
     this.onStatusChange = callbacks.onStatusChange;
     this.onChat = callbacks.onChat;
     this.onGift = callbacks.onGift;
     this.onRoomUser = callbacks.onRoomUser;
+    this.onGiftsList = callbacks.onGiftsList;
+  }
+
+  getAvailableGifts(): any[] {
+    return this.availableGifts;
   }
 
   getStatus(): TiktokStatus {
@@ -67,9 +95,23 @@ export class TiktokService {
 
       this.connection
         .connect()
-        .then((state: any) => {
+        .then(async (state: any) => {
           this.setConnectionStatus('connected');
           this.logger.log(`Successfully connected to room ID: ${state.roomId}`);
+          try {
+            const giftsList = await this.connection.fetchAvailableGifts();
+            if (Array.isArray(giftsList)) {
+              this.availableGifts = giftsList.map((g: any) => ({
+                id: g.id || g.gift_id,
+                name: g.name,
+                diamondCount: g.diamond_count || g.cost || 0,
+                image: g.image?.url_list?.[0] || g.icon?.url_list?.[0] || '',
+              }));
+              this.onGiftsList?.(this.availableGifts);
+            }
+          } catch (err) {
+            this.logger.error('Failed to fetch available gifts:', err);
+          }
         })
         .catch((err: Error) => {
           this.logger.error('Failed to connect:', err);
@@ -92,15 +134,24 @@ export class TiktokService {
 
       // Gift handler
       this.connection.on('gift', (data: any) => {
+        const giftId = data.giftId || data.gift?.gift_id;
+        const resolvedName = data.extendedGiftInfo?.name || 
+                             data.giftName || 
+                             data.gift?.gift_name || 
+                             (giftId ? TIKTOK_GIFT_IDS[giftId] : null) || 
+                             (giftId ? `Gift ${giftId}` : 'Rose');
         const giftData: GiftEvent = {
           nickname: data.nickname || data.user?.nickname || data.uniqueId || 'Anonymous',
           uniqueId: data.uniqueId || data.user?.uniqueId || 'anonymous',
-          giftName: data.giftName || data.gift?.gift_name || 'Rose',
+          giftName: resolvedName,
           repeatCount: data.repeatCount || 1,
-          diamondCount: data.diamondCount || 0,
-          giftPictureUrl: data.giftPictureUrl || data.giftDetails?.giftImage?.url_list?.[0] || '',
+          diamondCount: data.extendedGiftInfo?.diamond_count || data.diamondCount || 0,
+          giftPictureUrl: data.extendedGiftInfo?.image?.url_list?.[0] || data.extendedGiftInfo?.icon?.url_list?.[0] || data.giftPictureUrl || data.giftDetails?.giftImage?.url_list?.[0] || '',
           profilePictureUrl: data.profilePictureUrl || data.user?.avatarMedium?.url_list?.[0] || '',
           isSimulated: false,
+          repeatEnd: !!data.repeatEnd,
+          giftType: data.gift?.gift_type || data.giftDetails?.giftType,
+          giftId: giftId,
         };
         this.onGift?.(giftData);
       });
@@ -139,6 +190,7 @@ export class TiktokService {
       this.connection = null;
     }
     this.username = '';
+    this.availableGifts = [];
     this.setConnectionStatus('disconnected');
   }
 }

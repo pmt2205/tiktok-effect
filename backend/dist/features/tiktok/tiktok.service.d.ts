@@ -6,10 +6,12 @@ export declare class TiktokService {
     private status;
     private viewerCount;
     private lastError;
+    private availableGifts;
     private onStatusChange?;
     private onChat?;
     private onGift?;
     private onRoomUser?;
+    private onGiftsList?;
     registerCallbacks(callbacks: {
         onStatusChange: (status: TiktokStatus) => void;
         onChat: (data: ChatEvent) => void;
@@ -17,7 +19,9 @@ export declare class TiktokService {
         onRoomUser: (data: {
             viewerCount: number;
         }) => void;
+        onGiftsList?: (gifts: any[]) => void;
     }): void;
+    getAvailableGifts(): any[];
     getStatus(): TiktokStatus;
     private setConnectionStatus;
     connect(username: string): void;

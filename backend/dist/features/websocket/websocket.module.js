@@ -11,12 +11,13 @@ const common_1 = require("@nestjs/common");
 const websocket_gateway_1 = require("./websocket.gateway");
 const tiktok_module_1 = require("../tiktok/tiktok.module");
 const settings_module_1 = require("../settings/settings.module");
+const auth_module_1 = require("../auth/auth.module");
 let WebsocketModule = class WebsocketModule {
 };
 exports.WebsocketModule = WebsocketModule;
 exports.WebsocketModule = WebsocketModule = __decorate([
     (0, common_1.Module)({
-        imports: [tiktok_module_1.TiktokModule, settings_module_1.SettingsModule],
+        imports: [tiktok_module_1.TiktokModule, settings_module_1.SettingsModule, auth_module_1.AuthModule],
         providers: [websocket_gateway_1.WebsocketGateway],
     })
 ], WebsocketModule);

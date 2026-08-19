@@ -17,12 +17,14 @@ exports.WebsocketGateway = void 0;
 const websockets_1 = require("@nestjs/websockets");
 const common_1 = require("@nestjs/common");
 const socket_io_1 = require("socket.io");
+const jwt_1 = require("@nestjs/jwt");
 const tiktok_service_1 = require("../tiktok/tiktok.service");
 const settings_service_1 = require("../settings/settings.service");
 let WebsocketGateway = WebsocketGateway_1 = class WebsocketGateway {
-    constructor(tiktokService, settingsService) {
+    constructor(tiktokService, settingsService, jwtService) {
         this.tiktokService = tiktokService;
         this.settingsService = settingsService;
+        this.jwtService = jwtService;
         this.logger = new common_1.Logger(WebsocketGateway_1.name);
     }
     onModuleInit() {
@@ -39,6 +41,9 @@ let WebsocketGateway = WebsocketGateway_1 = class WebsocketGateway {
             onRoomUser: (data) => {
                 this.server.emit('event', { type: 'roomUser', data });
             },
+            onGiftsList: (gifts) => {
+                this.server.emit('event', { type: 'gifts-list', data: gifts });
+            },
         });
     }
     handleConnection(client) {
@@ -47,6 +52,13 @@ let WebsocketGateway = WebsocketGateway_1 = class WebsocketGateway {
             type: 'status',
             data: this.tiktokService.getStatus(),
         });
+        const gifts = this.tiktokService.getAvailableGifts();
+        if (gifts && gifts.length > 0) {
+            client.emit('event', {
+                type: 'gifts-list',
+                data: gifts,
+            });
+        }
         client.emit('event', {
             type: 'settings-update',
             data: this.settingsService.getSettings(),
@@ -61,6 +73,26 @@ let WebsocketGateway = WebsocketGateway_1 = class WebsocketGateway {
     }
     handleCommand(client, packet) {
         this.logger.log(`Received command: ${packet.type}`);
+        const adminCommands = ['connect-stream', 'disconnect-stream', 'simulate-event'];
+        if (adminCommands.includes(packet.type)) {
+            try {
+                if (!packet.token) {
+                    throw new Error('No authentication token provided');
+                }
+                const decoded = this.jwtService.verify(packet.token);
+                if (decoded.role !== 'admin') {
+                    throw new Error('Unauthorized role: Admin privileges required');
+                }
+            }
+            catch (err) {
+                this.logger.warn(`Unauthorized WS command: ${packet.type} - ${err.message}`);
+                client.emit('event', {
+                    type: 'error',
+                    data: `Unauthorized: ${err.message}`,
+                });
+                return;
+            }
+        }
         switch (packet.type) {
             case 'connect-stream':
                 if (packet.username) {
@@ -128,6 +160,7 @@ exports.WebsocketGateway = WebsocketGateway = WebsocketGateway_1 = __decorate([
         },
     }),
     __metadata("design:paramtypes", [tiktok_service_1.TiktokService,
-        settings_service_1.SettingsService])
+        settings_service_1.SettingsService,
+        jwt_1.JwtService])
 ], WebsocketGateway);
 //# sourceMappingURL=websocket.gateway.js.map

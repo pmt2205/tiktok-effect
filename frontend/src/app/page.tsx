@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Header from '@/components/layout/Header';
 import BackgroundGlows from '@/components/layout/BackgroundGlows';
 import ConnectionPanel from '@/features/connection/ConnectionPanel';
@@ -11,9 +12,13 @@ import LogsPanel from '@/features/logs/LogsPanel';
 import ObsSetupPanel from '@/features/obs-setup/ObsSetupPanel';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { TiktokStatus, OverlaySettings, GiftMappings, GiftMapping, LogEntry } from '@/types';
-import { DEFAULT_SETTINGS, DEFAULT_MAPPINGS, MOCK_USERS, MOCK_CHATS, GIFT_PICTURES } from '@/lib/constants';
+import { DEFAULT_SETTINGS, DEFAULT_MAPPINGS, MOCK_USERS, MOCK_CHATS, GIFT_PICTURES, BACKEND_URL } from '@/lib/constants';
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const [userRole, setUserRole] = useState<'admin' | 'user'>('user');
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+
   // Connection state
   const [status, setStatus] = useState<TiktokStatus>({
     status: 'disconnected',
@@ -28,26 +33,73 @@ export default function DashboardPage() {
   // Mappings state
   const [mappings, setMappings] = useState<GiftMappings>(DEFAULT_MAPPINGS);
 
-  // Load settings and mappings from localStorage on client side mount
+  // Available gifts list from TikTok
+  const [availableGifts, setAvailableGifts] = useState<any[]>([]);
+
+  // Verify auth session and load settings/mappings from backend API (MongoDB) on mount
   useEffect(() => {
+    const token = localStorage.getItem('auth_token');
+    const userStr = localStorage.getItem('auth_user');
+
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+
     try {
-      const savedSettings = localStorage.getItem('tiktok_overlay_settings');
-      if (savedSettings) {
-        setSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(savedSettings) });
+      if (userStr) {
+        const userObj = JSON.parse(userStr);
+        setUserRole(userObj.role);
       }
-      const savedMappings = localStorage.getItem('tiktok_overlay_mappings');
-      if (savedMappings) {
-        const parsed = JSON.parse(savedMappings);
-        setMappings(parsed);
-        const keys = Object.keys(parsed);
+    } catch (err) {
+      console.error('Failed to parse user role:', err);
+    }
+    
+    setIsAuthLoading(false);
+
+    // 1. Fetch settings
+    fetch(`${BACKEND_URL}/api/settings`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('API error');
+        return res.json();
+      })
+      .then((data) => {
+        setSettings({ ...DEFAULT_SETTINGS, ...data });
+      })
+      .catch((e) => {
+        console.error('Failed to load settings from database, using local storage fallback:', e);
+        const savedSettings = localStorage.getItem('tiktok_overlay_settings');
+        if (savedSettings) setSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(savedSettings) });
+      });
+
+    // 2. Fetch mappings
+    fetch(`${BACKEND_URL}/api/settings/mappings`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('API error');
+        return res.json();
+      })
+      .then((data) => {
+        setMappings(data);
+        const keys = Object.keys(data);
         if (keys.length > 0) {
           setSelectedMappedGift(keys[0]);
         }
-      }
-    } catch (e) {
-      console.error('Failed to load settings/mappings from localStorage:', e);
-    }
-  }, []);
+      })
+      .catch((e) => {
+        console.error('Failed to load mappings from database, using local storage fallback:', e);
+        const savedMappings = localStorage.getItem('tiktok_overlay_mappings');
+        if (savedMappings) {
+          const parsed = JSON.parse(savedMappings);
+          setMappings(parsed);
+          const keys = Object.keys(parsed);
+          if (keys.length > 0) setSelectedMappedGift(keys[0]);
+        }
+      });
+  }, [router]);
 
   // Logs state
   const [logs, setLogs] = useState<LogEntry[]>([]);
@@ -75,6 +127,9 @@ export default function DashboardPage() {
       switch (packet.type) {
         case 'status':
           setStatus(packet.data);
+          break;
+        case 'gifts-list':
+          setAvailableGifts(packet.data || []);
           break;
         case 'roomUser':
           if (packet.data?.viewerCount !== undefined) {
@@ -109,9 +164,6 @@ export default function DashboardPage() {
   useEffect(() => {
     if (isConnected) {
       addLog('System', 'Connected to backend server.', 'system');
-      // Sync settings and mappings
-      handleSaveSettings();
-      broadcastMappings();
     }
   }, [isConnected]);
 
@@ -292,6 +344,19 @@ export default function DashboardPage() {
     addLog('System', 'Log console cleared.', 'system');
   };
 
+  if (isAuthLoading) {
+    return (
+      <div className="login-page-container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#07080d' }}>
+        <BackgroundGlows />
+        <div style={{ color: '#00f2fe', fontSize: '1.2rem', fontFamily: 'Space Grotesk', letterSpacing: '2px' }}>
+          VERIFYING SECURITY SESSION...
+        </div>
+      </div>
+    );
+  }
+
+  const isAdmin = userRole === 'admin';
+
   return (
     <>
       <BackgroundGlows />
@@ -300,9 +365,15 @@ export default function DashboardPage() {
         <main className="dashboard-grid">
           {/* Column 1: Controls & Settings */}
           <div className="dashboard-col">
-            <ConnectionPanel status={status} onConnect={handleConnect} onDisconnect={handleDisconnect} />
-            <SettingsPanel settings={settings} onSettingsChange={setSettings} onSave={handleSaveSettings} />
-            <MappingsPanel mappings={mappings} onAddMapping={handleAddMapping} onDeleteMapping={handleDeleteMapping} />
+            <ConnectionPanel status={status} onConnect={handleConnect} onDisconnect={handleDisconnect} isAdmin={isAdmin} />
+            <SettingsPanel settings={settings} onSettingsChange={setSettings} onSave={handleSaveSettings} isAdmin={isAdmin} />
+            <MappingsPanel
+              mappings={mappings}
+              availableGifts={availableGifts}
+              onAddMapping={handleAddMapping}
+              onDeleteMapping={handleDeleteMapping}
+              isAdmin={isAdmin}
+            />
             <ObsSetupPanel overlayUrl={overlayUrl} />
           </div>
 
@@ -317,6 +388,7 @@ export default function DashboardPage() {
               onSimulateChat={simulateChat}
               selectedMappedGift={selectedMappedGift}
               onSelectedMappedGiftChange={setSelectedMappedGift}
+              isAdmin={isAdmin}
             />
             <LogsPanel logs={logs} onClear={clearLogs} />
           </div>

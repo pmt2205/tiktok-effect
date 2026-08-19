@@ -24,6 +24,9 @@ export interface GiftEvent {
   giftPictureUrl: string;
   profilePictureUrl: string;
   isSimulated?: boolean;
+  repeatEnd?: boolean;
+  giftType?: number;
+  giftId?: number;
 }
 
 export interface RoomUserEvent {
@@ -68,4 +71,5 @@ export interface BannerInfo {
   bannerEl?: HTMLDivElement;
   timer: ReturnType<typeof setTimeout>;
   combo: number;
+  lastRepeatEnd?: boolean;
 }

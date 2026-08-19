@@ -12,9 +12,10 @@ interface ConnectionPanelProps {
   status: TiktokStatus;
   onConnect: (username: string) => void;
   onDisconnect: () => void;
+  isAdmin?: boolean;
 }
 
-export default function ConnectionPanel({ status, onConnect, onDisconnect }: ConnectionPanelProps) {
+export default function ConnectionPanel({ status, onConnect, onDisconnect, isAdmin = true }: ConnectionPanelProps) {
   const [username, setUsername] = useState('');
 
   const isConnected = status.status === 'connected';
@@ -27,6 +28,7 @@ export default function ConnectionPanel({ status, onConnect, onDisconnect }: Con
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isAdmin) return;
     const cleanUsername = username.trim().replace(/^@/, '');
     if (cleanUsername) {
       onConnect(cleanUsername);
@@ -57,21 +59,27 @@ export default function ConnectionPanel({ status, onConnect, onDisconnect }: Con
           value={isConnected || isConnecting ? status.username : username}
           onChange={setUsername}
           placeholder="tiktok_username"
-          disabled={!isDisconnected}
+          disabled={!isDisconnected || !isAdmin}
           id="username-input"
         />
-        <div className="button-group">
-          {isDisconnected && (
-            <Button type="submit" variant="primary" id="btn-connect">
-              <i className="fa-solid fa-link" /> Connect
-            </Button>
-          )}
-          {!isDisconnected && (
-            <Button type="button" variant="danger" onClick={onDisconnect} id="btn-disconnect">
-              <i className="fa-solid fa-link-slash" /> Disconnect
-            </Button>
-          )}
-        </div>
+        {isAdmin ? (
+          <div className="button-group">
+            {isDisconnected && (
+              <Button type="submit" variant="gradient" id="btn-connect">
+                <i className="fa-solid fa-link" /> Connect
+              </Button>
+            )}
+            {!isDisconnected && (
+              <Button type="button" variant="danger" onClick={onDisconnect} id="btn-disconnect">
+                <i className="fa-solid fa-link-slash" /> Disconnect
+              </Button>
+            )}
+          </div>
+        ) : (
+          <div className="view-only-msg" style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '10px' }}>
+            <i className="fa-solid fa-lock" /> Admin privileges required to manage stream connection.
+          </div>
+        )}
       </form>
 
       {status.error && (
