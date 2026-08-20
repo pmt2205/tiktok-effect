@@ -12,6 +12,8 @@ import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { TiktokService } from '../tiktok/tiktok.service';
 import { SettingsService } from '../settings/settings.service';
+import { GiftsService } from '../gifts/gifts.service';
+import { UsersService } from '../users/users.service';
 import { TiktokStatus, ChatEvent, GiftEvent } from '../../common/interfaces/events.interface';
 
 @WebSocketGateway({
@@ -29,6 +31,8 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
     private readonly tiktokService: TiktokService,
     private readonly settingsService: SettingsService,
     private readonly jwtService: JwtService,
+    private readonly giftsService: GiftsService,
+    private readonly usersService: UsersService,
   ) {}
 
   onModuleInit() {
@@ -49,6 +53,11 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
       onGiftsList: (gifts: any[]) => {
         this.server.emit('event', { type: 'gifts-list', data: gifts });
       },
+    });
+
+    // Register Gifts change callback to broadcast to all WS clients
+    this.giftsService.registerChangeCallback((gifts) => {
+      this.server.emit('event', { type: 'gifts-update', data: gifts });
     });
   }
 
@@ -81,6 +90,16 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
       type: 'mappings-update',
       data: this.settingsService.getMappings(),
     });
+
+    // Send database custom gifts
+    this.giftsService.findAll()
+      .then(dbGifts => {
+        client.emit('event', {
+          type: 'gifts-update',
+          data: dbGifts,
+        });
+      })
+      .catch(err => this.logger.error('Failed to send database gifts to new client:', err));
   }
 
   handleDisconnect(client: Socket) {
@@ -88,7 +107,7 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
   }
 
   @SubscribeMessage('command')
-  handleCommand(@ConnectedSocket() client: Socket, @MessageBody() packet: any) {
+  async handleCommand(@ConnectedSocket() client: Socket, @MessageBody() packet: any) {
     this.logger.log(`Received command: ${packet.type}`);
 
     // Verify token for administrative/mutation commands
@@ -99,8 +118,17 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
           throw new Error('No authentication token provided');
         }
         const decoded = this.jwtService.verify(packet.token);
-        if (decoded.role !== 'admin') {
-          throw new Error('Unauthorized role: Admin privileges required');
+        
+        if (packet.type === 'connect-stream' || packet.type === 'disconnect-stream') {
+          const dbUser = await this.usersService.findByUsername(decoded.username);
+          const allowUserConnect = dbUser ? dbUser.allowConnect : false;
+          if (decoded.role !== 'admin' && !allowUserConnect) {
+            throw new Error('Unauthorized role: Stream connection is disabled for your user account');
+          }
+        } else {
+          if (decoded.role !== 'admin') {
+            throw new Error('Unauthorized role: Admin privileges required');
+          }
         }
       } catch (err: any) {
         this.logger.warn(`Unauthorized WS command: ${packet.type} - ${err.message}`);

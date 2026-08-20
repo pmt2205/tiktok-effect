@@ -15,6 +15,7 @@ export declare class AuthService {
             userId: import("mongoose").Types.ObjectId;
             username: string;
             role: string;
+            allowConnect: boolean;
         };
     }>;
 }

@@ -13,6 +13,7 @@ export declare class AuthController {
             userId: import("mongoose").Types.ObjectId;
             username: string;
             role: string;
+            allowConnect: boolean;
         };
     }>;
 }

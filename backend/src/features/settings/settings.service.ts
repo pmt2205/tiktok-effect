@@ -9,18 +9,17 @@ export class SettingsService implements OnModuleInit {
   private readonly logger = new Logger(SettingsService.name);
 
   private settings: OverlaySettings = {
-    soundEnabled: true,
     duration: 5,
     density: 2,
     theme: 'neon-pulse',
   };
 
   private mappings: GiftMappings = {
-    rose: { effect: 'video', sound: 'rose', videoUrl: 'rose.mp4' },
-    'hoa hồng': { effect: 'video', sound: 'rose', videoUrl: 'rose.mp4' },
-    galaxy: { effect: 'star', sound: 'galaxy' },
-    lion: { effect: 'star', sound: 'galaxy' },
-    tiktok: { effect: 'video', sound: 'tiktok', videoUrl: 'tiktok.mp4' },
+    rose: { effect: 'video', videoUrl: 'rose.mp4' },
+    'hoa hồng': { effect: 'video', videoUrl: 'rose.mp4' },
+    galaxy: { effect: 'star' },
+    lion: { effect: 'star' },
+    tiktok: { effect: 'video', videoUrl: 'tiktok.mp4' },
   };
 
   constructor(
@@ -37,7 +36,6 @@ export class SettingsService implements OnModuleInit {
         this.logger.log('Seeded default settings in MongoDB');
       } else {
         this.settings = {
-          soundEnabled: settingsDoc.soundEnabled,
           duration: settingsDoc.duration,
           density: settingsDoc.density,
           theme: settingsDoc.theme,
@@ -51,7 +49,6 @@ export class SettingsService implements OnModuleInit {
         const seedData = Object.entries(this.mappings).map(([giftName, val]) => ({
           giftName,
           effect: val.effect,
-          sound: val.sound,
           videoUrl: val.videoUrl,
         }));
         await this.mappingModel.insertMany(seedData);
@@ -61,7 +58,6 @@ export class SettingsService implements OnModuleInit {
         mappingDocs.forEach(doc => {
           loadedMappings[doc.giftName] = {
             effect: doc.effect,
-            sound: doc.sound,
             videoUrl: doc.videoUrl,
           };
         });
@@ -105,7 +101,6 @@ export class SettingsService implements OnModuleInit {
       const seedData = Object.entries(newMappings).map(([giftName, val]) => ({
         giftName,
         effect: val.effect,
-        sound: val.sound,
         videoUrl: val.videoUrl,
       }));
       await this.mappingModel.insertMany(seedData);

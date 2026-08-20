@@ -20,11 +20,15 @@ const socket_io_1 = require("socket.io");
 const jwt_1 = require("@nestjs/jwt");
 const tiktok_service_1 = require("../tiktok/tiktok.service");
 const settings_service_1 = require("../settings/settings.service");
+const gifts_service_1 = require("../gifts/gifts.service");
+const users_service_1 = require("../users/users.service");
 let WebsocketGateway = WebsocketGateway_1 = class WebsocketGateway {
-    constructor(tiktokService, settingsService, jwtService) {
+    constructor(tiktokService, settingsService, jwtService, giftsService, usersService) {
         this.tiktokService = tiktokService;
         this.settingsService = settingsService;
         this.jwtService = jwtService;
+        this.giftsService = giftsService;
+        this.usersService = usersService;
         this.logger = new common_1.Logger(WebsocketGateway_1.name);
     }
     onModuleInit() {
@@ -44,6 +48,9 @@ let WebsocketGateway = WebsocketGateway_1 = class WebsocketGateway {
             onGiftsList: (gifts) => {
                 this.server.emit('event', { type: 'gifts-list', data: gifts });
             },
+        });
+        this.giftsService.registerChangeCallback((gifts) => {
+            this.server.emit('event', { type: 'gifts-update', data: gifts });
         });
     }
     handleConnection(client) {
@@ -67,11 +74,19 @@ let WebsocketGateway = WebsocketGateway_1 = class WebsocketGateway {
             type: 'mappings-update',
             data: this.settingsService.getMappings(),
         });
+        this.giftsService.findAll()
+            .then(dbGifts => {
+            client.emit('event', {
+                type: 'gifts-update',
+                data: dbGifts,
+            });
+        })
+            .catch(err => this.logger.error('Failed to send database gifts to new client:', err));
     }
     handleDisconnect(client) {
         this.logger.log(`Client disconnected: ${client.id}`);
     }
-    handleCommand(client, packet) {
+    async handleCommand(client, packet) {
         this.logger.log(`Received command: ${packet.type}`);
         const adminCommands = ['connect-stream', 'disconnect-stream', 'simulate-event'];
         if (adminCommands.includes(packet.type)) {
@@ -80,8 +95,17 @@ let WebsocketGateway = WebsocketGateway_1 = class WebsocketGateway {
                     throw new Error('No authentication token provided');
                 }
                 const decoded = this.jwtService.verify(packet.token);
-                if (decoded.role !== 'admin') {
-                    throw new Error('Unauthorized role: Admin privileges required');
+                if (packet.type === 'connect-stream' || packet.type === 'disconnect-stream') {
+                    const dbUser = await this.usersService.findByUsername(decoded.username);
+                    const allowUserConnect = dbUser ? dbUser.allowConnect : false;
+                    if (decoded.role !== 'admin' && !allowUserConnect) {
+                        throw new Error('Unauthorized role: Stream connection is disabled for your user account');
+                    }
+                }
+                else {
+                    if (decoded.role !== 'admin') {
+                        throw new Error('Unauthorized role: Admin privileges required');
+                    }
                 }
             }
             catch (err) {
@@ -151,7 +175,7 @@ __decorate([
     __param(1, (0, websockets_1.MessageBody)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], WebsocketGateway.prototype, "handleCommand", null);
 exports.WebsocketGateway = WebsocketGateway = WebsocketGateway_1 = __decorate([
     (0, websockets_1.WebSocketGateway)({
@@ -161,6 +185,8 @@ exports.WebsocketGateway = WebsocketGateway = WebsocketGateway_1 = __decorate([
     }),
     __metadata("design:paramtypes", [tiktok_service_1.TiktokService,
         settings_service_1.SettingsService,
-        jwt_1.JwtService])
+        jwt_1.JwtService,
+        gifts_service_1.GiftsService,
+        users_service_1.UsersService])
 ], WebsocketGateway);
 //# sourceMappingURL=websocket.gateway.js.map

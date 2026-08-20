@@ -1,5 +1,29 @@
 import type { Metadata } from 'next';
+import { Inter, Space_Grotesk, Rubik_Mono_One } from 'next/font/google';
+import { Providers } from './providers';
+import ToastContainer from '@/components/ui/toast-container';
 import './globals.css';
+
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700', '800'],
+  variable: '--font-body',
+  display: 'swap',
+});
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-header',
+  display: 'swap',
+});
+
+const rubikMonoOne = Rubik_Mono_One({
+  subsets: ['latin'],
+  weight: ['400'],
+  variable: '--font-combo',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'TikTok Live Overlay Engine',
@@ -14,23 +38,18 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Modern Typography */}
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
         {/* FontAwesome Icons */}
         <link
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         />
-        {/* Rubik Mono One for combo badge */}
-        <link
-          href="https://fonts.googleapis.com/css2?family=Rubik+Mono+One&display=swap"
-          rel="stylesheet"
-        />
       </head>
-      <body>{children}</body>
+      <body className={`${inter.variable} ${spaceGrotesk.variable} ${rubikMonoOne.variable} antialiased`}>
+        <Providers>
+          {children}
+          <ToastContainer />
+        </Providers>
+      </body>
     </html>
   );
 }

@@ -16,10 +16,6 @@ let Settings = class Settings extends mongoose_2.Document {
 };
 exports.Settings = Settings;
 __decorate([
-    (0, mongoose_1.Prop)({ required: true, default: true }),
-    __metadata("design:type", Boolean)
-], Settings.prototype, "soundEnabled", void 0);
-__decorate([
     (0, mongoose_1.Prop)({ required: true, default: 5 }),
     __metadata("design:type", Number)
 ], Settings.prototype, "duration", void 0);
@@ -46,10 +42,6 @@ __decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
 ], Mapping.prototype, "effect", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
-], Mapping.prototype, "sound", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: false }),
     __metadata("design:type", String)

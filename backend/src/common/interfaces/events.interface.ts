@@ -33,7 +33,6 @@ export interface RoomUserEvent {
 }
 
 export interface OverlaySettings {
-  soundEnabled: boolean;
   duration: number;
   density: number;
   theme: string;
@@ -41,7 +40,6 @@ export interface OverlaySettings {
 
 export interface GiftMapping {
   effect: string;
-  sound: string;
   videoUrl?: string;
 }
 

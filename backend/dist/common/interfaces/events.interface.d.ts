@@ -27,14 +27,12 @@ export interface RoomUserEvent {
     viewerCount: number;
 }
 export interface OverlaySettings {
-    soundEnabled: boolean;
     duration: number;
     density: number;
     theme: string;
 }
 export interface GiftMapping {
     effect: string;
-    sound: string;
     videoUrl?: string;
 }
 export type GiftMappings = Record<string, GiftMapping>;

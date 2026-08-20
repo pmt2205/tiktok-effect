@@ -12,12 +12,14 @@ const websocket_gateway_1 = require("./websocket.gateway");
 const tiktok_module_1 = require("../tiktok/tiktok.module");
 const settings_module_1 = require("../settings/settings.module");
 const auth_module_1 = require("../auth/auth.module");
+const gifts_module_1 = require("../gifts/gifts.module");
+const users_module_1 = require("../users/users.module");
 let WebsocketModule = class WebsocketModule {
 };
 exports.WebsocketModule = WebsocketModule;
 exports.WebsocketModule = WebsocketModule = __decorate([
     (0, common_1.Module)({
-        imports: [tiktok_module_1.TiktokModule, settings_module_1.SettingsModule, auth_module_1.AuthModule],
+        imports: [tiktok_module_1.TiktokModule, settings_module_1.SettingsModule, auth_module_1.AuthModule, gifts_module_1.GiftsModule, users_module_1.UsersModule],
         providers: [websocket_gateway_1.WebsocketGateway],
     })
 ], WebsocketModule);

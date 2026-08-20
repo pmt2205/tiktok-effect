@@ -6,7 +6,6 @@ export const WS_URL = BACKEND_URL;
 
 // Default overlay settings
 export const DEFAULT_SETTINGS = {
-  soundEnabled: true,
   duration: 5,
   density: 2,
   theme: 'neon-pulse',
@@ -14,11 +13,11 @@ export const DEFAULT_SETTINGS = {
 
 // Default gift mappings
 export const DEFAULT_MAPPINGS = {
-  rose: { effect: 'video', sound: 'rose', videoUrl: 'rose.mp4' },
-  'hoa hồng': { effect: 'video', sound: 'rose', videoUrl: 'rose.mp4' },
-  galaxy: { effect: 'star', sound: 'galaxy' },
-  lion: { effect: 'star', sound: 'galaxy' },
-  tiktok: { effect: 'video', sound: 'tiktok', videoUrl: 'tiktok.mp4' },
+  rose: { effect: 'video', videoUrl: 'rose.mp4' },
+  'hoa hồng': { effect: 'video', videoUrl: 'rose.mp4' },
+  galaxy: { effect: 'star' },
+  lion: { effect: 'star' },
+  tiktok: { effect: 'video', videoUrl: 'tiktok.mp4' },
 };
 
 // Mock users for simulator
@@ -57,13 +56,6 @@ export const EFFECT_OPTIONS = [
   { value: 'star', label: 'Cosmic Blast' },
   { value: 'sparkle', label: 'Gold Stars' },
   { value: 'video', label: 'Green Screen Video (.mp4)' },
-];
-
-// Sound options for mapping form
-export const SOUND_OPTIONS = [
-  { value: 'rose', label: 'Chime' },
-  { value: 'galaxy', label: 'Cosmic' },
-  { value: 'silent', label: 'Silent' },
 ];
 
 // Theme options

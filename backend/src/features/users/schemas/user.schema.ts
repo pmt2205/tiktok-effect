@@ -11,6 +11,9 @@ export class User extends Document {
 
   @Prop({ required: true, enum: ['admin', 'user'], default: 'user' })
   role: string;
+
+  @Prop({ required: false, default: false })
+  allowConnect: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

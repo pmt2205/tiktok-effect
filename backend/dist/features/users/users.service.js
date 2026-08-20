@@ -32,6 +32,15 @@ let UsersService = class UsersService {
         });
         return user.save();
     }
+    async findAll() {
+        return this.userModel.find({}, '-passwordHash').exec();
+    }
+    async remove(id) {
+        return this.userModel.findByIdAndDelete(id).exec();
+    }
+    async updatePermissions(id, allowConnect) {
+        return this.userModel.findByIdAndUpdate(id, { allowConnect }, { new: true }).select('-passwordHash').exec();
+    }
 };
 exports.UsersService = UsersService;
 exports.UsersService = UsersService = __decorate([

@@ -1,42 +1,55 @@
 'use client';
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/layout/Header';
-import BackgroundGlows from '@/components/layout/BackgroundGlows';
-import ConnectionPanel from '@/features/connection/ConnectionPanel';
-import SettingsPanel from '@/features/settings/SettingsPanel';
-import MappingsPanel from '@/features/settings/MappingsPanel';
-import SimulatorPanel from '@/features/simulator/SimulatorPanel';
-import LogsPanel from '@/features/logs/LogsPanel';
-import ObsSetupPanel from '@/features/obs-setup/ObsSetupPanel';
-import { useWebSocket } from '@/hooks/useWebSocket';
-import { TiktokStatus, OverlaySettings, GiftMappings, GiftMapping, LogEntry } from '@/types';
-import { DEFAULT_SETTINGS, DEFAULT_MAPPINGS, MOCK_USERS, MOCK_CHATS, GIFT_PICTURES, BACKEND_URL } from '@/lib/constants';
+import Header from '@/components/layout/header';
+import AdminSidebar from '@/components/layout/admin-sidebar';
+import BackgroundGlows from '@/components/layout/background-glows';
+import ConnectionPanel from '@/features/admin-dashboard/components/connection-panel';
+import SettingsPanel from '@/features/admin-dashboard/components/settings-panel';
+import MappingsPanel from '@/features/admin-dashboard/components/mappings-panel';
+import SimulatorPanel from '@/features/admin-dashboard/components/simulator-panel';
+import LogsPanel from '@/features/admin-dashboard/components/logs-panel';
+import ObsSetupPanel from '@/features/admin-dashboard/components/obs-setup-panel';
+import GiftManagerPanel from '@/features/admin-dashboard/components/gift-manager-panel';
+import UserManagerPanel from '@/features/admin-dashboard/components/user-manager-panel';
+import UserHomepage from '@/features/user-dashboard/components/user-homepage';
+import { useWebSocket } from '@/hooks/use-websocket';
+import { GiftMapping, TiktokStatus, GiftEvent, ChatEvent, Gift } from '@/types';
+import { DEFAULT_SETTINGS, MOCK_USERS, MOCK_CHATS, GIFT_PICTURES, BACKEND_URL } from '@/lib/constants';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { initializeAuth } from '@/features/auth/store/auth-slice';
+import {
+  setStatus,
+  setViewerCount,
+  setSettings,
+  setMappings,
+  setAvailableGifts,
+  setCustomGifts,
+  addMapping,
+  deleteMapping,
+  addLog,
+} from '@/features/admin-dashboard/store/dashboard-slice';
+
+const getRandomMockUser = () => {
+  return MOCK_USERS[Math.floor(Math.random() * MOCK_USERS.length)];
+};
+
+const getRandomMockChat = () => {
+  return MOCK_CHATS[Math.floor(Math.random() * MOCK_CHATS.length)];
+};
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [userRole, setUserRole] = useState<'admin' | 'user'>('user');
-  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const dispatch = useAppDispatch();
+  const [adminTab, setAdminTab] = useState<'home' | 'effects' | 'users'>('home');
 
-  // Connection state
-  const [status, setStatus] = useState<TiktokStatus>({
-    status: 'disconnected',
-    username: '',
-    viewerCount: 0,
-    error: null,
-  });
+  // Get state from Redux
+  const isAuthLoading = useAppSelector((state) => state.auth.isAuthLoading);
+  const settings = useAppSelector((state) => state.dashboard.settings);
+  const mappings = useAppSelector((state) => state.dashboard.mappings);
 
-  // Settings state
-  const [settings, setSettings] = useState<OverlaySettings>(DEFAULT_SETTINGS);
-
-  // Mappings state
-  const [mappings, setMappings] = useState<GiftMappings>(DEFAULT_MAPPINGS);
-
-  // Available gifts list from TikTok
-  const [availableGifts, setAvailableGifts] = useState<any[]>([]);
-
-  // Verify auth session and load settings/mappings from backend API (MongoDB) on mount
+  // Verify auth session and load settings/mappings from backend API on mount
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
     const userStr = localStorage.getItem('auth_user');
@@ -49,15 +62,13 @@ export default function DashboardPage() {
     try {
       if (userStr) {
         const userObj = JSON.parse(userStr);
-        setUserRole(userObj.role);
+        dispatch(initializeAuth({ token, user: userObj }));
       }
     } catch (err) {
       console.error('Failed to parse user role:', err);
     }
     
-    setIsAuthLoading(false);
-
-    // 1. Fetch settings
+    // Fetch settings from MongoDB
     fetch(`${BACKEND_URL}/api/settings`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
@@ -66,15 +77,15 @@ export default function DashboardPage() {
         return res.json();
       })
       .then((data) => {
-        setSettings({ ...DEFAULT_SETTINGS, ...data });
+        dispatch(setSettings({ ...DEFAULT_SETTINGS, ...data }));
       })
       .catch((e) => {
-        console.error('Failed to load settings from database, using local storage fallback:', e);
+        console.error('Failed to load settings from DB, fallback to localStorage:', e);
         const savedSettings = localStorage.getItem('tiktok_overlay_settings');
-        if (savedSettings) setSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(savedSettings) });
+        if (savedSettings) dispatch(setSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(savedSettings) }));
       });
 
-    // 2. Fetch mappings
+    // Fetch mappings from MongoDB
     fetch(`${BACKEND_URL}/api/settings/mappings`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
@@ -83,89 +94,86 @@ export default function DashboardPage() {
         return res.json();
       })
       .then((data) => {
-        setMappings(data);
-        const keys = Object.keys(data);
-        if (keys.length > 0) {
-          setSelectedMappedGift(keys[0]);
-        }
+        dispatch(setMappings(data));
       })
       .catch((e) => {
-        console.error('Failed to load mappings from database, using local storage fallback:', e);
+        console.error('Failed to load mappings from DB, fallback to localStorage:', e);
         const savedMappings = localStorage.getItem('tiktok_overlay_mappings');
         if (savedMappings) {
-          const parsed = JSON.parse(savedMappings);
-          setMappings(parsed);
-          const keys = Object.keys(parsed);
-          if (keys.length > 0) setSelectedMappedGift(keys[0]);
+          dispatch(setMappings(JSON.parse(savedMappings)));
         }
       });
-  }, [router]);
 
-  // Logs state
-  const [logs, setLogs] = useState<LogEntry[]>([]);
-  const logIdCounter = useRef(0);
-
-  // Simulator state
-  const [selectedMappedGift, setSelectedMappedGift] = useState(() => {
-    const keys = Object.keys(DEFAULT_MAPPINGS);
-    return keys.length > 0 ? keys[0] : '';
-  });
-
-  // Log helper
-  const addLog = useCallback((tag: string, message: string, className: string = '') => {
-    const time = new Date().toTimeString().split(' ')[0];
-    const id = `log-${++logIdCounter.current}`;
-    setLogs((prev) => {
-      const newLogs = [...prev, { id, time, tag, message, className }];
-      return newLogs.slice(-100); // Cap at 100
-    });
-  }, []);
+    // Fetch custom gifts from MongoDB
+    fetch(`${BACKEND_URL}/api/gifts`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('API error');
+        return res.json();
+      })
+      .then((data) => {
+        dispatch(setCustomGifts(data));
+      })
+      .catch((e) => {
+        console.error('Failed to load custom gifts from DB:', e);
+      });
+  }, [dispatch, router]);
 
   // WebSocket event handler
   const handleWsEvent = useCallback(
-    (packet: { type: string; data?: any }) => {
+    (packet: { type: string; data?: unknown }) => {
       switch (packet.type) {
         case 'status':
-          setStatus(packet.data);
-          break;
-        case 'gifts-list':
-          setAvailableGifts(packet.data || []);
-          break;
-        case 'roomUser':
-          if (packet.data?.viewerCount !== undefined) {
-            setStatus((prev) => ({ ...prev, viewerCount: packet.data.viewerCount }));
+          if (packet.data) {
+            dispatch(setStatus(packet.data as TiktokStatus));
           }
           break;
-        case 'chat':
-          addLog('CHAT', `@${packet.data.uniqueId} (${packet.data.nickname}): ${packet.data.comment}`, 'chat');
+        case 'gifts-list':
+          dispatch(setAvailableGifts((packet.data as unknown[]) || []));
           break;
-        case 'gift':
-          addLog(
+        case 'roomUser':
+          if (packet.data && typeof packet.data === 'object' && 'viewerCount' in packet.data) {
+            dispatch(setViewerCount((packet.data as { viewerCount: number }).viewerCount));
+          }
+          break;
+        case 'chat': {
+          const chat = packet.data as ChatEvent;
+          dispatch(addLog('CHAT', `@${chat.uniqueId} (${chat.nickname}): ${chat.comment}`, 'chat'));
+          break;
+        }
+        case 'gift': {
+          const gift = packet.data as GiftEvent;
+          dispatch(addLog(
             'GIFT',
-            `@${packet.data.uniqueId} sent ${packet.data.giftName} x${packet.data.repeatCount} (${packet.data.diamondCount} diamonds)`,
+            `@${gift.uniqueId} sent ${gift.giftName} x${gift.repeatCount} (${gift.diamondCount} diamonds)`,
             'gift',
-          );
+          ));
+          break;
+        }
+        case 'gifts-update':
+          dispatch(setCustomGifts((packet.data as Gift[]) || []));
           break;
         default:
           break;
       }
     },
-    [addLog],
+    [dispatch],
   );
 
   const { sendCommand, isConnected } = useWebSocket({ onEvent: handleWsEvent });
 
   // Initial log
   useEffect(() => {
-    addLog('System', 'Welcome to TikTok Live Event Engine! Connecting to backend...', 'system');
-  }, [addLog]);
+    dispatch(addLog('System', 'Welcome to TikTok Live Event Engine! Connecting to backend...', 'system'));
+  }, [dispatch]);
 
   // Log WS connection status
   useEffect(() => {
     if (isConnected) {
-      addLog('System', 'Connected to backend server.', 'system');
+      dispatch(addLog('System', 'Connected to backend server.', 'system'));
     }
-  }, [isConnected]);
+  }, [isConnected, dispatch]);
 
   // Overlay URL
   const overlayUrl = typeof window !== 'undefined' ? `${window.location.origin}/overlay` : '';
@@ -173,12 +181,12 @@ export default function DashboardPage() {
   // Connection handlers
   const handleConnect = (username: string) => {
     sendCommand({ type: 'connect-stream', username });
-    addLog('System', `Initiating connection to @${username}...`, 'system');
+    dispatch(addLog('System', `Initiating connection to @${username}...`, 'system'));
   };
 
   const handleDisconnect = () => {
     sendCommand({ type: 'disconnect-stream' });
-    addLog('System', 'Disconnecting stream connector...', 'system');
+    dispatch(addLog('System', 'Disconnecting stream connector...', 'system'));
   };
 
   // Settings handlers
@@ -189,51 +197,42 @@ export default function DashboardPage() {
       eventType: 'settings-update',
       payload: settings,
     });
-    addLog('System', 'Applied settings and broadcast to overlay.', 'system');
+    dispatch(addLog('System', 'Applied settings and broadcast to overlay.', 'system'));
   };
 
   // Mappings handlers
-  const broadcastMappings = () => {
-    localStorage.setItem('tiktok_overlay_mappings', JSON.stringify(mappings));
-    sendCommand({
-      type: 'simulate-event',
-      eventType: 'mappings-update',
-      payload: mappings,
-    });
-  };
-
   const handleAddMapping = (giftName: string, mapping: GiftMapping) => {
     const updated = { ...mappings, [giftName]: mapping };
-    setMappings(updated);
+    dispatch(addMapping({ giftName, mapping }));
     localStorage.setItem('tiktok_overlay_mappings', JSON.stringify(updated));
     sendCommand({
       type: 'simulate-event',
       eventType: 'mappings-update',
       payload: updated,
     });
-    addLog('System', `Added mapping: "${giftName}" → Effect: ${mapping.effect}, Sound: ${mapping.sound}`, 'system');
+    dispatch(addLog('System', `Added mapping: "${giftName}" → Effect: ${mapping.effect}`, 'system'));
   };
 
   const handleDeleteMapping = (giftName: string) => {
     const updated = { ...mappings };
     delete updated[giftName];
-    setMappings(updated);
+    dispatch(deleteMapping(giftName));
     localStorage.setItem('tiktok_overlay_mappings', JSON.stringify(updated));
     sendCommand({
       type: 'simulate-event',
       eventType: 'mappings-update',
       payload: updated,
     });
-    addLog('System', `Removed mapping for "${giftName}"`, 'system');
+    dispatch(addLog('System', `Removed mapping for "${giftName}"`, 'system'));
   };
 
   // Simulator handlers
   const simulateGift = (giftName: string, diamondCount: number, repeatCount: number) => {
     if (!isConnected) {
-      addLog('SIMULATOR', 'Cannot simulate. Dashboard is not connected to server.', 'error');
+      dispatch(addLog('SIMULATOR', 'Cannot simulate. Dashboard is not connected to server.', 'error'));
       return;
     }
-    const user = MOCK_USERS[Math.floor(Math.random() * MOCK_USERS.length)];
+    const user = getRandomMockUser();
     const picture = GIFT_PICTURES[giftName] || GIFT_PICTURES.Rose;
 
     sendCommand({
@@ -253,11 +252,11 @@ export default function DashboardPage() {
 
   const simulateRoseCombo = (totalSteps: number) => {
     if (!isConnected) {
-      addLog('SIMULATOR', 'Cannot simulate. Dashboard is not connected to server.', 'error');
+      dispatch(addLog('SIMULATOR', 'Cannot simulate. Dashboard is not connected to server.', 'error'));
       return;
     }
-    const user = MOCK_USERS[Math.floor(Math.random() * MOCK_USERS.length)];
-    addLog('SIMULATOR', `Starting combo Rose simulation (combo x${totalSteps})...`, 'system');
+    const user = getRandomMockUser();
+    dispatch(addLog('SIMULATOR', `Starting combo Rose simulation (combo x${totalSteps})...`, 'system'));
     let count = 0;
     const interval = setInterval(() => {
       count++;
@@ -290,7 +289,7 @@ export default function DashboardPage() {
 
   const simulateMappedGift = (giftName: string) => {
     if (!giftName || !mappings[giftName]) {
-      addLog('SIMULATOR', 'No mapped gifts available to test.', 'error');
+      dispatch(addLog('SIMULATOR', 'No mapped gifts available to test.', 'error'));
       return;
     }
     const mapping = mappings[giftName];
@@ -300,18 +299,18 @@ export default function DashboardPage() {
 
   const simulateMappedGiftCombo = (giftName: string, totalSteps: number) => {
     if (!giftName || !mappings[giftName]) {
-      addLog('SIMULATOR', 'No mapped gifts available to test.', 'error');
+      dispatch(addLog('SIMULATOR', 'No mapped gifts available to test.', 'error'));
       return;
     }
     if (!isConnected) {
-      addLog('SIMULATOR', 'Cannot simulate. Dashboard is not connected to server.', 'error');
+      dispatch(addLog('SIMULATOR', 'Cannot simulate. Dashboard is not connected to server.', 'error'));
       return;
     }
     const mapping = mappings[giftName];
     const diamondCount = mapping.effect === 'star' ? 1000 : mapping.effect === 'video' ? 500 : 1;
-    const user = MOCK_USERS[Math.floor(Math.random() * MOCK_USERS.length)];
+    const user = getRandomMockUser();
     let count = 0;
-    addLog('SIMULATOR', `Starting combo simulation for "${giftName}" (combo x${totalSteps})...`, 'system');
+    dispatch(addLog('SIMULATOR', `Starting combo simulation for "${giftName}" (combo x${totalSteps})...`, 'system'));
     const interval = setInterval(() => {
       count++;
       simulateGiftWithUser(giftName, diamondCount, count, user);
@@ -321,11 +320,11 @@ export default function DashboardPage() {
 
   const simulateChat = () => {
     if (!isConnected) {
-      addLog('SIMULATOR', 'Cannot simulate. Dashboard is not connected to server.', 'error');
+      dispatch(addLog('SIMULATOR', 'Cannot simulate. Dashboard is not connected to server.', 'error'));
       return;
     }
-    const user = MOCK_USERS[Math.floor(Math.random() * MOCK_USERS.length)];
-    const comment = MOCK_CHATS[Math.floor(Math.random() * MOCK_CHATS.length)];
+    const user = getRandomMockUser();
+    const comment = getRandomMockChat();
 
     sendCommand({
       type: 'simulate-event',
@@ -339,60 +338,74 @@ export default function DashboardPage() {
     });
   };
 
-  const clearLogs = () => {
-    setLogs([]);
-    addLog('System', 'Log console cleared.', 'system');
-  };
+  const role = useAppSelector((state) => state.auth.user?.role) || 'user';
 
   if (isAuthLoading) {
     return (
-      <div className="login-page-container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#07080d' }}>
+      <div className="relative w-full min-h-screen overflow-hidden bg-bg-dark flex items-center justify-center">
         <BackgroundGlows />
-        <div style={{ color: '#00f2fe', fontSize: '1.2rem', fontFamily: 'Space Grotesk', letterSpacing: '2px' }}>
+        <div className="text-secondary text-[1.2rem] font-header tracking-[2px]">
           VERIFYING SECURITY SESSION...
         </div>
       </div>
     );
   }
 
-  const isAdmin = userRole === 'admin';
+  if (role === 'admin') {
+    return (
+      <>
+        <BackgroundGlows />
+        <div className="flex h-screen overflow-hidden relative z-30">
+          <AdminSidebar activeTab={adminTab} setActiveTab={setAdminTab} />
+          
+          <main className="flex-1 p-6 md:p-8 overflow-y-auto max-w-[1440px] mx-auto w-full">
+            {adminTab === 'home' && (
+              <div className="grid grid-cols-1 xl:grid-cols-[1fr_1.2fr] gap-6 animate-[fade-in-up_0.6s_ease-out]">
+                {/* Column 1: Controls & Settings */}
+                <div className="flex flex-col gap-6">
+                  <ConnectionPanel onConnect={handleConnect} onDisconnect={handleDisconnect} />
+                  <SettingsPanel onSave={handleSaveSettings} />
+                  <MappingsPanel
+                    onAddMapping={handleAddMapping}
+                    onDeleteMapping={handleDeleteMapping}
+                  />
+                  <ObsSetupPanel overlayUrl={overlayUrl} />
+                </div>
 
+                {/* Column 2: Simulator & Logs */}
+                <div className="flex flex-col gap-6">
+                  <SimulatorPanel
+                    onSimulateGift={simulateGift}
+                    onSimulateRoseCombo={simulateRoseCombo}
+                    onSimulateMappedGift={simulateMappedGift}
+                    onSimulateMappedGiftCombo={simulateMappedGiftCombo}
+                    onSimulateChat={simulateChat}
+                  />
+                  <LogsPanel />
+                </div>
+              </div>
+            )}
+
+            {adminTab === 'effects' && (
+              <GiftManagerPanel />
+            )}
+
+            {adminTab === 'users' && (
+              <UserManagerPanel />
+            )}
+          </main>
+        </div>
+      </>
+    );
+  }
+
+  // Render User Homepage view
   return (
     <>
       <BackgroundGlows />
-      <div className="dashboard-container">
+      <div className="max-w-[1360px] mx-auto">
         <Header />
-        <main className="dashboard-grid">
-          {/* Column 1: Controls & Settings */}
-          <div className="dashboard-col">
-            <ConnectionPanel status={status} onConnect={handleConnect} onDisconnect={handleDisconnect} isAdmin={isAdmin} />
-            <SettingsPanel settings={settings} onSettingsChange={setSettings} onSave={handleSaveSettings} isAdmin={isAdmin} />
-            <MappingsPanel
-              mappings={mappings}
-              availableGifts={availableGifts}
-              onAddMapping={handleAddMapping}
-              onDeleteMapping={handleDeleteMapping}
-              isAdmin={isAdmin}
-            />
-            <ObsSetupPanel overlayUrl={overlayUrl} />
-          </div>
-
-          {/* Column 2: Simulator & Logs */}
-          <div className="dashboard-col">
-            <SimulatorPanel
-              mappings={mappings}
-              onSimulateGift={simulateGift}
-              onSimulateRoseCombo={simulateRoseCombo}
-              onSimulateMappedGift={simulateMappedGift}
-              onSimulateMappedGiftCombo={simulateMappedGiftCombo}
-              onSimulateChat={simulateChat}
-              selectedMappedGift={selectedMappedGift}
-              onSelectedMappedGiftChange={setSelectedMappedGift}
-              isAdmin={isAdmin}
-            />
-            <LogsPanel logs={logs} onClear={clearLogs} />
-          </div>
-        </main>
+        <UserHomepage onConnect={handleConnect} onDisconnect={handleDisconnect} />
       </div>
     </>
   );

@@ -4,15 +4,19 @@ import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { TiktokService } from '../tiktok/tiktok.service';
 import { SettingsService } from '../settings/settings.service';
+import { GiftsService } from '../gifts/gifts.service';
+import { UsersService } from '../users/users.service';
 export declare class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit {
     private readonly tiktokService;
     private readonly settingsService;
     private readonly jwtService;
+    private readonly giftsService;
+    private readonly usersService;
     server: Server;
     private readonly logger;
-    constructor(tiktokService: TiktokService, settingsService: SettingsService, jwtService: JwtService);
+    constructor(tiktokService: TiktokService, settingsService: SettingsService, jwtService: JwtService, giftsService: GiftsService, usersService: UsersService);
     onModuleInit(): void;
     handleConnection(client: Socket): void;
     handleDisconnect(client: Socket): void;
-    handleCommand(client: Socket, packet: any): void;
+    handleCommand(client: Socket, packet: any): Promise<void>;
 }

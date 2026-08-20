@@ -50,6 +50,7 @@ export class AuthService {
         userId: user._id,
         username: user.username,
         role: user.role,
+        allowConnect: user.allowConnect ?? false,
       },
     };
   }

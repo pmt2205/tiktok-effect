@@ -3,9 +3,6 @@ import { Document } from 'mongoose';
 
 @Schema()
 export class Settings extends Document {
-  @Prop({ required: true, default: true })
-  soundEnabled: boolean;
-
   @Prop({ required: true, default: 5 })
   duration: number;
 
@@ -25,9 +22,6 @@ export class Mapping extends Document {
 
   @Prop({ required: true })
   effect: string;
-
-  @Prop({ required: true })
-  sound: string;
 
   @Prop({ required: false })
   videoUrl?: string;

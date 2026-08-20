@@ -19,4 +19,16 @@ export class UsersService {
     });
     return user.save();
   }
+
+  async findAll(): Promise<User[]> {
+    return this.userModel.find({}, '-passwordHash').exec(); // exclude passwordHash
+  }
+
+  async remove(id: string): Promise<any> {
+    return this.userModel.findByIdAndDelete(id).exec();
+  }
+
+  async updatePermissions(id: string, allowConnect: boolean): Promise<User | null> {
+    return this.userModel.findByIdAndUpdate(id, { allowConnect }, { new: true }).select('-passwordHash').exec();
+  }
 }

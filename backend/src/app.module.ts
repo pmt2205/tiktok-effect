@@ -6,6 +6,7 @@ import { SettingsModule } from './features/settings/settings.module';
 import { MediaModule } from './features/media/media.module';
 import { AuthModule } from './features/auth/auth.module';
 import { UsersModule } from './features/users/users.module';
+import { GiftsModule } from './features/gifts/gifts.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { UsersModule } from './features/users/users.module';
     MediaModule,
     AuthModule,
     UsersModule,
+    GiftsModule,
   ],
 })
 export class AppModule {}

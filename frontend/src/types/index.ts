@@ -34,7 +34,6 @@ export interface RoomUserEvent {
 }
 
 export interface OverlaySettings {
-  soundEnabled: boolean;
   duration: number;
   density: number;
   theme: string;
@@ -42,7 +41,6 @@ export interface OverlaySettings {
 
 export interface GiftMapping {
   effect: string;
-  sound: string;
   videoUrl?: string;
 }
 
@@ -50,7 +48,7 @@ export type GiftMappings = Record<string, GiftMapping>;
 
 export interface WsEventPacket {
   type: string;
-  data?: any;
+  data?: unknown;
 }
 
 export interface LogEntry {
@@ -72,4 +70,13 @@ export interface BannerInfo {
   timer: ReturnType<typeof setTimeout>;
   combo: number;
   lastRepeatEnd?: boolean;
+}
+
+export interface Gift {
+  _id?: string;
+  giftId: number;
+  name: string;
+  coins: number;
+  icon: string;
+  videos: string[];
 }
