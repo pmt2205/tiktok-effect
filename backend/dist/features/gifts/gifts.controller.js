@@ -25,8 +25,25 @@ let GiftsController = class GiftsController {
     constructor(giftsService) {
         this.giftsService = giftsService;
     }
-    async findAll() {
-        return this.giftsService.findAll();
+    async findAll(queryUsername, req) {
+        let username = queryUsername;
+        if (!username && req && req.headers && req.headers.authorization) {
+            const authHeader = req.headers.authorization;
+            if (authHeader.startsWith('Bearer ')) {
+                const token = authHeader.substring(7);
+                try {
+                    const payloadPart = token.split('.')[1];
+                    const payload = JSON.parse(Buffer.from(payloadPart, 'base64').toString('utf8'));
+                    username = payload.username;
+                }
+                catch (e) {
+                }
+            }
+        }
+        if (!username) {
+            return [];
+        }
+        return this.giftsService.findAllForUser(username);
     }
     uploadVideo(file) {
         if (!file) {
@@ -38,27 +55,37 @@ let GiftsController = class GiftsController {
             url: `/media/${file.filename}`,
         };
     }
-    async create(giftData) {
-        return this.giftsService.create(giftData);
+    async create(giftData, req) {
+        return this.giftsService.createForUser(req.user.username, giftData);
     }
-    async update(id, giftData) {
-        return this.giftsService.update(id, giftData);
+    async update(id, giftData, req) {
+        const user = req.user;
+        if (user && user.role !== 'admin') {
+            const allowedUpdate = {};
+            if (giftData.activeVideo !== undefined) {
+                allowedUpdate.activeVideo = giftData.activeVideo;
+            }
+            return this.giftsService.updateForUser(id, user.username, allowedUpdate);
+        }
+        return this.giftsService.updateForUser(id, user.username, giftData);
     }
-    async remove(id) {
-        return this.giftsService.remove(id);
+    async remove(id, req) {
+        return this.giftsService.removeForUser(id, req.user.username);
     }
 };
 exports.GiftsController = GiftsController;
 __decorate([
     (0, common_1.Get)(),
+    __param(0, (0, common_1.Query)('username')),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], GiftsController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Post)('upload'),
-    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)('admin'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('admin', 'user'),
     (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('video', {
         storage: (0, multer_1.diskStorage)({
             destination: (0, path_1.join)(process.cwd(), 'public', 'media'),
@@ -86,35 +113,37 @@ __decorate([
 ], GiftsController.prototype, "uploadVideo", null);
 __decorate([
     (0, common_1.Post)(),
-    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)('admin'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('admin', 'user'),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], GiftsController.prototype, "create", null);
 __decorate([
     (0, common_1.Put)(':id'),
-    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)('admin'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('admin', 'user'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, Object, Object]),
     __metadata("design:returntype", Promise)
 ], GiftsController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
-    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)('admin'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('admin', 'user'),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], GiftsController.prototype, "remove", null);
 exports.GiftsController = GiftsController = __decorate([
     (0, common_1.Controller)('api/gifts'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __metadata("design:paramtypes", [gifts_service_1.GiftsService])
 ], GiftsController);
 //# sourceMappingURL=gifts.controller.js.map

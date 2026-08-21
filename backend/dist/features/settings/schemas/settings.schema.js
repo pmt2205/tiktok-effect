@@ -16,6 +16,10 @@ let Settings = class Settings extends mongoose_2.Document {
 };
 exports.Settings = Settings;
 __decorate([
+    (0, mongoose_1.Prop)({ required: true, unique: true, index: true }),
+    __metadata("design:type", String)
+], Settings.prototype, "username", void 0);
+__decorate([
     (0, mongoose_1.Prop)({ required: true, default: 5 }),
     __metadata("design:type", Number)
 ], Settings.prototype, "duration", void 0);
@@ -35,7 +39,11 @@ let Mapping = class Mapping extends mongoose_2.Document {
 };
 exports.Mapping = Mapping;
 __decorate([
-    (0, mongoose_1.Prop)({ required: true, unique: true, index: true }),
+    (0, mongoose_1.Prop)({ required: true, index: true }),
+    __metadata("design:type", String)
+], Mapping.prototype, "username", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
 ], Mapping.prototype, "giftName", void 0);
 __decorate([
@@ -50,4 +58,5 @@ exports.Mapping = Mapping = __decorate([
     (0, mongoose_1.Schema)()
 ], Mapping);
 exports.MappingSchema = mongoose_1.SchemaFactory.createForClass(Mapping);
+exports.MappingSchema.index({ username: 1, giftName: 1 }, { unique: true });
 //# sourceMappingURL=settings.schema.js.map

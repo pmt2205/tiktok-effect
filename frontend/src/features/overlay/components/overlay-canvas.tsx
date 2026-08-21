@@ -56,14 +56,17 @@ export default function OverlayCanvas() {
 
     // 1. Check custom database gifts first
     const dbGift = giftsRef.current.find(
-      (g) => g.giftId === giftData.giftId || g.name.toLowerCase().trim() === giftKey
+      (g) => (giftData.giftId !== undefined && Number(g.giftId) === Number(giftData.giftId)) || 
+             g.name.toLowerCase().trim() === giftKey ||
+             (giftKey === 'rose' && g.name.toLowerCase().trim() === 'hoa hồng') ||
+             (giftKey === 'tiktok' && g.name.toLowerCase().trim() === 'logo tiktok')
     );
 
     if (dbGift && dbGift.videos && dbGift.videos.length > 0) {
       hasDatabaseGift = true;
       // Use the active video, or fallback to the first video in the list
       videoUrl = dbGift.activeVideo || dbGift.videos[0];
-    } 
+    }
 
     // 2. Fallback to settings mappings
     else if (mappings[giftKey]) {
@@ -72,7 +75,7 @@ export default function OverlayCanvas() {
     } else if (idKey && mappings[idKey]) {
       mappedEffect = mappings[idKey].effect;
       videoUrl = mappings[idKey].videoUrl || '';
-    } 
+    }
     // 3. Fallback to hardcoded defaults
     else {
       if (giftKey.includes('rose') || giftKey.includes('hồng')) {
@@ -169,8 +172,11 @@ export default function OverlayCanvas() {
       console.error('Failed to load saved settings:', e);
     }
 
+    const searchParams = new URLSearchParams(window.location.search);
+    const username = searchParams.get('user') || searchParams.get('username') || '';
+
     // Fetch initial custom database gifts
-    fetch(`${BACKEND_URL}/api/gifts`)
+    fetch(`${BACKEND_URL}/api/gifts?username=${username}`)
       .then((res) => res.json())
       .then((data) => {
         giftsRef.current = data;
@@ -186,6 +192,7 @@ export default function OverlayCanvas() {
     // Connect to WebSocket
     const socket = io(WS_URL, {
       transports: ['websocket', 'polling'],
+      query: { username },
       reconnection: true,
       reconnectionDelay: 3000,
     });

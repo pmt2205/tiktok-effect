@@ -3,7 +3,7 @@ import { Gift } from './schemas/gift.schema';
 export declare class GiftsController {
     private readonly giftsService;
     constructor(giftsService: GiftsService);
-    findAll(): Promise<Gift[]>;
+    findAll(queryUsername?: string, req?: any): Promise<Gift[]>;
     uploadVideo(file: any): {
         success: boolean;
         message: string;
@@ -15,7 +15,7 @@ export declare class GiftsController {
         url: string;
         message?: undefined;
     };
-    create(giftData: Partial<Gift>): Promise<Gift>;
-    update(id: string, giftData: Partial<Gift>): Promise<Gift | null>;
-    remove(id: string): Promise<any>;
+    create(giftData: Partial<Gift>, req: any): Promise<Gift>;
+    update(id: string, giftData: Partial<Gift>, req: any): Promise<Gift | null>;
+    remove(id: string, req: any): Promise<any>;
 }

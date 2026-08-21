@@ -16,55 +16,53 @@ exports.SettingsController = void 0;
 const common_1 = require("@nestjs/common");
 const settings_service_1 = require("./settings.service");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
-const roles_guard_1 = require("../auth/guards/roles.guard");
-const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 let SettingsController = class SettingsController {
     constructor(settingsService) {
         this.settingsService = settingsService;
     }
-    getSettings() {
-        return this.settingsService.getSettings();
+    async getSettings(req) {
+        return this.settingsService.getSettingsForUser(req.user.username);
     }
-    updateSettings(settings) {
-        return this.settingsService.updateSettings(settings);
+    async updateSettings(req, settings) {
+        return this.settingsService.updateSettingsForUser(req.user.username, settings);
     }
-    getMappings() {
-        return this.settingsService.getMappings();
+    async getMappings(req) {
+        return this.settingsService.getMappingsForUser(req.user.username);
     }
-    updateMappings(mappings) {
-        return this.settingsService.updateMappings(mappings);
+    async updateMappings(req, mappings) {
+        return this.settingsService.updateMappingsForUser(req.user.username, mappings);
     }
 };
 exports.SettingsController = SettingsController;
 __decorate([
     (0, common_1.Get)(),
+    __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Object)
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
 ], SettingsController.prototype, "getSettings", null);
 __decorate([
     (0, common_1.Put)(),
-    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)('admin'),
-    __param(0, (0, common_1.Body)()),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Object)
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
 ], SettingsController.prototype, "updateSettings", null);
 __decorate([
     (0, common_1.Get)('mappings'),
+    __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Object)
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
 ], SettingsController.prototype, "getMappings", null);
 __decorate([
     (0, common_1.Put)('mappings'),
-    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)('admin'),
-    __param(0, (0, common_1.Body)()),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Object)
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
 ], SettingsController.prototype, "updateMappings", null);
 exports.SettingsController = SettingsController = __decorate([
     (0, common_1.Controller)('api/settings'),

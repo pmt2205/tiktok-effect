@@ -46,7 +46,7 @@ export default function SimulatorPanel({
       <p className="text-[0.88rem] text-text-muted mb-4 leading-normal">Simulate live stream triggers locally to verify your layout and configurations.</p>
 
       {isAdmin ? (
-        <div className={`grid grid-cols-1 gap-4 ${!isConnected ? 'opacity-60 pointer-events-none' : ''}`}>
+        <div className="grid grid-cols-1 gap-4">
           {/* Basic Interaction Simulation */}
           <div className="bg-black/18 border border-border-color rounded-md p-5 flex flex-col gap-3.5 transition-all duration-200 hover:border-white/12 hover:bg-black/25">
             <span className="font-header text-[0.92rem] font-semibold flex items-center gap-2 text-text-main">Quick Actions</span>

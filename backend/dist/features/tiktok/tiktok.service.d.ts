@@ -1,29 +1,24 @@
 import { TiktokStatus, ChatEvent, GiftEvent } from '../../common/interfaces/events.interface';
 export declare class TiktokService {
     private readonly logger;
-    private connection;
-    private username;
-    private status;
-    private viewerCount;
-    private lastError;
-    private availableGifts;
+    private userStates;
     private onStatusChange?;
     private onChat?;
     private onGift?;
     private onRoomUser?;
     private onGiftsList?;
     registerCallbacks(callbacks: {
-        onStatusChange: (status: TiktokStatus) => void;
-        onChat: (data: ChatEvent) => void;
-        onGift: (data: GiftEvent) => void;
-        onRoomUser: (data: {
+        onStatusChange: (appUsername: string, status: TiktokStatus) => void;
+        onChat: (appUsername: string, data: ChatEvent) => void;
+        onGift: (appUsername: string, data: GiftEvent) => void;
+        onRoomUser: (appUsername: string, data: {
             viewerCount: number;
         }) => void;
-        onGiftsList?: (gifts: any[]) => void;
+        onGiftsList?: (appUsername: string, gifts: any[]) => void;
     }): void;
-    getAvailableGifts(): any[];
-    getStatus(): TiktokStatus;
+    getAvailableGifts(appUsername: string): any[];
+    getStatus(appUsername: string): TiktokStatus;
     private setConnectionStatus;
-    connect(username: string): void;
-    disconnect(): void;
+    connect(appUsername: string, tiktokUsername: string): void;
+    disconnect(appUsername: string): void;
 }

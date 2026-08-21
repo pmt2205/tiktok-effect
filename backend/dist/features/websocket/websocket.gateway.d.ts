@@ -16,7 +16,7 @@ export declare class WebsocketGateway implements OnGatewayConnection, OnGatewayD
     private readonly logger;
     constructor(tiktokService: TiktokService, settingsService: SettingsService, jwtService: JwtService, giftsService: GiftsService, usersService: UsersService);
     onModuleInit(): void;
-    handleConnection(client: Socket): void;
+    handleConnection(client: Socket): Promise<void>;
     handleDisconnect(client: Socket): void;
     handleCommand(client: Socket, packet: any): Promise<void>;
 }

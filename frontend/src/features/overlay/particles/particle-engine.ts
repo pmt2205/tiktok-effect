@@ -14,6 +14,7 @@ export class ParticleEngine {
   private chromaCtx: CanvasRenderingContext2D;
   private effectVideo: HTMLVideoElement;
   private isVideoPlaying = false;
+  private videoQueue: string[] = [];
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -32,6 +33,7 @@ export class ParticleEngine {
     this.effectVideo.onended = () => {
       this.isVideoPlaying = false;
       this.effectVideo.src = '';
+      this.playNextVideoInQueue();
     };
 
     this.resize();
@@ -109,6 +111,11 @@ export class ParticleEngine {
   }
 
   playVideoEffect(videoUrl: string) {
+    if (this.isVideoPlaying) {
+      this.videoQueue.push(videoUrl);
+      return;
+    }
+
     this.effectVideo.src = videoUrl;
     this.effectVideo.load();
     this.effectVideo.muted = true;
@@ -117,9 +124,18 @@ export class ParticleEngine {
       .then(() => {
         this.isVideoPlaying = true;
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error('Failed to play video effect:', err);
         this.isVideoPlaying = false;
+        this.playNextVideoInQueue();
       });
+  }
+
+  private playNextVideoInQueue() {
+    if (this.videoQueue.length > 0) {
+      const nextVideoUrl = this.videoQueue.shift()!;
+      this.playVideoEffect(nextVideoUrl);
+    }
   }
 
   spawnParticlesForGift(effectType: string, comboCount: number, settings: OverlaySettings) {

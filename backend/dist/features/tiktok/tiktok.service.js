@@ -31,12 +31,7 @@ const TIKTOK_GIFT_IDS = {
 let TiktokService = TiktokService_1 = class TiktokService {
     constructor() {
         this.logger = new common_1.Logger(TiktokService_1.name);
-        this.connection = null;
-        this.username = '';
-        this.status = 'disconnected';
-        this.viewerCount = 0;
-        this.lastError = null;
-        this.availableGifts = [];
+        this.userStates = new Map();
     }
     registerCallbacks(callbacks) {
         this.onStatusChange = callbacks.onStatusChange;
@@ -45,72 +40,91 @@ let TiktokService = TiktokService_1 = class TiktokService {
         this.onRoomUser = callbacks.onRoomUser;
         this.onGiftsList = callbacks.onGiftsList;
     }
-    getAvailableGifts() {
-        return this.availableGifts;
+    getAvailableGifts(appUsername) {
+        return this.userStates.get(appUsername)?.availableGifts || [];
     }
-    getStatus() {
+    getStatus(appUsername) {
+        const state = this.userStates.get(appUsername);
+        if (!state) {
+            return {
+                status: 'disconnected',
+                username: '',
+                viewerCount: 0,
+                error: null,
+            };
+        }
         return {
-            status: this.status,
-            username: this.username,
-            viewerCount: this.viewerCount,
-            error: this.lastError,
+            status: state.status,
+            username: state.tiktokUsername,
+            viewerCount: state.viewerCount,
+            error: state.lastError,
         };
     }
-    setConnectionStatus(newStatus, error = null) {
-        this.status = newStatus;
-        this.lastError = error;
-        if (newStatus === 'disconnected') {
-            this.viewerCount = 0;
-        }
-        const statusData = this.getStatus();
-        this.onStatusChange?.(statusData);
-        this.logger.log(`Status: ${newStatus}, User: ${this.username}, Error: ${error}`);
-    }
-    connect(username) {
-        if (!username)
+    setConnectionStatus(appUsername, newStatus, error = null) {
+        const state = this.userStates.get(appUsername);
+        if (!state)
             return;
-        this.disconnect();
-        this.username = username;
-        this.setConnectionStatus('connecting');
+        state.status = newStatus;
+        state.lastError = error;
+        if (newStatus === 'disconnected') {
+            state.viewerCount = 0;
+        }
+        const statusData = this.getStatus(appUsername);
+        this.onStatusChange?.(appUsername, statusData);
+        this.logger.log(`[${appUsername}] Status: ${newStatus}, User: ${state.tiktokUsername}, Error: ${error}`);
+    }
+    connect(appUsername, tiktokUsername) {
+        if (!tiktokUsername)
+            return;
+        this.disconnect(appUsername);
+        const state = {
+            connection: null,
+            tiktokUsername,
+            status: 'connecting',
+            viewerCount: 0,
+            lastError: null,
+            availableGifts: [],
+        };
+        this.userStates.set(appUsername, state);
         try {
-            this.connection = new tiktok_live_connector_1.TikTokLiveConnection(username, {
+            state.connection = new tiktok_live_connector_1.TikTokLiveConnection(tiktokUsername, {
                 enableExtendedGiftInfo: false,
             });
-            this.connection
+            state.connection
                 .connect()
-                .then(async (state) => {
-                this.setConnectionStatus('connected');
-                this.logger.log(`Successfully connected to room ID: ${state.roomId}`);
+                .then(async (conState) => {
+                this.setConnectionStatus(appUsername, 'connected');
+                this.logger.log(`[${appUsername}] Successfully connected to room ID: ${conState.roomId}`);
                 try {
-                    const giftsList = await this.connection.fetchAvailableGifts();
+                    const giftsList = await state.connection.fetchAvailableGifts();
                     if (Array.isArray(giftsList)) {
-                        this.availableGifts = giftsList.map((g) => ({
+                        state.availableGifts = giftsList.map((g) => ({
                             id: g.id || g.gift_id,
                             name: g.name,
                             diamondCount: g.diamond_count || g.cost || 0,
                             image: g.image?.url_list?.[0] || g.icon?.url_list?.[0] || '',
                         }));
-                        this.onGiftsList?.(this.availableGifts);
+                        this.onGiftsList?.(appUsername, state.availableGifts);
                     }
                 }
                 catch (err) {
-                    this.logger.error('Failed to fetch available gifts:', err);
+                    this.logger.error(`[${appUsername}] Failed to fetch available gifts:`, err);
                 }
             })
                 .catch((err) => {
-                this.logger.error('Failed to connect:', err);
-                this.setConnectionStatus('disconnected', err.message || 'Failed to connect. Check if username is correct or stream is live.');
+                this.logger.error(`[${appUsername}] Failed to connect:`, err);
+                this.setConnectionStatus(appUsername, 'disconnected', err.message || 'Failed to connect. Check if username is correct or stream is live.');
             });
-            this.connection.on('chat', (data) => {
+            state.connection.on('chat', (data) => {
                 const chatData = {
                     nickname: data.nickname || data.user?.nickname || data.uniqueId || 'Anonymous',
                     uniqueId: data.uniqueId || data.user?.uniqueId || 'anonymous',
                     comment: data.comment,
                     profilePictureUrl: data.profilePictureUrl || data.user?.avatarMedium?.url_list?.[0] || '',
                 };
-                this.onChat?.(chatData);
+                this.onChat?.(appUsername, chatData);
             });
-            this.connection.on('gift', (data) => {
+            state.connection.on('gift', (data) => {
                 const giftId = data.giftId || data.gift?.gift_id;
                 const resolvedName = data.extendedGiftInfo?.name ||
                     data.giftName ||
@@ -130,40 +144,46 @@ let TiktokService = TiktokService_1 = class TiktokService {
                     giftType: data.gift?.gift_type || data.giftDetails?.giftType,
                     giftId: giftId,
                 };
-                this.onGift?.(giftData);
+                this.onGift?.(appUsername, giftData);
             });
-            this.connection.on('roomUser', (data) => {
+            state.connection.on('roomUser', (data) => {
                 if (data.viewerCount !== undefined) {
-                    this.viewerCount = data.viewerCount;
-                    this.onRoomUser?.({ viewerCount: this.viewerCount });
+                    state.viewerCount = data.viewerCount;
+                    this.onRoomUser?.(appUsername, { viewerCount: state.viewerCount });
                 }
             });
-            this.connection.on('disconnected', () => {
-                this.logger.log('Connection closed by remote host.');
-                this.setConnectionStatus('disconnected', 'Stream connection ended or username went offline.');
+            state.connection.on('disconnected', () => {
+                this.logger.log(`[${appUsername}] Connection closed by remote host.`);
+                this.setConnectionStatus(appUsername, 'disconnected', 'Stream connection ended or username went offline.');
             });
-            this.connection.on('error', (err) => {
-                this.logger.error('Connector error:', err);
+            state.connection.on('error', (err) => {
+                this.logger.error(`[${appUsername}] Connector error:`, err);
             });
         }
         catch (err) {
-            this.logger.error('Initialization error:', err);
-            this.setConnectionStatus('disconnected', err.message);
+            this.logger.error(`[${appUsername}] Initialization error:`, err);
+            this.setConnectionStatus(appUsername, 'disconnected', err.message);
         }
     }
-    disconnect() {
-        if (this.connection) {
-            try {
-                this.connection.disconnect();
+    disconnect(appUsername) {
+        const state = this.userStates.get(appUsername);
+        if (state) {
+            if (state.connection) {
+                try {
+                    state.connection.disconnect();
+                }
+                catch (err) {
+                    this.logger.error(`[${appUsername}] Error disconnecting:`, err);
+                }
             }
-            catch (err) {
-                this.logger.error('Error disconnecting:', err);
-            }
-            this.connection = null;
+            this.userStates.delete(appUsername);
+            this.onStatusChange?.(appUsername, {
+                status: 'disconnected',
+                username: '',
+                viewerCount: 0,
+                error: null,
+            });
         }
-        this.username = '';
-        this.availableGifts = [];
-        this.setConnectionStatus('disconnected');
     }
 };
 exports.TiktokService = TiktokService;

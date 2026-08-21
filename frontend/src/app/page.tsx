@@ -49,6 +49,7 @@ export default function DashboardPage() {
   const isAuthLoading = useAppSelector((state) => state.auth.isAuthLoading);
   const settings = useAppSelector((state) => state.dashboard.settings);
   const mappings = useAppSelector((state) => state.dashboard.mappings);
+  const user = useAppSelector((state) => state.auth.user);
 
   // Verify auth session and load settings/mappings from backend API on mount
   useEffect(() => {
@@ -68,7 +69,7 @@ export default function DashboardPage() {
     } catch (err) {
       console.error('Failed to parse user role:', err);
     }
-    
+
     // Fetch settings from MongoDB
     fetch(`${BACKEND_URL}/api/settings`, {
       headers: { 'Authorization': `Bearer ${token}` }
@@ -177,7 +178,9 @@ export default function DashboardPage() {
   }, [isConnected, dispatch]);
 
   // Overlay URL
-  const overlayUrl = typeof window !== 'undefined' ? `${window.location.origin}/overlay` : '';
+  const overlayUrl = typeof window !== 'undefined' && user?.username
+    ? `${window.location.origin}/overlay?user=${user.username}`
+    : '';
 
   // Connection handlers
   const handleConnect = (username: string) => {
@@ -358,7 +361,7 @@ export default function DashboardPage() {
         <BackgroundGlows />
         <div className="flex h-screen overflow-hidden relative z-30">
           <AdminSidebar activeTab={adminTab} setActiveTab={setAdminTab} />
-          
+
           <main className="flex-1 p-6 md:p-8 overflow-y-auto max-w-[1440px] mx-auto w-full">
             {adminTab === 'home' && (
               <div className="grid grid-cols-1 xl:grid-cols-[1fr_1.2fr] gap-6 animate-[fade-in-up_0.6s_ease-out]">

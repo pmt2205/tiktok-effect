@@ -38,57 +38,58 @@ let GiftsService = GiftsService_1 = class GiftsService {
     registerChangeCallback(callback) {
         this.onGiftsChange = callback;
     }
-    async triggerChange() {
+    async triggerChange(username) {
         if (this.onGiftsChange) {
             try {
-                const gifts = await this.findAll();
-                this.onGiftsChange(gifts);
+                const gifts = await this.findAllForUser(username);
+                this.onGiftsChange(username, gifts);
             }
             catch (err) {
-                this.logger.error('Failed to trigger gifts change callback:', err);
+                this.logger.error(`Failed to trigger gifts change callback for user ${username}:`, err);
             }
         }
     }
-    async onModuleInit() {
+    async findAllForUser(username) {
         try {
-            const sampleGift = await this.giftModel.findOne().exec();
-            if (sampleGift && (isNaN(Number(sampleGift.giftId)) || sampleGift.get('effect') !== undefined)) {
-                this.logger.log('Detected legacy gifts schema. Wiping gifts collection to re-seed.');
-                await this.giftModel.deleteMany({});
-            }
-            const count = await this.giftModel.countDocuments().exec();
+            const count = await this.giftModel.countDocuments({ username }).exec();
             if (count === 0) {
-                await this.giftModel.insertMany(this.defaultGifts);
-                this.logger.log('Seeded default TikTok gifts in MongoDB');
+                const seedData = this.defaultGifts.map(g => ({
+                    ...g,
+                    username,
+                }));
+                await this.giftModel.insertMany(seedData);
+                this.logger.log(`Seeded default gifts for user: ${username}`);
             }
+            return this.giftModel.find({ username }).sort({ coins: 1 }).exec();
         }
         catch (err) {
-            this.logger.error('Failed to seed default gifts:', err);
+            this.logger.error(`Failed to find gifts for user ${username}:`, err);
+            return [];
         }
     }
-    async findAll() {
-        return this.giftModel.find().sort({ coins: 1 }).exec();
+    async findOneForUser(id, username) {
+        return this.giftModel.findOne({ _id: id, username }).exec();
     }
-    async findOne(id) {
-        return this.giftModel.findById(id).exec();
+    async findByGiftIdForUser(giftId, username) {
+        return this.giftModel.findOne({ giftId, username }).exec();
     }
-    async findByGiftId(giftId) {
-        return this.giftModel.findOne({ giftId }).exec();
-    }
-    async create(giftData) {
-        const newGift = new this.giftModel(giftData);
+    async createForUser(username, giftData) {
+        const newGift = new this.giftModel({
+            ...giftData,
+            username,
+        });
         const saved = await newGift.save();
-        await this.triggerChange();
+        await this.triggerChange(username);
         return saved;
     }
-    async update(id, giftData) {
-        const updated = await this.giftModel.findByIdAndUpdate(id, giftData, { new: true }).exec();
-        await this.triggerChange();
+    async updateForUser(id, username, giftData) {
+        const updated = await this.giftModel.findOneAndUpdate({ _id: id, username }, giftData, { new: true }).exec();
+        await this.triggerChange(username);
         return updated;
     }
-    async remove(id) {
-        const deleted = await this.giftModel.findByIdAndDelete(id).exec();
-        await this.triggerChange();
+    async removeForUser(id, username) {
+        const deleted = await this.giftModel.findOneAndDelete({ _id: id, username }).exec();
+        await this.triggerChange(username);
         return deleted;
     }
 };

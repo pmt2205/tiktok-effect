@@ -3,7 +3,10 @@ import { Document } from 'mongoose';
 
 @Schema()
 export class Gift extends Document {
-  @Prop({ type: Number, required: true, unique: true, index: true })
+  @Prop({ required: true, index: true })
+  username: string;
+
+  @Prop({ type: Number, required: true, index: true })
   giftId: number;
 
   @Prop({ required: true })
@@ -23,3 +26,5 @@ export class Gift extends Document {
 }
 
 export const GiftSchema = SchemaFactory.createForClass(Gift);
+GiftSchema.index({ username: 1, giftId: 1 }, { unique: true });
+

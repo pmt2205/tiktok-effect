@@ -16,7 +16,11 @@ let Gift = class Gift extends mongoose_2.Document {
 };
 exports.Gift = Gift;
 __decorate([
-    (0, mongoose_1.Prop)({ type: Number, required: true, unique: true, index: true }),
+    (0, mongoose_1.Prop)({ required: true, index: true }),
+    __metadata("design:type", String)
+], Gift.prototype, "username", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: Number, required: true, index: true }),
     __metadata("design:type", Number)
 ], Gift.prototype, "giftId", void 0);
 __decorate([
@@ -43,4 +47,5 @@ exports.Gift = Gift = __decorate([
     (0, mongoose_1.Schema)()
 ], Gift);
 exports.GiftSchema = mongoose_1.SchemaFactory.createForClass(Gift);
+exports.GiftSchema.index({ username: 1, giftId: 1 }, { unique: true });
 //# sourceMappingURL=gift.schema.js.map

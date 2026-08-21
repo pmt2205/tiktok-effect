@@ -1,20 +1,20 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { OverlaySettings, GiftMappings } from '../../common/interfaces/events.interface';
 import { Settings, Mapping } from './schemas/settings.schema';
 
 @Injectable()
-export class SettingsService implements OnModuleInit {
+export class SettingsService {
   private readonly logger = new Logger(SettingsService.name);
 
-  private settings: OverlaySettings = {
+  private readonly defaultSettings: OverlaySettings = {
     duration: 5,
     density: 2,
     theme: 'neon-pulse',
   };
 
-  private mappings: GiftMappings = {
+  private readonly defaultMappings: GiftMappings = {
     rose: { effect: 'video', videoUrl: 'rose.mp4' },
     'hoa hồng': { effect: 'video', videoUrl: 'rose.mp4' },
     galaxy: { effect: 'star' },
@@ -27,86 +27,93 @@ export class SettingsService implements OnModuleInit {
     @InjectModel(Mapping.name) private readonly mappingModel: Model<Mapping>,
   ) {}
 
-  async onModuleInit() {
+  async getSettingsForUser(username: string): Promise<OverlaySettings> {
     try {
-      // 1. Load or seed settings
-      let settingsDoc = await this.settingsModel.findOne().exec();
+      let settingsDoc = await this.settingsModel.findOne({ username }).exec();
       if (!settingsDoc) {
-        settingsDoc = await this.settingsModel.create(this.settings);
-        this.logger.log('Seeded default settings in MongoDB');
-      } else {
-        this.settings = {
-          duration: settingsDoc.duration,
-          density: settingsDoc.density,
-          theme: settingsDoc.theme,
-        };
-        this.logger.log('Loaded settings from MongoDB');
+        settingsDoc = await this.settingsModel.create({
+          username,
+          ...this.defaultSettings,
+        });
+        this.logger.log(`Seeded default settings for user: ${username}`);
       }
+      return {
+        duration: settingsDoc.duration,
+        density: settingsDoc.density,
+        theme: settingsDoc.theme,
+      };
+    } catch (err) {
+      this.logger.error(`Failed to get settings for user ${username}:`, err);
+      return this.defaultSettings;
+    }
+  }
 
-      // 2. Load or seed mappings
-      const mappingDocs = await this.mappingModel.find().exec();
+  async updateSettingsForUser(username: string, newSettings: Partial<OverlaySettings>): Promise<OverlaySettings> {
+    try {
+      const updated = await this.settingsModel.findOneAndUpdate(
+        { username },
+        { $set: newSettings },
+        { new: true, upsert: true }
+      ).exec();
+      this.logger.log(`Settings updated and persisted for user: ${username}`);
+      return {
+        duration: updated.duration,
+        density: updated.density,
+        theme: updated.theme,
+      };
+    } catch (err) {
+      this.logger.error(`Failed to update settings for user ${username}:`, err);
+      throw err;
+    }
+  }
+
+  async getMappingsForUser(username: string): Promise<GiftMappings> {
+    try {
+      const mappingDocs = await this.mappingModel.find({ username }).exec();
       if (mappingDocs.length === 0) {
-        const seedData = Object.entries(this.mappings).map(([giftName, val]) => ({
+        const seedData = Object.entries(this.defaultMappings).map(([giftName, val]) => ({
+          username,
           giftName,
           effect: val.effect,
           videoUrl: val.videoUrl,
         }));
         await this.mappingModel.insertMany(seedData);
-        this.logger.log('Seeded default gift mappings in MongoDB');
-      } else {
-        const loadedMappings: GiftMappings = {};
-        mappingDocs.forEach(doc => {
-          loadedMappings[doc.giftName] = {
-            effect: doc.effect,
-            videoUrl: doc.videoUrl,
-          };
-        });
-        this.mappings = loadedMappings;
-        this.logger.log(`Loaded ${mappingDocs.length} gift mappings from MongoDB`);
+        this.logger.log(`Seeded default mappings for user: ${username}`);
+        return { ...this.defaultMappings };
       }
+
+      const loadedMappings: GiftMappings = {};
+      mappingDocs.forEach(doc => {
+        loadedMappings[doc.giftName] = {
+          effect: doc.effect,
+          videoUrl: doc.videoUrl,
+        };
+      });
+      return loadedMappings;
     } catch (err) {
-      this.logger.error('Failed to initialize settings/mappings from MongoDB:', err);
+      this.logger.error(`Failed to get mappings for user ${username}:`, err);
+      return this.defaultMappings;
     }
   }
 
-  getSettings(): OverlaySettings {
-    return { ...this.settings };
-  }
-
-  updateSettings(newSettings: Partial<OverlaySettings>): OverlaySettings {
-    this.settings = { ...this.settings, ...newSettings };
-    this.settingsModel.updateOne({}, this.settings, { upsert: true }).exec()
-      .then(() => this.logger.log('Settings persisted to MongoDB'))
-      .catch(err => this.logger.error('Failed to persist settings to MongoDB:', err));
-    return this.settings;
-  }
-
-  getMappings(): GiftMappings {
-    return { ...this.mappings };
-  }
-
-  updateMappings(newMappings: GiftMappings): GiftMappings {
-    this.mappings = { ...newMappings };
-    
-    // Perform async MongoDB persistence in background
-    this.persistMappings(newMappings);
-    
-    return this.mappings;
-  }
-
-  private async persistMappings(newMappings: GiftMappings) {
+  async updateMappingsForUser(username: string, newMappings: GiftMappings): Promise<GiftMappings> {
     try {
-      // Clear all and re-insert to sync the state
-      await this.mappingModel.deleteMany({});
-      const seedData = Object.entries(newMappings).map(([giftName, val]) => ({
+      await this.mappingModel.deleteMany({ username }).exec();
+      const insertData = Object.entries(newMappings).map(([giftName, val]) => ({
+        username,
         giftName,
         effect: val.effect,
         videoUrl: val.videoUrl,
       }));
-      await this.mappingModel.insertMany(seedData);
-      this.logger.log('Mappings persisted to MongoDB');
+      if (insertData.length > 0) {
+        await this.mappingModel.insertMany(insertData);
+      }
+      this.logger.log(`Mappings updated and persisted for user: ${username}`);
+      return newMappings;
     } catch (err) {
-      this.logger.error('Failed to persist mappings to MongoDB:', err);
+      this.logger.error(`Failed to update mappings for user ${username}:`, err);
+      throw err;
     }
   }
 }
+

@@ -1,5 +1,6 @@
 import { Document } from 'mongoose';
 export declare class Gift extends Document {
+    username: string;
     giftId: number;
     name: string;
     coins: number;
@@ -16,6 +17,15 @@ export declare const GiftSchema: import("mongoose").Schema<Gift, import("mongoos
 }, "id"> & import("mongoose").HydratedDocumentOverrides<{
     id: string;
 }>, {
+    name?: import("mongoose").SchemaDefinitionProperty<string, Gift, Document<unknown, {}, Gift, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Gift & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
     _id?: import("mongoose").SchemaDefinitionProperty<import("mongoose").Types.ObjectId, Gift, Document<unknown, {}, Gift, {
         id: string;
     }, import("mongoose").DefaultSchemaOptions> & Omit<Gift & Required<{
@@ -25,7 +35,7 @@ export declare const GiftSchema: import("mongoose").Schema<Gift, import("mongoos
     }, "id"> & import("mongoose").HydratedDocumentOverrides<{
         id: string;
     }>> | undefined;
-    giftId?: import("mongoose").SchemaDefinitionProperty<number, Gift, Document<unknown, {}, Gift, {
+    username?: import("mongoose").SchemaDefinitionProperty<string, Gift, Document<unknown, {}, Gift, {
         id: string;
     }, import("mongoose").DefaultSchemaOptions> & Omit<Gift & Required<{
         _id: import("mongoose").Types.ObjectId;
@@ -34,7 +44,7 @@ export declare const GiftSchema: import("mongoose").Schema<Gift, import("mongoos
     }, "id"> & import("mongoose").HydratedDocumentOverrides<{
         id: string;
     }>> | undefined;
-    name?: import("mongoose").SchemaDefinitionProperty<string, Gift, Document<unknown, {}, Gift, {
+    giftId?: import("mongoose").SchemaDefinitionProperty<number, Gift, Document<unknown, {}, Gift, {
         id: string;
     }, import("mongoose").DefaultSchemaOptions> & Omit<Gift & Required<{
         _id: import("mongoose").Types.ObjectId;

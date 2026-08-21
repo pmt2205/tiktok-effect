@@ -1,10 +1,10 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Gift } from './schemas/gift.schema';
 
 @Injectable()
-export class GiftsService implements OnModuleInit {
+export class GiftsService {
   private readonly logger = new Logger(GiftsService.name);
 
   private readonly defaultGifts = [
@@ -20,74 +20,77 @@ export class GiftsService implements OnModuleInit {
     { giftId: 5825, name: 'Sư Tử', coins: 29999, icon: 'https://sf16-website-nos.sofproxy.com/obj/tiktok-web-tx/tiktok/web/gift/lion.png', videos: [] },
   ];
 
-  private onGiftsChange?: (gifts: Gift[]) => void;
+  private onGiftsChange?: (username: string, gifts: Gift[]) => void;
 
   constructor(
     @InjectModel(Gift.name) private readonly giftModel: Model<Gift>,
   ) {}
 
-  registerChangeCallback(callback: (gifts: Gift[]) => void) {
+  registerChangeCallback(callback: (username: string, gifts: Gift[]) => void) {
     this.onGiftsChange = callback;
   }
 
-  private async triggerChange() {
+  private async triggerChange(username: string) {
     if (this.onGiftsChange) {
       try {
-        const gifts = await this.findAll();
-        this.onGiftsChange(gifts);
+        const gifts = await this.findAllForUser(username);
+        this.onGiftsChange(username, gifts);
       } catch (err) {
-        this.logger.error('Failed to trigger gifts change callback:', err);
+        this.logger.error(`Failed to trigger gifts change callback for user ${username}:`, err);
       }
     }
   }
 
-  async onModuleInit() {
+  async findAllForUser(username: string): Promise<Gift[]> {
     try {
-      // Safety check: wipe collection if it contains legacy data (e.g. string giftId or legacy effect properties)
-      const sampleGift = await this.giftModel.findOne().exec();
-      if (sampleGift && (isNaN(Number(sampleGift.giftId)) || sampleGift.get('effect') !== undefined)) {
-        this.logger.log('Detected legacy gifts schema. Wiping gifts collection to re-seed.');
-        await this.giftModel.deleteMany({});
-      }
-
-      const count = await this.giftModel.countDocuments().exec();
+      const count = await this.giftModel.countDocuments({ username }).exec();
       if (count === 0) {
-        await this.giftModel.insertMany(this.defaultGifts);
-        this.logger.log('Seeded default TikTok gifts in MongoDB');
+        const seedData = this.defaultGifts.map(g => ({
+          ...g,
+          username,
+        }));
+        await this.giftModel.insertMany(seedData);
+        this.logger.log(`Seeded default gifts for user: ${username}`);
       }
+      return this.giftModel.find({ username }).sort({ coins: 1 }).exec();
     } catch (err) {
-      this.logger.error('Failed to seed default gifts:', err);
+      this.logger.error(`Failed to find gifts for user ${username}:`, err);
+      return [];
     }
   }
 
-  async findAll(): Promise<Gift[]> {
-    return this.giftModel.find().sort({ coins: 1 }).exec();
+  async findOneForUser(id: string, username: string): Promise<Gift | null> {
+    return this.giftModel.findOne({ _id: id, username }).exec();
   }
 
-  async findOne(id: string): Promise<Gift | null> {
-    return this.giftModel.findById(id).exec();
+  async findByGiftIdForUser(giftId: number, username: string): Promise<Gift | null> {
+    return this.giftModel.findOne({ giftId, username }).exec();
   }
 
-  async findByGiftId(giftId: number): Promise<Gift | null> {
-    return this.giftModel.findOne({ giftId }).exec();
-  }
-
-  async create(giftData: Partial<Gift>): Promise<Gift> {
-    const newGift = new this.giftModel(giftData);
+  async createForUser(username: string, giftData: Partial<Gift>): Promise<Gift> {
+    const newGift = new this.giftModel({
+      ...giftData,
+      username,
+    });
     const saved = await newGift.save();
-    await this.triggerChange();
+    await this.triggerChange(username);
     return saved;
   }
 
-  async update(id: string, giftData: Partial<Gift>): Promise<Gift | null> {
-    const updated = await this.giftModel.findByIdAndUpdate(id, giftData, { new: true }).exec();
-    await this.triggerChange();
+  async updateForUser(id: string, username: string, giftData: Partial<Gift>): Promise<Gift | null> {
+    const updated = await this.giftModel.findOneAndUpdate(
+      { _id: id, username },
+      giftData,
+      { new: true }
+    ).exec();
+    await this.triggerChange(username);
     return updated;
   }
 
-  async remove(id: string): Promise<any> {
-    const deleted = await this.giftModel.findByIdAndDelete(id).exec();
-    await this.triggerChange();
+  async removeForUser(id: string, username: string): Promise<any> {
+    const deleted = await this.giftModel.findOneAndDelete({ _id: id, username }).exec();
+    await this.triggerChange(username);
     return deleted;
   }
 }
+

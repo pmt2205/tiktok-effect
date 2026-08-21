@@ -3,8 +3,8 @@ import { OverlaySettings, GiftMappings } from '../../common/interfaces/events.in
 export declare class SettingsController {
     private readonly settingsService;
     constructor(settingsService: SettingsService);
-    getSettings(): OverlaySettings;
-    updateSettings(settings: Partial<OverlaySettings>): OverlaySettings;
-    getMappings(): GiftMappings;
-    updateMappings(mappings: GiftMappings): GiftMappings;
+    getSettings(req: any): Promise<OverlaySettings>;
+    updateSettings(req: any, settings: Partial<OverlaySettings>): Promise<OverlaySettings>;
+    getMappings(req: any): Promise<GiftMappings>;
+    updateMappings(req: any, mappings: GiftMappings): Promise<GiftMappings>;
 }

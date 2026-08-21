@@ -23,8 +23,10 @@ export function useWebSocket({ onEvent, autoConnect = true }: UseWebSocketOption
   useEffect(() => {
     if (!autoConnect) return;
 
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
     const socket = io(WS_URL, {
       transports: ['websocket', 'polling'],
+      query: token ? { token } : {},
       reconnection: true,
       reconnectionDelay: 3000,
       reconnectionAttempts: Infinity,

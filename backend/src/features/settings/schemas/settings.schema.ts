@@ -3,6 +3,9 @@ import { Document } from 'mongoose';
 
 @Schema()
 export class Settings extends Document {
+  @Prop({ required: true, unique: true, index: true })
+  username: string;
+
   @Prop({ required: true, default: 5 })
   duration: number;
 
@@ -17,7 +20,10 @@ export const SettingsSchema = SchemaFactory.createForClass(Settings);
 
 @Schema()
 export class Mapping extends Document {
-  @Prop({ required: true, unique: true, index: true })
+  @Prop({ required: true, index: true })
+  username: string;
+
+  @Prop({ required: true })
   giftName: string;
 
   @Prop({ required: true })
@@ -28,3 +34,5 @@ export class Mapping extends Document {
 }
 
 export const MappingSchema = SchemaFactory.createForClass(Mapping);
+MappingSchema.index({ username: 1, giftName: 1 }, { unique: true });
+
