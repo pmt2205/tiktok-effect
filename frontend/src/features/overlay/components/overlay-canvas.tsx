@@ -61,10 +61,10 @@ export default function OverlayCanvas() {
 
     if (dbGift && dbGift.videos && dbGift.videos.length > 0) {
       hasDatabaseGift = true;
-      // Pick a random video from the configured list
-      const randomIndex = Math.floor(Math.random() * dbGift.videos.length);
-      videoUrl = dbGift.videos[randomIndex];
+      // Use the active video, or fallback to the first video in the list
+      videoUrl = dbGift.activeVideo || dbGift.videos[0];
     } 
+
     // 2. Fallback to settings mappings
     else if (mappings[giftKey]) {
       mappedEffect = mappings[giftKey].effect;

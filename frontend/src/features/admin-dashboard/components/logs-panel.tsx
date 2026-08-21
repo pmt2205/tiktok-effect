@@ -6,7 +6,14 @@ import Button from '@/components/ui/button';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { clearLogs } from '@/features/admin-dashboard/store/dashboard-slice';
 
-export default function LogsPanel() {
+interface LogsPanelProps {
+  t?: {
+    realtimeLogsTitle?: string;
+    clear?: string;
+  };
+}
+
+export default function LogsPanel({ t }: LogsPanelProps = {}) {
   const dispatch = useAppDispatch();
   const logs = useAppSelector((state) => state.dashboard.logs);
   const consoleRef = useRef<HTMLDivElement>(null);
@@ -24,10 +31,10 @@ export default function LogsPanel() {
   return (
     <GlassCard
       headerIcon={<i className="fa-solid fa-terminal" />}
-      headerTitle="Real-time Stream Logs"
+      headerTitle={t?.realtimeLogsTitle || "Real-time Stream Logs"}
       headerActions={
         <Button variant="small-danger" onClick={handleClear} id="btn-clear-logs">
-          <i className="fa-solid fa-trash-can" /> Clear
+          <i className="fa-solid fa-trash-can" /> {t?.clear || "Clear"}
         </Button>
       }
       noPadding

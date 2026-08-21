@@ -17,6 +17,9 @@ export class Gift extends Document {
 
   @Prop({ type: [String], required: true, default: [] })
   videos: string[];
+
+  @Prop({ type: String, required: false })
+  activeVideo?: string;
 }
 
 export const GiftSchema = SchemaFactory.createForClass(Gift);

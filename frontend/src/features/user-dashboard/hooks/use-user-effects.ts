@@ -1,6 +1,7 @@
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setSelectedGiftId, setActivePreviewVideo } from '../store/user-slice';
 import { Gift } from '@/types';
+import { BACKEND_URL } from '@/lib/constants';
 
 export function useUserEffects() {
   const dispatch = useAppDispatch();
@@ -16,7 +17,7 @@ export function useUserEffects() {
   const openPreview = (gift: Gift) => {
     dispatch(setSelectedGiftId(gift.giftId));
     if (gift.videos && gift.videos.length > 0) {
-      dispatch(setActivePreviewVideo(gift.videos[0]));
+      dispatch(setActivePreviewVideo(gift.activeVideo || gift.videos[0]));
     } else {
       dispatch(setActivePreviewVideo(''));
     }
@@ -27,8 +28,23 @@ export function useUserEffects() {
     dispatch(setActivePreviewVideo(null));
   };
 
-  const selectVideo = (video: string) => {
+  const selectVideo = async (video: string) => {
     dispatch(setActivePreviewVideo(video));
+    if (selectedGift && selectedGift._id) {
+      try {
+        const token = localStorage.getItem('auth_token');
+        await fetch(`${BACKEND_URL}/api/gifts/${selectedGift._id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ activeVideo: video })
+        });
+      } catch (err) {
+        console.error('Failed to update active video on backend:', err);
+      }
+    }
   };
 
   const t = {
@@ -46,6 +62,14 @@ export function useUserEffects() {
       notConfigured: 'Chưa cấu hình',
       previewPlayerTitle: 'Trình xem trước video',
       noMapping: 'Mặc định (Không có video tùy chỉnh)',
+      connectionTitle: 'Kết nối livestream TikTok',
+      connectionStatus: 'Trạng thái',
+      viewers: 'người xem',
+      connect: 'Kết nối',
+      disconnect: 'Ngắt kết nối',
+      adminPrivileges: 'Cần quyền Admin để quản lý kết nối livestream.',
+      realtimeLogsTitle: 'Nhật ký livestream trực tiếp',
+      clear: 'Xóa nhật ký',
     },
     en: {
       title: 'Gift Effects Visualizer',
@@ -61,6 +85,14 @@ export function useUserEffects() {
       notConfigured: 'Not Configured',
       previewPlayerTitle: 'Video Preview Player',
       noMapping: 'Default (No custom video)',
+      connectionTitle: 'TikTok Stream Connection',
+      connectionStatus: 'Status',
+      viewers: 'viewers',
+      connect: 'Connect',
+      disconnect: 'Disconnect',
+      adminPrivileges: 'Admin privileges required to manage stream connection.',
+      realtimeLogsTitle: 'Real-time Stream Logs',
+      clear: 'Clear',
     }
   }[language];
 

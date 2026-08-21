@@ -79,4 +79,5 @@ export interface Gift {
   coins: number;
   icon: string;
   videos: string[];
+  activeVideo?: string;
 }

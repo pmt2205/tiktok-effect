@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import ShootingStars from '@/features/auth/components/shooting-stars';
 import Header from '@/components/layout/header';
 import AdminSidebar from '@/components/layout/admin-sidebar';
 import BackgroundGlows from '@/components/layout/background-glows';
@@ -402,6 +403,10 @@ export default function DashboardPage() {
   // Render User Homepage view
   return (
     <>
+      <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.8)_1px,_transparent_1px)] bg-[size:180px_180px] bg-[position:0_0] pointer-events-none z-0 animate-twinkle" style={{ animationDuration: '5s' }} />
+      <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.6)_1.5px,_transparent_1.5px)] bg-[size:280px_280px] bg-[position:40px_70px] pointer-events-none z-0 animate-twinkle" style={{ animationDuration: '8s', animationDelay: '1.5s' } as React.CSSProperties} />
+      <div className="absolute inset-0 bg-[radial-gradient(rgba(0,242,254,0.4)_2px,_transparent_2px)] bg-[size:400px_400px] bg-[position:100px_220px] pointer-events-none z-0 animate-twinkle" style={{ animationDuration: '11s', animationDelay: '3s' } as React.CSSProperties} />
+      <ShootingStars />
       <BackgroundGlows />
       <div className="max-w-[1360px] mx-auto">
         <Header />

@@ -25,6 +25,7 @@ export default function GiftManagerPanel() {
   const [coins, setCoins] = useState<number>(1);
   const [icon, setIcon] = useState('');
   const [videos, setVideos] = useState<string[]>([]);
+  const [activeVideo, setActiveVideo] = useState<string>('');
   const [uploading, setUploading] = useState(false);
 
   // Editing state
@@ -60,6 +61,8 @@ export default function GiftManagerPanel() {
       uploadSuccess: 'Tải video lên thành công!',
       uploadError: 'Tải video lên thất bại!',
       videoRequired: 'Vui lòng tải lên ít nhất 1 video.',
+      activeBadge: 'Đang dùng',
+      setActive: 'Chọn dùng',
     },
     en: {
       title: 'Gift Effects Manager',
@@ -90,6 +93,8 @@ export default function GiftManagerPanel() {
       uploadSuccess: 'Video uploaded successfully!',
       uploadError: 'Video upload failed!',
       videoRequired: 'Please upload at least 1 video.',
+      activeBadge: 'Active',
+      setActive: 'Set Active',
     }
   }[language];
 
@@ -126,6 +131,7 @@ export default function GiftManagerPanel() {
     setCoins(1);
     setIcon('');
     setVideos([]);
+    setActiveVideo('');
     setIsFormOpen(true);
   };
 
@@ -155,7 +161,13 @@ export default function GiftManagerPanel() {
       if (res.ok) {
         const data = await res.json();
         if (data.success && data.filename) {
-          setVideos((prev) => [...prev, data.filename]);
+          setVideos((prev) => {
+            const next = [...prev, data.filename];
+            if (next.length === 1) {
+              setActiveVideo(data.filename);
+            }
+            return next;
+          });
           toast.success(t.uploadSuccess);
         } else {
           toast.error(data.message || t.uploadError);
@@ -173,7 +185,14 @@ export default function GiftManagerPanel() {
   };
 
   const handleRemoveVideo = (indexToRemove: number) => {
-    setVideos((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+    const videoToRemove = videos[indexToRemove];
+    setVideos((prev) => {
+      const next = prev.filter((_, idx) => idx !== indexToRemove);
+      if (activeVideo === videoToRemove) {
+        setActiveVideo(next[0] || '');
+      }
+      return next;
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -193,6 +212,7 @@ export default function GiftManagerPanel() {
       coins: Number(coins),
       icon: icon.trim() || 'https://sf16-website-nos.sofproxy.com/obj/tiktok-web-tx/tiktok/web/gift/rose.png',
       videos,
+      activeVideo: activeVideo || undefined,
     };
 
     try {
@@ -232,6 +252,7 @@ export default function GiftManagerPanel() {
     setCoins(gift.coins);
     setIcon(gift.icon);
     setVideos(gift.videos || []);
+    setActiveVideo(gift.activeVideo || (gift.videos && gift.videos[0]) || '');
     setIsFormOpen(true);
   };
 
@@ -242,6 +263,7 @@ export default function GiftManagerPanel() {
     setCoins(1);
     setIcon('');
     setVideos([]);
+    setActiveVideo('');
     setIsFormOpen(false);
   };
 
@@ -263,6 +285,7 @@ export default function GiftManagerPanel() {
       coins: Number(coins),
       icon: icon.trim(),
       videos,
+      activeVideo: activeVideo || undefined,
     };
 
     try {
@@ -369,6 +392,12 @@ export default function GiftManagerPanel() {
                       </div>
                       <span className="text-[0.78rem] text-text-muted font-body mt-0.5">
                         ⚡ {gift.coins} coins | Videos: <span className="text-white/80 font-semibold">{gift.videos && gift.videos.length > 0 ? `${gift.videos.length} video(s)` : 'None'}</span>
+                        {gift.videos && gift.videos.length > 0 && (
+                          <>
+                            {' | '}{language === 'vi' ? 'Đang dùng: ' : 'Active: '}
+                            <span className="text-secondary font-semibold">{gift.activeVideo || gift.videos[0]}</span>
+                          </>
+                        )}
                       </span>
                     </div>
                   </div>
@@ -473,18 +502,42 @@ export default function GiftManagerPanel() {
                     </span>
                   ) : (
                     <div className="flex flex-col gap-1.5 max-h-[140px] overflow-y-auto custom-scrollbar">
-                      {videos.map((video, idx) => (
-                        <div key={idx} className="flex justify-between items-center bg-black/40 px-3 py-2 rounded-sm border border-white/5">
-                          <span className="text-[0.8rem] text-white/90 font-body truncate max-w-[210px]">{video}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveVideo(idx)}
-                            className="text-primary hover:text-primary-glow text-[0.85rem] cursor-pointer outline-none transition-colors duration-150 active:scale-95"
+                      {videos.map((video, idx) => {
+                        const isActive = video === activeVideo;
+                        return (
+                          <div 
+                            key={idx} 
+                            className={`flex justify-between items-center bg-black/40 px-3 py-2 rounded-sm border transition-all duration-150 ${
+                              isActive ? 'border-secondary/30 bg-secondary/5' : 'border-white/5'
+                            }`}
                           >
-                            <i className="fa-solid fa-trash-can" />
-                          </button>
-                        </div>
-                      ))}
+                            <div className="flex items-center gap-2 truncate max-w-[240px]">
+                              <button
+                                type="button"
+                                onClick={() => setActiveVideo(video)}
+                                className={`flex items-center justify-center w-5 h-5 rounded-full border transition-all duration-150 cursor-pointer ${
+                                  isActive 
+                                    ? 'bg-secondary border-secondary text-black shadow-[0_0_8px_rgba(0,242,254,0.3)]' 
+                                    : 'border-white/30 hover:border-secondary'
+                                }`}
+                                title={isActive ? t.activeBadge : t.setActive}
+                              >
+                                {isActive && <i className="fa-solid fa-check text-[0.68rem] font-bold" />}
+                              </button>
+                              <span className={`text-[0.8rem] font-body truncate ${isActive ? 'text-secondary font-semibold' : 'text-white/90'}`}>
+                                {video}
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveVideo(idx)}
+                              className="text-primary hover:text-primary-glow text-[0.85rem] cursor-pointer outline-none transition-colors duration-150 active:scale-95 ml-2"
+                            >
+                              <i className="fa-solid fa-trash-can" />
+                            </button>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
 

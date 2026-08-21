@@ -35,6 +35,10 @@ __decorate([
     (0, mongoose_1.Prop)({ type: [String], required: true, default: [] }),
     __metadata("design:type", Array)
 ], Gift.prototype, "videos", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: String, required: false }),
+    __metadata("design:type", String)
+], Gift.prototype, "activeVideo", void 0);
 exports.Gift = Gift = __decorate([
     (0, mongoose_1.Schema)()
 ], Gift);

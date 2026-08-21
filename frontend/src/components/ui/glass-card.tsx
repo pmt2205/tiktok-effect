@@ -18,7 +18,7 @@ export default function GlassCard({
   noPadding = false,
 }: GlassCardProps) {
   return (
-    <section className={`relative overflow-hidden bg-bg-card backdrop-blur-3xl rounded-lg border border-border-color shadow-[0_8px_32px_0_rgba(0,0,0,0.4)] transition-all duration-300 before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/[0.025] before:to-transparent before:pointer-events-none hover:border-white/12 hover:shadow-[0_8px_40px_0_rgba(0,242,254,0.04)] hover:bg-bg-card-hover hover:-translate-y-0.5 ${className}`}>
+    <section className={`relative overflow-hidden bg-bg-card backdrop-blur-3xl rounded-lg border border-transparent shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] transition-all duration-300 hover:shadow-[0_8px_40px_0_rgba(0,242,254,0.15)] hover:-translate-y-0.5 border-glow-animated before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/[0.025] before:to-transparent before:pointer-events-none hover:border-white/12 hover:shadow-[0_8px_40px_0_rgba(0,242,254,0.04)] hover:bg-bg-card-hover hover:-translate-y-0.5 ${className}`}>
       {headerTitle && (
         <div className="flex items-center gap-2.5 px-6 py-4 border-b border-border-color">
           {headerActions ? (

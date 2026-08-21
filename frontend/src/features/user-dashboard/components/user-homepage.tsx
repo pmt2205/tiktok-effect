@@ -25,23 +25,15 @@ export default function UserHomepage({
 
   return (
     <div className="w-full max-w-[1360px] mx-auto px-4 py-4 md:px-6 animate-[fade-in-up_0.6s_ease-out]" id="effects-section">
-      <div className="mb-8 border-b border-border-color pb-4 select-none">
-        <h2 className="font-header text-[1.5rem] font-bold text-white tracking-[0.5px]">{t.title}</h2>
-        <p className="text-[0.88rem] text-text-muted mt-1.5 leading-normal">{t.subtitle}</p>
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_2.4fr] gap-8 items-start">
-        {/* Left Column: Stream Connector & Live Chat Logs Feed */}
+        {/* Left Column: Stream Connector, Gift Jar & Live Chat Logs Feed */}
         <div className="flex flex-col gap-6">
-          <ConnectionPanel onConnect={onConnect} onDisconnect={onDisconnect} />
-          <LogsPanel />
+          <ConnectionPanel onConnect={onConnect} onDisconnect={onDisconnect} t={t} />
+          <LogsPanel t={t} />
         </div>
 
         {/* Right Column: Dynamic Gifts Catalog */}
         <div className="flex flex-col gap-4">
-          <span className="font-header text-[0.85rem] font-bold tracking-[1.5px] uppercase text-[#00f2fe]/90 select-none">
-            {language === 'vi' ? 'Bộ sưu tập hiệu ứng quà tặng' : 'Gift Effects Library'}
-          </span>
           <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-5">
             {customGifts.map((gift) => {
               const hasVideos = gift.videos && gift.videos.length > 0;
@@ -77,8 +69,9 @@ export default function UserHomepage({
                     
                     {/* Active effect badge */}
                     {hasVideos ? (
-                      <span className="text-[0.62rem] text-success font-semibold mt-1 px-1.5 py-0.5 rounded-sm bg-success/10 border border-success/15 capitalize">
-                        Video ({gift.videos.length})
+                      <span className="text-[0.62rem] text-secondary font-semibold mt-1 px-1.5 py-0.5 rounded-sm bg-secondary/10 border border-secondary/15 truncate max-w-full">
+                        {language === 'vi' ? 'Đang dùng: ' : 'Active: '}
+                        {gift.activeVideo || gift.videos[0]}
                       </span>
                     ) : (
                       <span className="text-[0.62rem] text-text-muted mt-1 px-1.5 py-0.5 rounded-sm bg-white/5 border border-white/10 select-none">
@@ -199,25 +192,28 @@ function VideoPresetsModal({
               <span className="font-header text-[0.75rem] font-bold tracking-[1.5px] uppercase text-text-muted select-none block mb-2">{t.presetVideos}</span>
               <div className="flex flex-col gap-2 max-h-[160px] overflow-y-auto pr-1 custom-scrollbar">
                 {gift.videos && gift.videos.length > 0 ? (
-                  gift.videos.map((video) => (
-                    <div 
-                      key={video}
-                      onClick={() => setActiveVideo(video)}
-                      className={`flex justify-between items-center p-2.5 rounded-sm border cursor-pointer transition-all duration-150 ${
-                        activeVideo === video 
-                          ? 'border-secondary bg-secondary/8 text-secondary' 
-                          : 'border-border-color bg-black/20 text-text-secondary hover:border-white/12'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 max-w-[220px] truncate">
-                        <i className="fa-solid fa-film text-[0.85rem]" />
-                        <span className="text-[0.82rem] truncate">{video}</span>
+                  gift.videos.map((video) => {
+                    const isActive = activeVideo === video;
+                    return (
+                      <div 
+                        key={video}
+                        onClick={() => setActiveVideo(video)}
+                        className={`flex justify-between items-center p-2.5 rounded-sm border cursor-pointer transition-all duration-150 ${
+                          isActive 
+                            ? 'border-secondary/50 bg-secondary/8 text-secondary shadow-[0_0_8px_rgba(0,242,254,0.12)]' 
+                            : 'border-border-color bg-black/20 text-text-secondary hover:border-white/12'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 max-w-[220px] truncate">
+                          <i className={`fa-solid ${isActive ? 'fa-circle-check text-secondary' : 'fa-film text-text-muted'} text-[0.85rem]`} />
+                          <span className={`text-[0.82rem] truncate ${isActive ? 'font-semibold' : ''}`}>{video}</span>
+                        </div>
+                        <span className={`text-[0.62rem] select-none ${isActive ? 'text-secondary/80 font-semibold' : 'text-text-muted'}`}>
+                          {isActive ? (language === 'vi' ? 'Đang dùng' : 'Active') : 'MP4 Video'}
+                        </span>
                       </div>
-                      <span className="text-[0.62rem] text-text-muted select-none">
-                        MP4 Video
-                      </span>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <span className="text-[0.82rem] text-text-muted italic select-none">
                     {t.noMapping}

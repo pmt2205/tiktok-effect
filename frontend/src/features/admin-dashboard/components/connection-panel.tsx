@@ -11,9 +11,17 @@ import { useAppSelector } from '@/store/hooks';
 interface ConnectionPanelProps {
   onConnect: (username: string) => void;
   onDisconnect: () => void;
+  t?: {
+    connectionTitle?: string;
+    connectionStatus?: string;
+    viewers?: string;
+    connect?: string;
+    disconnect?: string;
+    adminPrivileges?: string;
+  };
 }
 
-export default function ConnectionPanel({ onConnect, onDisconnect }: ConnectionPanelProps) {
+export default function ConnectionPanel({ onConnect, onDisconnect, t }: ConnectionPanelProps) {
   const status = useAppSelector((state) => state.dashboard.status);
   const user = useAppSelector((state) => state.auth.user);
   const [username, setUsername] = useState('');
@@ -26,9 +34,20 @@ export default function ConnectionPanel({ onConnect, onDisconnect }: ConnectionP
   const isConnecting = status.status === 'connecting';
   const isDisconnected = status.status === 'disconnected';
 
+  const getTranslatedStatus = (statusVal: string) => {
+    if (t) {
+      switch (statusVal) {
+        case 'connected': return 'Đã kết nối';
+        case 'connecting': return 'Đang kết nối';
+        default: return 'Chưa kết nối';
+      }
+    }
+    return statusVal.charAt(0).toUpperCase() + statusVal.slice(1);
+  };
+
   const statusText = status.username
-    ? `${status.status.charAt(0).toUpperCase() + status.status.slice(1)} (@${status.username})`
-    : status.status.charAt(0).toUpperCase() + status.status.slice(1);
+    ? `${getTranslatedStatus(status.status)} (@${status.username})`
+    : getTranslatedStatus(status.status);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,17 +61,17 @@ export default function ConnectionPanel({ onConnect, onDisconnect }: ConnectionP
   return (
     <GlassCard
       headerIcon={<i className="fa-solid fa-signal" />}
-      headerTitle="TikTok Stream Connection"
+      headerTitle={t?.connectionTitle || "TikTok Stream Connection"}
     >
       <div className="flex items-center gap-2.5 mb-4">
-        <span className="text-[0.92rem] text-text-secondary">Status:</span>
+        <span className="text-[0.92rem] text-text-secondary">{t?.connectionStatus || "Status"}:</span>
         <StatusBadge status={status.status} text={statusText} />
       </div>
 
       {isConnected && (
         <div className="flex items-center gap-2 bg-white/[0.03] px-3.5 py-2 rounded-sm mb-4 text-[0.88rem] text-text-muted">
           <i className="fa-solid fa-eye text-primary" />
-          <span>{formatNumber(status.viewerCount)}</span> viewers
+          <span>{formatNumber(status.viewerCount)}</span> {t?.viewers || 'viewers'}
         </div>
       )}
 
@@ -69,18 +88,18 @@ export default function ConnectionPanel({ onConnect, onDisconnect }: ConnectionP
           <div className="flex gap-3 mt-4">
             {isDisconnected && (
               <Button type="submit" variant="gradient" id="btn-connect" className="flex-1">
-                <i className="fa-solid fa-link" /> Connect
+                <i className="fa-solid fa-link" /> {t?.connect || 'Connect'}
               </Button>
             )}
             {!isDisconnected && (
               <Button type="button" variant="danger" onClick={onDisconnect} id="btn-disconnect" className="flex-1">
-                <i className="fa-solid fa-link-slash" /> Disconnect
+                <i className="fa-solid fa-link-slash" /> {t?.disconnect || 'Disconnect'}
               </Button>
             )}
           </div>
         ) : (
           <div className="view-only-msg" style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '10px' }}>
-            <i className="fa-solid fa-lock" /> Admin privileges required to manage stream connection.
+            <i className="fa-solid fa-lock" /> {t?.adminPrivileges || 'Admin privileges required to manage stream connection.'}
           </div>
         )}
       </form>
