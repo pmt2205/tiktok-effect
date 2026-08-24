@@ -37,6 +37,14 @@ export interface OverlaySettings {
   duration: number;
   density: number;
   theme: string;
+  jarEnabled: boolean;
+  jarX: number;
+  jarY: number;
+  jarScale: number;
+  liveMode?: string;
+  activeNpcCategory?: string;
+  allowNpc?: boolean;
+  allowedNpcCategories?: string[];
 }
 
 export interface GiftMapping {
@@ -80,4 +88,10 @@ export interface Gift {
   icon: string;
   videos: string[];
   activeVideo?: string;
+}
+
+export interface NpcCategory {
+  _id: string;
+  name: string;
+  displayName: string;
 }

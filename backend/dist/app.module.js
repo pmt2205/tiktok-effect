@@ -16,6 +16,7 @@ const media_module_1 = require("./features/media/media.module");
 const auth_module_1 = require("./features/auth/auth.module");
 const users_module_1 = require("./features/users/users.module");
 const gifts_module_1 = require("./features/gifts/gifts.module");
+const chat_module_1 = require("./features/chat/chat.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -30,6 +31,7 @@ exports.AppModule = AppModule = __decorate([
             auth_module_1.AuthModule,
             users_module_1.UsersModule,
             gifts_module_1.GiftsModule,
+            chat_module_1.ChatModule,
         ],
     })
 ], AppModule);

@@ -25,8 +25,8 @@ let UsersController = class UsersController {
     async findAll() {
         return this.usersService.findAll();
     }
-    async updatePermissions(id, allowConnect) {
-        return this.usersService.updatePermissions(id, allowConnect);
+    async updatePermissions(id, body) {
+        return this.usersService.updatePermissions(id, body);
     }
     async remove(id) {
         return this.usersService.remove(id);
@@ -42,9 +42,9 @@ __decorate([
 __decorate([
     (0, common_1.Put)(':id/permissions'),
     __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Body)('allowConnect')),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Boolean]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "updatePermissions", null);
 __decorate([

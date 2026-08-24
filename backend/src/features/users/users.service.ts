@@ -28,7 +28,7 @@ export class UsersService {
     return this.userModel.findByIdAndDelete(id).exec();
   }
 
-  async updatePermissions(id: string, allowConnect: boolean): Promise<User | null> {
-    return this.userModel.findByIdAndUpdate(id, { allowConnect }, { new: true }).select('-passwordHash').exec();
+  async updatePermissions(id: string, permissions: { allowConnect?: boolean; allowNpc?: boolean; allowedNpcCategories?: string[] }): Promise<User | null> {
+    return this.userModel.findByIdAndUpdate(id, { $set: permissions }, { new: true }).select('-passwordHash').exec();
   }
 }

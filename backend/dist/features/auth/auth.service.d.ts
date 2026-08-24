@@ -16,6 +16,7 @@ export declare class AuthService {
             username: string;
             role: string;
             allowConnect: boolean;
+            allowNpc: boolean;
         };
     }>;
 }

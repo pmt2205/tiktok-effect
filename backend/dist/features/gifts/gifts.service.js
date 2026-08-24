@@ -18,9 +18,11 @@ const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const gift_schema_1 = require("./schemas/gift.schema");
+const npc_gift_schema_1 = require("./schemas/npc-gift.schema");
 let GiftsService = GiftsService_1 = class GiftsService {
-    constructor(giftModel) {
+    constructor(giftModel, npcGiftModel) {
         this.giftModel = giftModel;
+        this.npcGiftModel = npcGiftModel;
         this.logger = new common_1.Logger(GiftsService_1.name);
         this.defaultGifts = [
             { giftId: 5655, name: 'Hoa Hồng', coins: 1, icon: 'https://sf16-website-nos.sofproxy.com/obj/tiktok-web-tx/tiktok/web/gift/rose.png', videos: ['rose.mp4'], activeVideo: 'rose.mp4' },
@@ -35,8 +37,27 @@ let GiftsService = GiftsService_1 = class GiftsService {
             { giftId: 5825, name: 'Sư Tử', coins: 29999, icon: 'https://sf16-website-nos.sofproxy.com/obj/tiktok-web-tx/tiktok/web/gift/lion.png', videos: [] },
         ];
     }
+    async onModuleInit() {
+        try {
+            await this.giftModel.collection.dropIndex('giftId_1');
+            this.logger.log('Successfully dropped old unique index giftId_1');
+        }
+        catch (err) {
+            if (err.code !== 27 && err.codeName !== 'IndexNotFound') {
+                this.logger.warn(`Failed to drop index giftId_1: ${err.message}`);
+            }
+        }
+        try {
+            await this.npcGiftModel.collection.dropIndex('giftId_1');
+        }
+        catch (err) {
+        }
+    }
     registerChangeCallback(callback) {
         this.onGiftsChange = callback;
+    }
+    registerNpcChangeCallback(callback) {
+        this.onNpcGiftsChange = callback;
     }
     async triggerChange(username) {
         if (this.onGiftsChange) {
@@ -46,6 +67,17 @@ let GiftsService = GiftsService_1 = class GiftsService {
             }
             catch (err) {
                 this.logger.error(`Failed to trigger gifts change callback for user ${username}:`, err);
+            }
+        }
+    }
+    async triggerNpcChange(username, category) {
+        if (this.onNpcGiftsChange) {
+            try {
+                const gifts = await this.findAllNpcGiftsForUser(username, category);
+                this.onNpcGiftsChange(username, category, gifts);
+            }
+            catch (err) {
+                this.logger.error(`Failed to trigger NPC gifts change callback for user ${username}:`, err);
             }
         }
     }
@@ -92,11 +124,60 @@ let GiftsService = GiftsService_1 = class GiftsService {
         await this.triggerChange(username);
         return deleted;
     }
+    async findAllNpcGiftsForUser(username, category) {
+        try {
+            const count = await this.npcGiftModel.countDocuments({ username, category }).exec();
+            if (count === 0) {
+                const seedData = this.defaultGifts.map(g => ({
+                    giftId: g.giftId,
+                    name: g.name,
+                    coins: g.coins,
+                    icon: g.icon,
+                    videos: g.videos,
+                    activeVideo: g.activeVideo,
+                    username,
+                    category,
+                }));
+                await this.npcGiftModel.insertMany(seedData);
+                this.logger.log(`Seeded default NPC gifts for user ${username} in category ${category}`);
+            }
+            return this.npcGiftModel.find({ username, category }).sort({ coins: 1 }).exec();
+        }
+        catch (err) {
+            this.logger.error(`Failed to find NPC gifts for user ${username} in category ${category}:`, err);
+            return [];
+        }
+    }
+    async findOneNpcGiftForUser(id, username, category) {
+        return this.npcGiftModel.findOne({ _id: id, username, category }).exec();
+    }
+    async createNpcGiftForUser(username, category, giftData) {
+        const newGift = new this.npcGiftModel({
+            ...giftData,
+            username,
+            category,
+        });
+        const saved = await newGift.save();
+        await this.triggerNpcChange(username, category);
+        return saved;
+    }
+    async updateNpcGiftForUser(id, username, category, giftData) {
+        const updated = await this.npcGiftModel.findOneAndUpdate({ _id: id, username, category }, giftData, { new: true }).exec();
+        await this.triggerNpcChange(username, category);
+        return updated;
+    }
+    async removeNpcGiftForUser(id, username, category) {
+        const deleted = await this.npcGiftModel.findOneAndDelete({ _id: id, username, category }).exec();
+        await this.triggerNpcChange(username, category);
+        return deleted;
+    }
 };
 exports.GiftsService = GiftsService;
 exports.GiftsService = GiftsService = GiftsService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(gift_schema_1.Gift.name)),
-    __metadata("design:paramtypes", [mongoose_2.Model])
+    __param(1, (0, mongoose_1.InjectModel)(npc_gift_schema_1.NpcGift.name)),
+    __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model])
 ], GiftsService);
 //# sourceMappingURL=gifts.service.js.map

@@ -19,9 +19,9 @@ export class UsersController {
   @Put(':id/permissions')
   async updatePermissions(
     @Param('id') id: string,
-    @Body('allowConnect') allowConnect: boolean,
+    @Body() body: { allowConnect?: boolean; allowNpc?: boolean; allowedNpcCategories?: string[] },
   ): Promise<any> {
-    return this.usersService.updatePermissions(id, allowConnect);
+    return this.usersService.updatePermissions(id, body);
   }
 
   @Delete(':id')

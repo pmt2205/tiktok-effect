@@ -54,6 +54,7 @@ let AuthService = class AuthService {
                 username: user.username,
                 role: user.role,
                 allowConnect: user.allowConnect ?? false,
+                allowNpc: user.allowNpc ?? false,
             },
         };
     }

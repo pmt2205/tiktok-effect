@@ -7,5 +7,9 @@ export declare class UsersService {
     create(username: string, passwordHash: string, role: string): Promise<User>;
     findAll(): Promise<User[]>;
     remove(id: string): Promise<any>;
-    updatePermissions(id: string, allowConnect: boolean): Promise<User | null>;
+    updatePermissions(id: string, permissions: {
+        allowConnect?: boolean;
+        allowNpc?: boolean;
+        allowedNpcCategories?: string[];
+    }): Promise<User | null>;
 }

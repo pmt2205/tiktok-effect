@@ -7,6 +7,7 @@ import { MediaModule } from './features/media/media.module';
 import { AuthModule } from './features/auth/auth.module';
 import { UsersModule } from './features/users/users.module';
 import { GiftsModule } from './features/gifts/gifts.module';
+import { ChatModule } from './features/chat/chat.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { GiftsModule } from './features/gifts/gifts.module';
     AuthModule,
     UsersModule,
     GiftsModule,
+    ChatModule,
   ],
 })
 export class AppModule {}

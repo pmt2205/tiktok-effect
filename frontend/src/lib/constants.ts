@@ -9,6 +9,10 @@ export const DEFAULT_SETTINGS = {
   duration: 5,
   density: 2,
   theme: 'neon-pulse',
+  jarEnabled: false,
+  jarX: 85,
+  jarY: 75,
+  jarScale: 1.0,
 };
 
 // Default gift mappings

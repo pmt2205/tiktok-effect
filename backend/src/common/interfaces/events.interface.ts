@@ -36,6 +36,10 @@ export interface OverlaySettings {
   duration: number;
   density: number;
   theme: string;
+  jarEnabled: boolean;
+  jarX: number;
+  jarY: number;
+  jarScale: number;
 }
 
 export interface GiftMapping {

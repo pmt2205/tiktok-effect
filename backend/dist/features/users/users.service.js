@@ -38,8 +38,8 @@ let UsersService = class UsersService {
     async remove(id) {
         return this.userModel.findByIdAndDelete(id).exec();
     }
-    async updatePermissions(id, allowConnect) {
-        return this.userModel.findByIdAndUpdate(id, { allowConnect }, { new: true }).select('-passwordHash').exec();
+    async updatePermissions(id, permissions) {
+        return this.userModel.findByIdAndUpdate(id, { $set: permissions }, { new: true }).select('-passwordHash').exec();
     }
 };
 exports.UsersService = UsersService;

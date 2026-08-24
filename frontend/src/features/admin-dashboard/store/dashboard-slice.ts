@@ -1,16 +1,21 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { TiktokStatus, OverlaySettings, GiftMappings, GiftMapping, LogEntry, Gift } from '@/types';
+import { TiktokStatus, OverlaySettings, GiftMappings, GiftMapping, LogEntry, Gift, NpcCategory } from '@/types';
 import { DEFAULT_SETTINGS, DEFAULT_MAPPINGS } from '@/lib/constants';
 
 interface DashboardState {
   status: TiktokStatus;
   settings: OverlaySettings;
   mappings: GiftMappings;
+  npcMappings: GiftMappings;
+  npcCategories: NpcCategory[];
+  npcGifts: Gift[];
   availableGifts: unknown[];
   logs: LogEntry[];
   selectedMappedGift: string;
   language: 'vi' | 'en';
   customGifts: Gift[];
+  selectedStreamer: string;
+  usersList: { _id: string; username: string; role: string; allowConnect: boolean; allowNpc?: boolean }[];
 }
 
 const initialState: DashboardState = {
@@ -22,11 +27,16 @@ const initialState: DashboardState = {
   },
   settings: DEFAULT_SETTINGS,
   mappings: DEFAULT_MAPPINGS,
+  npcMappings: {},
+  npcCategories: [],
+  npcGifts: [],
   availableGifts: [],
   logs: [],
   selectedMappedGift: Object.keys(DEFAULT_MAPPINGS)[0] || '',
   language: 'vi',
   customGifts: [],
+  selectedStreamer: '',
+  usersList: [],
 };
 
 export const dashboardSlice = createSlice({
@@ -58,6 +68,12 @@ export const dashboardSlice = createSlice({
     },
     setSelectedMappedGift: (state, action: PayloadAction<string>) => {
       state.selectedMappedGift = action.payload;
+    },
+    setSelectedStreamer: (state, action: PayloadAction<string>) => {
+      state.selectedStreamer = action.payload;
+    },
+    setUsersList: (state, action: PayloadAction<any[]>) => {
+      state.usersList = action.payload;
     },
     addMapping: (state, action: PayloadAction<{ giftName: string; mapping: GiftMapping }>) => {
       const { giftName, mapping } = action.payload;
@@ -93,6 +109,37 @@ export const dashboardSlice = createSlice({
     setLanguage: (state, action: PayloadAction<'vi' | 'en'>) => {
       state.language = action.payload;
     },
+    setNpcMappings: (state, action: PayloadAction<GiftMappings>) => {
+      state.npcMappings = action.payload;
+    },
+    addNpcMapping: (state, action: PayloadAction<{ giftName: string; mapping: GiftMapping }>) => {
+      const { giftName, mapping } = action.payload;
+      state.npcMappings[giftName] = mapping;
+    },
+    deleteNpcMapping: (state, action: PayloadAction<string>) => {
+      delete state.npcMappings[action.payload];
+    },
+    setNpcCategories: (state, action: PayloadAction<NpcCategory[]>) => {
+      state.npcCategories = action.payload;
+    },
+    addNpcCategory: (state, action: PayloadAction<NpcCategory>) => {
+      state.npcCategories.push(action.payload);
+    },
+    deleteNpcCategory: (state, action: PayloadAction<string>) => {
+      state.npcCategories = state.npcCategories.filter((c) => c._id !== action.payload);
+    },
+    setNpcGifts: (state, action: PayloadAction<Gift[]>) => {
+      state.npcGifts = action.payload;
+    },
+    addNpcGift: (state, action: PayloadAction<Gift>) => {
+      state.npcGifts.push(action.payload);
+    },
+    updateNpcGift: (state, action: PayloadAction<Gift>) => {
+      state.npcGifts = state.npcGifts.map((g) => g._id === action.payload._id ? action.payload : g);
+    },
+    deleteNpcGift: (state, action: PayloadAction<string>) => {
+      state.npcGifts = state.npcGifts.filter((g) => g._id !== action.payload);
+    },
   },
 });
 
@@ -101,11 +148,23 @@ export const {
   setViewerCount,
   setSettings,
   setMappings,
+  setNpcMappings,
   setAvailableGifts,
   setCustomGifts,
   setSelectedMappedGift,
+  setSelectedStreamer,
+  setUsersList,
   addMapping,
   deleteMapping,
+  addNpcMapping,
+  deleteNpcMapping,
+  setNpcCategories,
+  addNpcCategory,
+  deleteNpcCategory,
+  setNpcGifts,
+  addNpcGift,
+  updateNpcGift,
+  deleteNpcGift,
   addLog,
   clearLogs,
   setLanguage,

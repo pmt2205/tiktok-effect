@@ -56,7 +56,10 @@ let GiftsController = class GiftsController {
         };
     }
     async create(giftData, req) {
-        return this.giftsService.createForUser(req.user.username, giftData);
+        const targetUsername = (req.user.role === 'admin' && giftData.username)
+            ? giftData.username
+            : req.user.username;
+        return this.giftsService.createForUser(targetUsername, giftData);
     }
     async update(id, giftData, req) {
         const user = req.user;
@@ -67,10 +70,58 @@ let GiftsController = class GiftsController {
             }
             return this.giftsService.updateForUser(id, user.username, allowedUpdate);
         }
-        return this.giftsService.updateForUser(id, user.username, giftData);
+        const targetUsername = giftData.username || user.username;
+        return this.giftsService.updateForUser(id, targetUsername, giftData);
     }
-    async remove(id, req) {
-        return this.giftsService.removeForUser(id, req.user.username);
+    async remove(id, req, queryUsername) {
+        const targetUsername = (req.user.role === 'admin' && queryUsername)
+            ? queryUsername
+            : req.user.username;
+        return this.giftsService.removeForUser(id, targetUsername);
+    }
+    async findAllNpc(queryUsername, category, req) {
+        let username = queryUsername;
+        if (!username && req && req.headers && req.headers.authorization) {
+            const authHeader = req.headers.authorization;
+            if (authHeader.startsWith('Bearer ')) {
+                const token = authHeader.substring(7);
+                try {
+                    const payloadPart = token.split('.')[1];
+                    const payload = JSON.parse(Buffer.from(payloadPart, 'base64').toString('utf8'));
+                    username = payload.username;
+                }
+                catch (e) {
+                }
+            }
+        }
+        if (!username || !category) {
+            return [];
+        }
+        return this.giftsService.findAllNpcGiftsForUser(username, category);
+    }
+    async createNpc(body, req) {
+        const targetUsername = (req.user.role === 'admin' && body.username)
+            ? body.username
+            : req.user.username;
+        return this.giftsService.createNpcGiftForUser(targetUsername, body.category || 'anime', body);
+    }
+    async updateNpc(id, body, req) {
+        const user = req.user;
+        if (user && user.role !== 'admin') {
+            const allowedUpdate = {};
+            if (body.activeVideo !== undefined) {
+                allowedUpdate.activeVideo = body.activeVideo;
+            }
+            return this.giftsService.updateNpcGiftForUser(id, user.username, body.category || 'anime', allowedUpdate);
+        }
+        const targetUsername = body.username || user.username;
+        return this.giftsService.updateNpcGiftForUser(id, targetUsername, body.category || 'anime', body);
+    }
+    async removeNpc(id, req, queryUsername, category) {
+        const targetUsername = (req.user.role === 'admin' && queryUsername)
+            ? queryUsername
+            : req.user.username;
+        return this.giftsService.removeNpcGiftForUser(id, targetUsername, category || 'anime');
     }
 };
 exports.GiftsController = GiftsController;
@@ -138,10 +189,53 @@ __decorate([
     (0, roles_decorator_1.Roles)('admin', 'user'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Req)()),
+    __param(2, (0, common_1.Query)('username')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, Object, String]),
     __metadata("design:returntype", Promise)
 ], GiftsController.prototype, "remove", null);
+__decorate([
+    (0, common_1.Get)('npc'),
+    __param(0, (0, common_1.Query)('username')),
+    __param(1, (0, common_1.Query)('category')),
+    __param(2, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, Object]),
+    __metadata("design:returntype", Promise)
+], GiftsController.prototype, "findAllNpc", null);
+__decorate([
+    (0, common_1.Post)('npc'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('admin', 'user'),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], GiftsController.prototype, "createNpc", null);
+__decorate([
+    (0, common_1.Put)('npc/:id'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('admin', 'user'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", Promise)
+], GiftsController.prototype, "updateNpc", null);
+__decorate([
+    (0, common_1.Delete)('npc/:id'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('admin', 'user'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Req)()),
+    __param(2, (0, common_1.Query)('username')),
+    __param(3, (0, common_1.Query)('category')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, String, String]),
+    __metadata("design:returntype", Promise)
+], GiftsController.prototype, "removeNpc", null);
 exports.GiftsController = GiftsController = __decorate([
     (0, common_1.Controller)('api/gifts'),
     __metadata("design:paramtypes", [gifts_service_1.GiftsService])

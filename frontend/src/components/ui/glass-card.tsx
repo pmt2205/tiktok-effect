@@ -7,6 +7,7 @@ interface GlassCardProps {
   headerTitle?: string;
   headerActions?: React.ReactNode;
   noPadding?: boolean;
+  contentClassName?: string;
 }
 
 export default function GlassCard({
@@ -16,6 +17,7 @@ export default function GlassCard({
   headerTitle,
   headerActions,
   noPadding = false,
+  contentClassName = '',
 }: GlassCardProps) {
   return (
     <section className={`relative overflow-hidden bg-bg-card backdrop-blur-3xl rounded-lg border border-transparent shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] transition-all duration-300 hover:shadow-[0_8px_40px_0_rgba(0,242,254,0.15)] hover:-translate-y-0.5 border-glow-animated before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/[0.025] before:to-transparent before:pointer-events-none hover:border-white/12 hover:shadow-[0_8px_40px_0_rgba(0,242,254,0.04)] hover:bg-bg-card-hover hover:-translate-y-0.5 ${className}`}>
@@ -37,7 +39,7 @@ export default function GlassCard({
           )}
         </div>
       )}
-      <div className={noPadding ? 'p-0' : 'p-6'}>
+      <div className={`${noPadding ? 'p-0' : 'p-6'} ${contentClassName}`}>
         {children}
       </div>
     </section>

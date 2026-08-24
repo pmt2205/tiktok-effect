@@ -14,25 +14,26 @@ export class Settings extends Document {
 
   @Prop({ required: true, default: 'neon-pulse' })
   theme: string;
+
+  @Prop({ required: true, default: false })
+  jarEnabled: boolean;
+
+  @Prop({ required: true, default: 85 })
+  jarX: number;
+
+  @Prop({ required: true, default: 75 })
+  jarY: number;
+
+  @Prop({ required: true, default: 1.0 })
+  jarScale: number;
+
+  @Prop({ required: true, default: 'single' })
+  liveMode: string;
+
+  @Prop({ required: true, default: 'anime' })
+  activeNpcCategory: string;
 }
 
 export const SettingsSchema = SchemaFactory.createForClass(Settings);
 
-@Schema()
-export class Mapping extends Document {
-  @Prop({ required: true, index: true })
-  username: string;
-
-  @Prop({ required: true })
-  giftName: string;
-
-  @Prop({ required: true })
-  effect: string;
-
-  @Prop({ required: false })
-  videoUrl?: string;
-}
-
-export const MappingSchema = SchemaFactory.createForClass(Mapping);
-MappingSchema.index({ username: 1, giftName: 1 }, { unique: true });
 

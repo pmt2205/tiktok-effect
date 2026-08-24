@@ -12,6 +12,7 @@ const mongoose_1 = require("@nestjs/mongoose");
 const settings_service_1 = require("./settings.service");
 const settings_controller_1 = require("./settings.controller");
 const settings_schema_1 = require("./schemas/settings.schema");
+const npc_category_schema_1 = require("./schemas/npc-category.schema");
 const auth_module_1 = require("../auth/auth.module");
 let SettingsModule = class SettingsModule {
 };
@@ -21,7 +22,7 @@ exports.SettingsModule = SettingsModule = __decorate([
         imports: [
             mongoose_1.MongooseModule.forFeature([
                 { name: settings_schema_1.Settings.name, schema: settings_schema_1.SettingsSchema },
-                { name: settings_schema_1.Mapping.name, schema: settings_schema_1.MappingSchema },
+                { name: npc_category_schema_1.NpcCategory.name, schema: npc_category_schema_1.NpcCategorySchema },
             ]),
             auth_module_1.AuthModule,
         ],

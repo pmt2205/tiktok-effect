@@ -14,6 +14,7 @@ export declare class AuthController {
             username: string;
             role: string;
             allowConnect: boolean;
+            allowNpc: boolean;
         };
     }>;
 }

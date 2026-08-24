@@ -6,23 +6,47 @@ import Image from 'next/image';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { logout } from '@/features/auth/store/auth-slice';
 import { setLanguage } from '@/features/admin-dashboard/store/dashboard-slice';
+import { useToast } from '@/hooks/use-toast';
 
 interface AdminSidebarProps {
-  activeTab: 'home' | 'effects' | 'users';
-  setActiveTab: (tab: 'home' | 'effects' | 'users') => void;
+  activeTab: 'effects' | 'users' | 'chat' | 'npc';
+  setActiveTab: (tab: 'effects' | 'users' | 'chat' | 'npc') => void;
 }
 
 export default function AdminSidebar({ activeTab, setActiveTab }: AdminSidebarProps) {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const toast = useToast();
   const user = useAppSelector((state) => state.auth.user);
   const language = useAppSelector((state) => state.dashboard.language) || 'vi';
   
   const [time, setTime] = useState('00:00:00');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isLightMode, setIsLightMode] = useState(false);
   
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // Sync theme state with document class on mount
+  useEffect(() => {
+    const hasLight = document.documentElement.classList.contains('light-mode');
+    setIsLightMode(hasLight);
+  }, []);
+
+  const toggleTheme = () => {
+    const root = document.documentElement;
+    if (isLightMode) {
+      root.classList.remove('light-mode');
+      localStorage.setItem('theme_preference', 'dark');
+      setIsLightMode(false);
+      toast.info(language === 'vi' ? 'Đã chuyển sang chế độ Tối!' : 'Switched to Dark Mode!');
+    } else {
+      root.classList.add('light-mode');
+      localStorage.setItem('theme_preference', 'light');
+      setIsLightMode(true);
+      toast.info(language === 'vi' ? 'Đã chuyển sang chế độ Sáng Trắng-Hồng!' : 'Switched to Sakura Light Mode!');
+    }
+  };
 
   useEffect(() => {
     const update = () => setTime(new Date().toTimeString().split(' ')[0]);
@@ -55,6 +79,8 @@ export default function AdminSidebar({ activeTab, setActiveTab }: AdminSidebarPr
       home: 'Trang chủ',
       effects: 'Quản lý hiệu ứng',
       users: 'Quản lý user',
+      chat: 'Trò chuyện Streamer',
+      npc: 'Cấu hình Live NPC',
       profile: 'Hồ sơ',
       logout: 'Đăng xuất',
       role: 'Vai trò',
@@ -70,6 +96,8 @@ export default function AdminSidebar({ activeTab, setActiveTab }: AdminSidebarPr
       home: 'Dashboard Console',
       effects: 'Manage Effects',
       users: 'Manage Users',
+      chat: 'Streamer Chat',
+      npc: 'Live NPC Config',
       profile: 'Profile',
       logout: 'Logout',
       role: 'Role',
@@ -88,7 +116,7 @@ export default function AdminSidebar({ activeTab, setActiveTab }: AdminSidebarPr
       <aside className="w-64 min-h-screen bg-bg-surface/90 border-r border-border-color flex flex-col justify-between p-5 py-6 shrink-0 relative z-45">
         {/* Top Section: Logo & Brand */}
         <div className="flex flex-col gap-6">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('home')}>
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('effects')}>
             <div className="w-16 h-8 relative select-none">
               <Image src="/logo.png" alt="TikTok Live Effect Logo" fill className="object-contain" priority />
             </div>
@@ -102,17 +130,6 @@ export default function AdminSidebar({ activeTab, setActiveTab }: AdminSidebarPr
 
           {/* Navigation Links */}
           <nav className="flex flex-col gap-1.5 font-header text-[0.88rem]">
-            <button
-              onClick={() => setActiveTab('home')}
-              className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-md transition-all duration-200 text-left outline-none ${
-                activeTab === 'home'
-                  ? 'bg-secondary/10 border-l-2 border-secondary text-white font-semibold'
-                  : 'text-text-secondary hover:bg-white/4 hover:text-white border-l-2 border-transparent'
-              }`}
-            >
-              <i className="fa-solid fa-chart-line text-[0.95rem] w-5 text-center" />
-              <span>{t.home}</span>
-            </button>
 
             <button
               onClick={() => setActiveTab('effects')}
@@ -127,6 +144,18 @@ export default function AdminSidebar({ activeTab, setActiveTab }: AdminSidebarPr
             </button>
 
             <button
+              onClick={() => setActiveTab('npc')}
+              className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-md transition-all duration-200 text-left outline-none ${
+                activeTab === 'npc'
+                  ? 'bg-secondary/10 border-l-2 border-secondary text-white font-semibold'
+                  : 'text-text-secondary hover:bg-white/4 hover:text-white border-l-2 border-transparent'
+              }`}
+            >
+              <i className="fa-solid fa-robot text-[0.95rem] w-5 text-center" />
+              <span>{t.npc}</span>
+            </button>
+
+            <button
               onClick={() => setActiveTab('users')}
               className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-md transition-all duration-200 text-left outline-none ${
                 activeTab === 'users'
@@ -136,6 +165,18 @@ export default function AdminSidebar({ activeTab, setActiveTab }: AdminSidebarPr
             >
               <i className="fa-solid fa-users text-[0.95rem] w-5 text-center" />
               <span>{t.users}</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('chat')}
+              className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-md transition-all duration-200 text-left outline-none ${
+                activeTab === 'chat'
+                  ? 'bg-secondary/10 border-l-2 border-secondary text-white font-semibold'
+                  : 'text-text-secondary hover:bg-white/4 hover:text-white border-l-2 border-transparent'
+              }`}
+            >
+              <i className="fa-solid fa-comments text-[0.95rem] w-5 text-center" />
+              <span>{t.chat}</span>
             </button>
           </nav>
         </div>
@@ -156,6 +197,19 @@ export default function AdminSidebar({ activeTab, setActiveTab }: AdminSidebarPr
             >
               <i className="fa-solid fa-globe" />
               <span>{language.toUpperCase()}</span>
+            </button>
+
+            {/* Theme Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              className="flex items-center justify-center w-8 h-8 rounded-full border border-border-color bg-white/4 text-text-muted hover:text-white hover:border-white/15 transition-all duration-200 cursor-pointer outline-none active:scale-[0.9] shadow-sm shrink-0"
+              title={isLightMode ? (language === 'vi' ? 'Chế độ Tối' : 'Dark Mode') : (language === 'vi' ? 'Chế độ Sáng' : 'Light Mode')}
+            >
+              {isLightMode ? (
+                <i className="fa-solid fa-moon text-[0.82rem] text-secondary" />
+              ) : (
+                <i className="fa-solid fa-sun text-[0.82rem] text-primary" />
+              )}
             </button>
 
             {/* Username Dropdown */}

@@ -1,33 +1,57 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { OverlaySettings, GiftMappings } from '../../common/interfaces/events.interface';
-import { Settings, Mapping } from './schemas/settings.schema';
+import { OverlaySettings } from '../../common/interfaces/events.interface';
+import { Settings } from './schemas/settings.schema';
+import { NpcCategory } from './schemas/npc-category.schema';
 
 @Injectable()
-export class SettingsService {
+export class SettingsService implements OnModuleInit {
   private readonly logger = new Logger(SettingsService.name);
 
   private readonly defaultSettings: OverlaySettings = {
     duration: 5,
     density: 2,
     theme: 'neon-pulse',
+    jarEnabled: false,
+    jarX: 85,
+    jarY: 75,
+    jarScale: 1.0,
   };
 
-  private readonly defaultMappings: GiftMappings = {
-    rose: { effect: 'video', videoUrl: 'rose.mp4' },
-    'hoa hồng': { effect: 'video', videoUrl: 'rose.mp4' },
-    galaxy: { effect: 'star' },
-    lion: { effect: 'star' },
-    tiktok: { effect: 'video', videoUrl: 'tiktok.mp4' },
-  };
+  private onSettingsUpdateCb?: (username: string, settings: any) => void;
+
+  registerCallbacks(callbacks: {
+    onSettingsUpdate: (username: string, settings: any) => void;
+  }) {
+    this.onSettingsUpdateCb = callbacks.onSettingsUpdate;
+  }
 
   constructor(
     @InjectModel(Settings.name) private readonly settingsModel: Model<Settings>,
-    @InjectModel(Mapping.name) private readonly mappingModel: Model<Mapping>,
+    @InjectModel(NpcCategory.name) private readonly npcCategoryModel: Model<NpcCategory>,
   ) {}
 
-  async getSettingsForUser(username: string): Promise<OverlaySettings> {
+  async onModuleInit() {
+    try {
+      const count = await this.npcCategoryModel.countDocuments().exec();
+      if (count === 0) {
+        const defaults = [
+          { name: 'anime', displayName: '🌸 Anime / Manga' },
+          { name: 'horror', displayName: '💀 Horror / Jumpscare' },
+          { name: 'cute', displayName: '🐱 Cute / Thú cưng' },
+          { name: 'meme', displayName: '🤡 Meme / Hài hước' },
+          { name: 'gaming', displayName: '🎮 Retro / Gaming' },
+        ];
+        await this.npcCategoryModel.insertMany(defaults);
+        this.logger.log('Seeded default NPC categories.');
+      }
+    } catch (err: any) {
+      this.logger.error(`Failed to seed NPC categories: ${err.message}`);
+    }
+  }
+
+  async getSettingsForUser(username: string): Promise<any> {
     try {
       let settingsDoc = await this.settingsModel.findOne({ username }).exec();
       if (!settingsDoc) {
@@ -37,18 +61,49 @@ export class SettingsService {
         });
         this.logger.log(`Seeded default settings for user: ${username}`);
       }
+      
+      let allowNpc = false;
+      let allowedNpcCategories: string[] = [];
+      try {
+        const userDoc = await this.settingsModel.db.model('User').findOne({ username }).exec();
+        if (userDoc) {
+          allowNpc = (userDoc as any).allowNpc || false;
+          allowedNpcCategories = (userDoc as any).allowedNpcCategories || [];
+        }
+      } catch (err) {
+        this.logger.warn(`Failed to fetch allowNpc: ${err.message}`);
+      }
+
+      let fallbackCategory = 'anime';
+      try {
+        const categories = await this.npcCategoryModel.find().exec();
+        if (categories.length > 0) {
+          fallbackCategory = categories[0].name;
+        }
+      } catch (err) {
+        // ignore
+      }
+
       return {
         duration: settingsDoc.duration,
         density: settingsDoc.density,
         theme: settingsDoc.theme,
+        jarEnabled: settingsDoc.jarEnabled !== undefined ? settingsDoc.jarEnabled : this.defaultSettings.jarEnabled,
+        jarX: settingsDoc.jarX !== undefined ? settingsDoc.jarX : this.defaultSettings.jarX,
+        jarY: settingsDoc.jarY !== undefined ? settingsDoc.jarY : this.defaultSettings.jarY,
+        jarScale: settingsDoc.jarScale !== undefined ? settingsDoc.jarScale : this.defaultSettings.jarScale,
+        liveMode: (settingsDoc as any).liveMode || 'single',
+        activeNpcCategory: (settingsDoc as any).activeNpcCategory || fallbackCategory,
+        allowNpc,
+        allowedNpcCategories,
       };
     } catch (err) {
       this.logger.error(`Failed to get settings for user ${username}:`, err);
-      return this.defaultSettings;
+      return { ...this.defaultSettings, liveMode: 'single', activeNpcCategory: 'anime', allowNpc: false };
     }
   }
 
-  async updateSettingsForUser(username: string, newSettings: Partial<OverlaySettings>): Promise<OverlaySettings> {
+  async updateSettingsForUser(username: string, newSettings: Partial<any>): Promise<any> {
     try {
       const updated = await this.settingsModel.findOneAndUpdate(
         { username },
@@ -56,64 +111,75 @@ export class SettingsService {
         { new: true, upsert: true }
       ).exec();
       this.logger.log(`Settings updated and persisted for user: ${username}`);
-      return {
+
+      let allowNpc = false;
+      let allowedNpcCategories: string[] = [];
+      try {
+        const userDoc = await this.settingsModel.db.model('User').findOne({ username }).exec();
+        if (userDoc) {
+          allowNpc = (userDoc as any).allowNpc || false;
+          allowedNpcCategories = (userDoc as any).allowedNpcCategories || [];
+        }
+      } catch (err) {
+        // ignore
+      }
+
+      let fallbackCategory = 'anime';
+      try {
+        const categories = await this.npcCategoryModel.find().exec();
+        if (categories.length > 0) {
+          fallbackCategory = categories[0].name;
+        }
+      } catch (err) {
+        // ignore
+      }
+
+      const result = {
         duration: updated.duration,
         density: updated.density,
         theme: updated.theme,
+        jarEnabled: updated.jarEnabled,
+        jarX: updated.jarX,
+        jarY: updated.jarY,
+        jarScale: updated.jarScale,
+        liveMode: (updated as any).liveMode || 'single',
+        activeNpcCategory: (updated as any).activeNpcCategory || fallbackCategory,
+        allowNpc,
+        allowedNpcCategories,
       };
+      
+      this.onSettingsUpdateCb?.(username, result);
+      return result;
     } catch (err) {
       this.logger.error(`Failed to update settings for user ${username}:`, err);
       throw err;
     }
   }
 
-  async getMappingsForUser(username: string): Promise<GiftMappings> {
-    try {
-      const mappingDocs = await this.mappingModel.find({ username }).exec();
-      if (mappingDocs.length === 0) {
-        const seedData = Object.entries(this.defaultMappings).map(([giftName, val]) => ({
-          username,
-          giftName,
-          effect: val.effect,
-          videoUrl: val.videoUrl,
-        }));
-        await this.mappingModel.insertMany(seedData);
-        this.logger.log(`Seeded default mappings for user: ${username}`);
-        return { ...this.defaultMappings };
-      }
-
-      const loadedMappings: GiftMappings = {};
-      mappingDocs.forEach(doc => {
-        loadedMappings[doc.giftName] = {
-          effect: doc.effect,
-          videoUrl: doc.videoUrl,
-        };
-      });
-      return loadedMappings;
-    } catch (err) {
-      this.logger.error(`Failed to get mappings for user ${username}:`, err);
-      return this.defaultMappings;
-    }
+  // NPC Categories CRUD
+  async getAllNpcCategories(): Promise<NpcCategory[]> {
+    return this.npcCategoryModel.find().sort({ createdAt: 1 }).exec();
   }
 
-  async updateMappingsForUser(username: string, newMappings: GiftMappings): Promise<GiftMappings> {
-    try {
-      await this.mappingModel.deleteMany({ username }).exec();
-      const insertData = Object.entries(newMappings).map(([giftName, val]) => ({
-        username,
-        giftName,
-        effect: val.effect,
-        videoUrl: val.videoUrl,
-      }));
-      if (insertData.length > 0) {
-        await this.mappingModel.insertMany(insertData);
-      }
-      this.logger.log(`Mappings updated and persisted for user: ${username}`);
-      return newMappings;
-    } catch (err) {
-      this.logger.error(`Failed to update mappings for user ${username}:`, err);
-      throw err;
+  async createNpcCategory(name: string, displayName: string): Promise<NpcCategory> {
+    const cleanName = name.trim().toLowerCase();
+    const existing = await this.npcCategoryModel.findOne({ name: cleanName }).exec();
+    if (existing) {
+      existing.displayName = displayName;
+      return existing.save();
     }
+    const cat = new this.npcCategoryModel({ name: cleanName, displayName });
+    return cat.save();
+  }
+
+  async deleteNpcCategory(id: string): Promise<any> {
+    const category = await this.npcCategoryModel.findById(id).exec();
+    if (category) {
+      const categoryName = category.name;
+      // Delete the category
+      await this.npcCategoryModel.findByIdAndDelete(id).exec();
+      this.logger.log(`Deleted NPC Category "${categoryName}".`);
+    }
+    return { success: true };
   }
 }
-

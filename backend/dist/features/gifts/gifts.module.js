@@ -12,13 +12,17 @@ const mongoose_1 = require("@nestjs/mongoose");
 const gifts_controller_1 = require("./gifts.controller");
 const gifts_service_1 = require("./gifts.service");
 const gift_schema_1 = require("./schemas/gift.schema");
+const npc_gift_schema_1 = require("./schemas/npc-gift.schema");
 let GiftsModule = class GiftsModule {
 };
 exports.GiftsModule = GiftsModule;
 exports.GiftsModule = GiftsModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            mongoose_1.MongooseModule.forFeature([{ name: gift_schema_1.Gift.name, schema: gift_schema_1.GiftSchema }]),
+            mongoose_1.MongooseModule.forFeature([
+                { name: gift_schema_1.Gift.name, schema: gift_schema_1.GiftSchema },
+                { name: npc_gift_schema_1.NpcGift.name, schema: npc_gift_schema_1.NpcGiftSchema },
+            ]),
         ],
         controllers: [gifts_controller_1.GiftsController],
         providers: [gifts_service_1.GiftsService],

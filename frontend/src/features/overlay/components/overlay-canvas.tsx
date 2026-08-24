@@ -106,6 +106,12 @@ export default function OverlayCanvas() {
       } else {
         engineRef.current.spawnParticlesForGift(mappedEffect, repeatCount, settings);
       }
+
+      // Drop gift icon into the physics jar if enabled
+      if (settings.jarEnabled) {
+        const giftIconSrc = giftPictureUrl || 'https://sf16-website-nos.sofproxy.com/obj/tiktok-web-tx/tiktok/web/gift/rose.png';
+        engineRef.current.dropGiftIconInJar(giftIconSrc);
+      }
     }
 
     // Banner management
@@ -149,7 +155,7 @@ export default function OverlayCanvas() {
           <span class="gift-action">Sent <strong>${giftName}</strong></span>
         </div>
         <div class="gift-icon-container">
-          <img src="${giftIconSrc}" class="gift-icon" onerror="this.src='https://sf16-website-nos.sofproxy.com/obj/tiktok-web-tx/tiktok/web/gift/rose.png'" />
+          <img src="${giftIconSrc}" class="gift-icon" onerror="this.src='https://cdn4.dps.vc/iblock/f59/f5902abbd13178017285a308606fd0dd/cf6a40558018965a8171cf5a575dd9de.png'" />
         </div>
         <div class="combo-badge pulse">x${repeatCount}</div>
       `;
@@ -187,6 +193,9 @@ export default function OverlayCanvas() {
     if (canvasRef.current) {
       engineRef.current = new ParticleEngine(canvasRef.current);
       engineRef.current.start();
+      
+      // Initialize jar settings on mount
+      engineRef.current.updateJarSettings(settingsRef.current);
     }
 
     // Connect to WebSocket
@@ -203,6 +212,11 @@ export default function OverlayCanvas() {
       } else if (packet.type === 'settings-update') {
         settingsRef.current = { ...settingsRef.current, ...(packet.data as Partial<OverlaySettings>) };
         localStorage.setItem('tiktok_overlay_settings', JSON.stringify(settingsRef.current));
+        
+        // Propagate settings to physics engine
+        if (engineRef.current) {
+          engineRef.current.updateJarSettings(settingsRef.current);
+        }
       } else if (packet.type === 'mappings-update') {
         mappingsRef.current = packet.data as GiftMappings;
         localStorage.setItem('tiktok_overlay_mappings', JSON.stringify(mappingsRef.current));
@@ -215,6 +229,9 @@ export default function OverlayCanvas() {
     const handleStorage = (event: StorageEvent) => {
       if (event.key === 'tiktok_overlay_settings' && event.newValue) {
         settingsRef.current = JSON.parse(event.newValue);
+        if (engineRef.current) {
+          engineRef.current.updateJarSettings(settingsRef.current);
+        }
       }
       if (event.key === 'tiktok_overlay_mappings' && event.newValue) {
         mappingsRef.current = JSON.parse(event.newValue);

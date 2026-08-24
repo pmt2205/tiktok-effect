@@ -40,8 +40,11 @@ export default function Select({ label, value, options, onChange, disabled, id, 
     setIsOpen(false);
   };
 
+  const hasMargin = className.split(' ').some(c => /^m[trblxy]?-/.test(c));
+  const marginClass = hasMargin ? '' : 'mb-5';
+
   return (
-    <div className={`flex flex-col gap-2 mb-5 relative ${className}`} style={style} ref={containerRef}>
+    <div className={`flex flex-col gap-2 relative ${marginClass} ${className}`} style={style} ref={containerRef}>
       {label && <label className="text-[0.88rem] text-text-secondary font-medium tracking-[0.5px] select-none" id={`${id}-label`}>{label}</label>}
       
       <button
@@ -49,7 +52,7 @@ export default function Select({ label, value, options, onChange, disabled, id, 
         type="button"
         disabled={disabled}
         onClick={() => !disabled && setIsOpen(!isOpen)}
-        className={`w-full bg-bg-input border ${isOpen ? 'border-secondary ring-3 ring-secondary-glow/25' : 'border-border-color'} rounded-md px-4 py-3 text-white font-body text-[0.88rem] flex justify-between items-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 outline-none select-none text-left`}
+        className={`w-full bg-bg-input border ${isOpen ? 'border-secondary ring-3 ring-secondary-glow/25' : 'border-border-color'} rounded-md px-4 py-3 text-text-main font-body text-[0.88rem] flex justify-between items-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 outline-none select-none text-left`}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-labelledby={`${id}-label`}
@@ -78,7 +81,7 @@ export default function Select({ label, value, options, onChange, disabled, id, 
                 className={`px-4 py-2.5 rounded-sm text-[0.88rem] flex justify-between items-center cursor-pointer select-none transition-all duration-150 ${
                   isSelected
                     ? 'bg-secondary/8 text-secondary font-semibold'
-                    : 'text-text-secondary hover:bg-secondary/10 hover:text-white'
+                    : 'text-text-secondary hover:bg-secondary/10 hover:text-text-main'
                 }`}
               >
                 <span className="truncate">{opt.label}</span>

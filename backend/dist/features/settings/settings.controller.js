@@ -16,54 +16,79 @@ exports.SettingsController = void 0;
 const common_1 = require("@nestjs/common");
 const settings_service_1 = require("./settings.service");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
+const roles_guard_1 = require("../auth/guards/roles.guard");
+const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 let SettingsController = class SettingsController {
     constructor(settingsService) {
         this.settingsService = settingsService;
     }
-    async getSettings(req) {
-        return this.settingsService.getSettingsForUser(req.user.username);
+    async getSettings(req, queryUsername) {
+        const targetUsername = (req.user.role === 'admin' && queryUsername)
+            ? queryUsername
+            : req.user.username;
+        return this.settingsService.getSettingsForUser(targetUsername);
     }
-    async updateSettings(req, settings) {
-        return this.settingsService.updateSettingsForUser(req.user.username, settings);
+    async updateSettings(req, settings, queryUsername) {
+        const targetUsername = (req.user.role === 'admin' && (queryUsername || settings.username))
+            ? (queryUsername || settings.username)
+            : req.user.username;
+        const bodyCopy = { ...settings };
+        delete bodyCopy.username;
+        return this.settingsService.updateSettingsForUser(targetUsername, bodyCopy);
     }
-    async getMappings(req) {
-        return this.settingsService.getMappingsForUser(req.user.username);
+    async getAllNpcCategories() {
+        return this.settingsService.getAllNpcCategories();
     }
-    async updateMappings(req, mappings) {
-        return this.settingsService.updateMappingsForUser(req.user.username, mappings);
+    async createNpcCategory(name, displayName) {
+        return this.settingsService.createNpcCategory(name, displayName);
+    }
+    async deleteNpcCategory(id) {
+        return this.settingsService.deleteNpcCategory(id);
     }
 };
 exports.SettingsController = SettingsController;
 __decorate([
     (0, common_1.Get)(),
     __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Query)('username')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", Promise)
 ], SettingsController.prototype, "getSettings", null);
 __decorate([
     (0, common_1.Put)(),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Query)('username')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [Object, Object, String]),
     __metadata("design:returntype", Promise)
 ], SettingsController.prototype, "updateSettings", null);
 __decorate([
-    (0, common_1.Get)('mappings'),
-    __param(0, (0, common_1.Req)()),
+    (0, common_1.Get)('npc-categories'),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
-], SettingsController.prototype, "getMappings", null);
+], SettingsController.prototype, "getAllNpcCategories", null);
 __decorate([
-    (0, common_1.Put)('mappings'),
-    __param(0, (0, common_1.Req)()),
-    __param(1, (0, common_1.Body)()),
+    (0, common_1.Post)('npc-categories'),
+    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('admin'),
+    __param(0, (0, common_1.Body)('name')),
+    __param(1, (0, common_1.Body)('displayName')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
-], SettingsController.prototype, "updateMappings", null);
+], SettingsController.prototype, "createNpcCategory", null);
+__decorate([
+    (0, common_1.Delete)('npc-categories/:id'),
+    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('admin'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], SettingsController.prototype, "deleteNpcCategory", null);
 exports.SettingsController = SettingsController = __decorate([
     (0, common_1.Controller)('api/settings'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

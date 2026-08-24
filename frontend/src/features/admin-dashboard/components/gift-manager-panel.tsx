@@ -1,19 +1,25 @@
 'use client';
-
+ 
 import React, { useState, useEffect } from 'react';
 import GlassCard from '@/components/ui/glass-card';
 import Button from '@/components/ui/button';
+import Select from '@/components/ui/select';
 import { Gift } from '@/types';
 import { BACKEND_URL } from '@/lib/constants';
 import { useToast } from '@/hooks/use-toast';
-import { useAppSelector } from '@/store/hooks';
+import { useAppSelector, useAppDispatch } from '@/store/hooks';
+import { setCustomGifts, setSelectedStreamer, setUsersList } from '@/features/admin-dashboard/store/dashboard-slice';
 
 export default function GiftManagerPanel() {
   const toast = useToast();
+  const dispatch = useAppDispatch();
   const isAdmin = useAppSelector((state) => state.auth.user?.role === 'admin');
   const language = useAppSelector((state) => state.dashboard.language) || 'vi';
 
-  const [gifts, setGifts] = useState<Gift[]>([]);
+  const loggedInUser = useAppSelector((state) => state.auth.user);
+  const gifts = useAppSelector((state) => state.dashboard.customGifts) || [];
+  const users = useAppSelector((state) => state.dashboard.usersList) || [];
+  const selectedUsername = useAppSelector((state) => state.dashboard.selectedStreamer) || '';
   const [loading, setLoading] = useState(true);
 
   // Modal Open state
@@ -98,17 +104,46 @@ export default function GiftManagerPanel() {
     }
   }[language];
 
-  // Fetch gifts from backend
-  const fetchGifts = async () => {
+  // Fetch users if admin
+  useEffect(() => {
+    if (isAdmin && users.length === 0) {
+      const fetchUsers = async () => {
+        try {
+          const token = localStorage.getItem('auth_token');
+          const res = await fetch(`${BACKEND_URL}/api/users`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            dispatch(setUsersList(data));
+          }
+        } catch (err) {
+          console.error('Failed to load users:', err);
+        }
+      };
+      fetchUsers();
+    }
+  }, [isAdmin, users.length, dispatch]);
+
+  // Set default selected user if not already set
+  useEffect(() => {
+    if (loggedInUser?.username && !selectedUsername) {
+      dispatch(setSelectedStreamer(loggedInUser.username));
+    }
+  }, [loggedInUser, selectedUsername, dispatch]);
+
+  // Fetch gifts from backend for a specific user
+  const fetchGifts = async (usernameToFetch: string) => {
+    if (!usernameToFetch) return;
     setLoading(true);
     try {
       const token = localStorage.getItem('auth_token');
-      const res = await fetch(`${BACKEND_URL}/api/gifts`, {
+      const res = await fetch(`${BACKEND_URL}/api/gifts?username=${usernameToFetch}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
         const data = await res.json();
-        setGifts(data);
+        dispatch(setCustomGifts(data));
       }
     } catch (err) {
       console.error('Failed to load gifts:', err);
@@ -118,11 +153,10 @@ export default function GiftManagerPanel() {
   };
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchGifts();
-    }, 0);
-    return () => clearTimeout(timer);
-  }, []);
+    if (selectedUsername) {
+      fetchGifts(selectedUsername);
+    }
+  }, [selectedUsername]);
 
   const handleStartCreate = () => {
     setEditingGift(null);
@@ -213,6 +247,7 @@ export default function GiftManagerPanel() {
       icon: icon.trim() || 'https://sf16-website-nos.sofproxy.com/obj/tiktok-web-tx/tiktok/web/gift/rose.png',
       videos,
       activeVideo: activeVideo || undefined,
+      username: selectedUsername,
     };
 
     try {
@@ -234,7 +269,7 @@ export default function GiftManagerPanel() {
         setCoins(1);
         setIcon('');
         setVideos([]);
-        fetchGifts();
+        fetchGifts(selectedUsername);
       } else {
         const errData = await res.json();
         toast.error(errData.message || 'Error occurred');
@@ -286,6 +321,7 @@ export default function GiftManagerPanel() {
       icon: icon.trim(),
       videos,
       activeVideo: activeVideo || undefined,
+      username: selectedUsername,
     };
 
     try {
@@ -302,7 +338,7 @@ export default function GiftManagerPanel() {
       if (res.ok) {
         toast.success(t.successUpdate);
         handleCancelEdit();
-        fetchGifts();
+        fetchGifts(selectedUsername);
       } else {
         const errData = await res.json();
         toast.error(errData.message || 'Update failed');
@@ -322,14 +358,14 @@ export default function GiftManagerPanel() {
 
     try {
       const token = localStorage.getItem('auth_token');
-      const res = await fetch(`${BACKEND_URL}/api/gifts/${gift._id}`, {
+      const res = await fetch(`${BACKEND_URL}/api/gifts/${gift._id}?username=${selectedUsername}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
       if (res.ok) {
         toast.info(t.successDelete);
-        fetchGifts();
+        fetchGifts(selectedUsername);
       } else {
         toast.error('Deletion failed.');
       }
@@ -345,6 +381,24 @@ export default function GiftManagerPanel() {
         <h2 className="font-header text-[1.4rem] font-bold text-white tracking-[0.5px] uppercase">{t.title}</h2>
         <p className="text-[0.88rem] text-text-muted">{t.subtitle}</p>
       </div>
+
+      {isAdmin && users.length > 0 && (
+        <div className="flex flex-col md:flex-row md:items-center gap-3.5 bg-bg-card border border-border-color rounded-xl p-4 shadow-[0_8px_32px_0_rgba(0,0,0,0.4)] backdrop-blur-[24px] animate-[fade-in_0.3s_ease-out] relative z-40">
+          <div className="flex items-center gap-2 text-text-secondary select-none font-header text-[0.9rem] font-bold uppercase tracking-[0.5px] shrink-0">
+            <i className="fa-solid fa-user-gear text-secondary" />
+            <span>{language === 'vi' ? 'Quản lý hiệu ứng của Streamer:' : 'Manage Effects for Streamer:'}</span>
+          </div>
+          <Select
+            value={selectedUsername}
+            options={users.map((u) => ({
+              value: u.username,
+              label: `${u.username}${u.username === loggedInUser?.username ? ` (${language === 'vi' ? 'Tôi' : 'Me'})` : ''}`,
+            }))}
+            onChange={(val) => dispatch(setSelectedStreamer(val))}
+            className="mb-0 min-w-[240px] grow md:grow-0"
+          />
+        </div>
+      )}
 
       <div className="w-full">
         <GlassCard
@@ -362,68 +416,81 @@ export default function GiftManagerPanel() {
             )
           }
         >
-          {loading ? (
-            <div className="text-center py-12 text-[0.9rem] text-text-muted select-none">
+          {gifts.length === 0 && loading ? (
+            <div className="text-center py-12 text-[0.9rem] text-text-muted select-none flex flex-col items-center justify-center gap-3">
               <i className="fa-solid fa-spinner animate-spin text-[1.5rem] text-secondary mb-3.5 block" />
               <span>Loading catalog directory...</span>
             </div>
-          ) : gifts.length === 0 ? (
-            <div className="text-center py-12 text-[0.88rem] text-text-muted select-none">
-              {t.noGifts}
-            </div>
           ) : (
-            <div className="flex flex-col gap-3 max-h-[600px] overflow-y-auto pr-1.5 custom-scrollbar">
-              {gifts.map((gift) => (
-                <div
-                  key={gift._id}
-                  className="flex justify-between items-center bg-black/25 p-3.5 rounded-lg border border-border-color hover:border-white/12 transition-all duration-150 hover:bg-black/30"
-                >
-                  <div className="flex items-center gap-4">
-                    {/* Gift Icon Thumbnail */}
-                    <div className="w-14 h-14 bg-black/45 border border-white/5 rounded-md flex items-center justify-center p-2 shrink-0 select-none">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={gift.icon} alt={gift.name} className="w-full h-full object-contain" />
-                    </div>
-
-                    <div className="flex flex-col gap-0.5 min-w-0">
-                      <div className="flex items-center gap-2.5">
-                        <span className="font-header text-[0.95rem] font-bold text-white truncate">{gift.name}</span>
-                        <span className="text-[0.7rem] px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-secondary font-semibold font-body select-none">{gift.giftId}</span>
-                      </div>
-                      <span className="text-[0.78rem] text-text-muted font-body mt-0.5">
-                        ⚡ {gift.coins} coins | Videos: <span className="text-white/80 font-semibold">{gift.videos && gift.videos.length > 0 ? `${gift.videos.length} video(s)` : 'None'}</span>
-                        {gift.videos && gift.videos.length > 0 && (
-                          <>
-                            {' | '}{language === 'vi' ? 'Đang dùng: ' : 'Active: '}
-                            <span className="text-secondary font-semibold">{gift.activeVideo || gift.videos[0]}</span>
-                          </>
-                        )}
-                      </span>
-                    </div>
-                  </div>
-
-                  {isAdmin && (
-                    <div className="flex gap-2 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => handleStartEdit(gift)}
-                        className="px-3.5 py-2 rounded-sm bg-secondary/10 border border-secondary/15 hover:bg-secondary/20 hover:border-secondary/25 text-secondary font-body text-[0.75rem] font-semibold transition-all duration-150 cursor-pointer outline-none active:scale-95 flex items-center gap-1.5"
-                      >
-                        <i className="fa-solid fa-pen-to-square" />
-                        {t.edit}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(gift)}
-                        className="px-3.5 py-2 rounded-sm bg-primary/15 border border-primary/20 hover:bg-primary/25 hover:border-primary/30 text-primary font-body text-[0.75rem] font-semibold transition-all duration-150 cursor-pointer outline-none active:scale-95 flex items-center gap-1.5"
-                      >
-                        <i className="fa-solid fa-trash" />
-                        {t.delete}
-                      </button>
-                    </div>
-                  )}
+            <div className={`relative transition-all duration-200 ${loading ? 'opacity-40 pointer-events-none' : ''}`}>
+              {gifts.length === 0 ? (
+                <div className="text-center py-12 text-[0.88rem] text-text-muted select-none">
+                  {t.noGifts}
                 </div>
-              ))}
+              ) : (
+                <div className="flex flex-col gap-3 max-h-[600px] overflow-y-auto pr-1.5 custom-scrollbar">
+                  {gifts.map((gift) => (
+                    <div
+                      key={gift._id}
+                      className="flex justify-between items-center bg-black/25 p-3.5 rounded-lg border border-border-color hover:border-white/12 transition-all duration-150 hover:bg-black/30"
+                    >
+                      <div className="flex items-center gap-4">
+                        {/* Gift Icon Thumbnail */}
+                        <div className="w-14 h-14 bg-black/45 border border-white/5 rounded-md flex items-center justify-center p-2 shrink-0 select-none">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={gift.icon} alt={gift.name} className="w-full h-full object-contain" />
+                        </div>
+
+                        <div className="flex flex-col gap-0.5 min-w-0">
+                          <div className="flex items-center gap-2.5">
+                            <span className="font-header text-[0.95rem] font-bold text-white truncate">{gift.name}</span>
+                            <span className="text-[0.7rem] px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-secondary font-semibold font-body select-none">{gift.giftId}</span>
+                          </div>
+                          <span className="text-[0.78rem] text-text-muted font-body mt-0.5">
+                            ⚡ {gift.coins} coins | Videos: <span className="text-white/80 font-semibold">{gift.videos && gift.videos.length > 0 ? `${gift.videos.length} video(s)` : 'None'}</span>
+                            {gift.videos && gift.videos.length > 0 && (
+                              <>
+                                {' | '}{language === 'vi' ? 'Đang dùng: ' : 'Active: '}
+                                <span className="text-secondary font-semibold">{gift.activeVideo || gift.videos[0]}</span>
+                              </>
+                            )}
+                          </span>
+                        </div>
+                      </div>
+
+                      {isAdmin && (
+                        <div className="flex gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => handleStartEdit(gift)}
+                            className="px-3.5 py-2 rounded-sm bg-secondary/10 border border-secondary/15 hover:bg-secondary/20 hover:border-secondary/25 text-secondary font-body text-[0.75rem] font-semibold transition-all duration-150 cursor-pointer outline-none active:scale-95 flex items-center gap-1.5"
+                          >
+                            <i className="fa-solid fa-pen-to-square" />
+                            {t.edit}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(gift)}
+                            className="px-3.5 py-2 rounded-sm bg-primary/15 border border-primary/20 hover:bg-primary/25 hover:border-primary/30 text-primary font-body text-[0.75rem] font-semibold transition-all duration-150 cursor-pointer outline-none active:scale-95 flex items-center gap-1.5"
+                          >
+                            <i className="fa-solid fa-trash" />
+                            {t.delete}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {loading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-transparent z-10 pointer-events-none">
+                  <div className="bg-bg-surface/85 border border-border-color backdrop-blur-md px-5 py-3 rounded-full flex items-center gap-3.5 shadow-2xl animate-[fade-in_0.2s_ease-out]">
+                    <i className="fa-solid fa-spinner animate-spin text-[1.1rem] text-secondary" />
+                    <span className="text-[0.82rem] font-semibold text-white tracking-[0.5px]">Updating directory...</span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </GlassCard>

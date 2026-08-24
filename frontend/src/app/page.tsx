@@ -6,18 +6,14 @@ import ShootingStars from '@/features/auth/components/shooting-stars';
 import Header from '@/components/layout/header';
 import AdminSidebar from '@/components/layout/admin-sidebar';
 import BackgroundGlows from '@/components/layout/background-glows';
-import ConnectionPanel from '@/features/admin-dashboard/components/connection-panel';
-import SettingsPanel from '@/features/admin-dashboard/components/settings-panel';
-import MappingsPanel from '@/features/admin-dashboard/components/mappings-panel';
-import SimulatorPanel from '@/features/admin-dashboard/components/simulator-panel';
-import LogsPanel from '@/features/admin-dashboard/components/logs-panel';
-import ObsSetupPanel from '@/features/admin-dashboard/components/obs-setup-panel';
 import GiftManagerPanel from '@/features/admin-dashboard/components/gift-manager-panel';
 import UserManagerPanel from '@/features/admin-dashboard/components/user-manager-panel';
+import NpcManagerPanel from '@/features/admin-dashboard/components/npc-manager-panel';
 import UserHomepage from '@/features/user-dashboard/components/user-homepage';
+import ChatDashboard from '@/features/shared/components/chat-dashboard';
 import { useWebSocket } from '@/hooks/use-websocket';
-import { GiftMapping, TiktokStatus, GiftEvent, ChatEvent, Gift } from '@/types';
-import { DEFAULT_SETTINGS, MOCK_USERS, MOCK_CHATS, GIFT_PICTURES, BACKEND_URL } from '@/lib/constants';
+import { TiktokStatus, GiftEvent, ChatEvent, Gift, OverlaySettings } from '@/types';
+import { DEFAULT_SETTINGS, BACKEND_URL } from '@/lib/constants';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { initializeAuth } from '@/features/auth/store/auth-slice';
 import {
@@ -27,31 +23,32 @@ import {
   setMappings,
   setAvailableGifts,
   setCustomGifts,
-  addMapping,
-  deleteMapping,
   addLog,
+  setSelectedStreamer,
+  setUsersList,
+  setNpcCategories,
 } from '@/features/admin-dashboard/store/dashboard-slice';
-
-const getRandomMockUser = () => {
-  return MOCK_USERS[Math.floor(Math.random() * MOCK_USERS.length)];
-};
-
-const getRandomMockChat = () => {
-  return MOCK_CHATS[Math.floor(Math.random() * MOCK_CHATS.length)];
-};
+import {
+  setMessages,
+  addMessage,
+  setConversations,
+  setActiveChatUser,
+  ChatMessage,
+} from '@/features/shared/store/chat-slice';
 
 export default function DashboardPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const [adminTab, setAdminTab] = useState<'home' | 'effects' | 'users'>('home');
+  const [adminTab, setAdminTab] = useState<'effects' | 'users' | 'chat' | 'npc'>('effects');
 
   // Get state from Redux
   const isAuthLoading = useAppSelector((state) => state.auth.isAuthLoading);
-  const settings = useAppSelector((state) => state.dashboard.settings);
-  const mappings = useAppSelector((state) => state.dashboard.mappings);
   const user = useAppSelector((state) => state.auth.user);
+  const role = user?.role || 'user';
 
-  // Verify auth session and load settings/mappings from backend API on mount
+  const selectedStreamer = useAppSelector((state) => state.dashboard.selectedStreamer);
+
+  // Verify auth session on mount
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
     const userStr = localStorage.getItem('auth_user');
@@ -65,61 +62,11 @@ export default function DashboardPage() {
       if (userStr) {
         const userObj = JSON.parse(userStr);
         dispatch(initializeAuth({ token, user: userObj }));
+        dispatch(setSelectedStreamer(userObj.username));
       }
     } catch (err) {
       console.error('Failed to parse user role:', err);
     }
-
-    // Fetch settings from MongoDB
-    fetch(`${BACKEND_URL}/api/settings`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error('API error');
-        return res.json();
-      })
-      .then((data) => {
-        dispatch(setSettings({ ...DEFAULT_SETTINGS, ...data }));
-      })
-      .catch((e) => {
-        console.error('Failed to load settings from DB, fallback to localStorage:', e);
-        const savedSettings = localStorage.getItem('tiktok_overlay_settings');
-        if (savedSettings) dispatch(setSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(savedSettings) }));
-      });
-
-    // Fetch mappings from MongoDB
-    fetch(`${BACKEND_URL}/api/settings/mappings`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error('API error');
-        return res.json();
-      })
-      .then((data) => {
-        dispatch(setMappings(data));
-      })
-      .catch((e) => {
-        console.error('Failed to load mappings from DB, fallback to localStorage:', e);
-        const savedMappings = localStorage.getItem('tiktok_overlay_mappings');
-        if (savedMappings) {
-          dispatch(setMappings(JSON.parse(savedMappings)));
-        }
-      });
-
-    // Fetch custom gifts from MongoDB
-    fetch(`${BACKEND_URL}/api/gifts`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error('API error');
-        return res.json();
-      })
-      .then((data) => {
-        dispatch(setCustomGifts(data));
-      })
-      .catch((e) => {
-        console.error('Failed to load custom gifts from DB:', e);
-      });
   }, [dispatch, router]);
 
   // WebSocket event handler
@@ -156,6 +103,11 @@ export default function DashboardPage() {
         case 'gifts-update':
           dispatch(setCustomGifts((packet.data as Gift[]) || []));
           break;
+        case 'chat-message':
+          if (packet.data) {
+            dispatch(addMessage(packet.data as ChatMessage));
+          }
+          break;
         default:
           break;
       }
@@ -177,172 +129,156 @@ export default function DashboardPage() {
     }
   }, [isConnected, dispatch]);
 
+  // Load settings/mappings/gifts reactively based on selectedStreamer
+  useEffect(() => {
+    if (!selectedStreamer) return;
+    const token = localStorage.getItem('auth_token');
+    if (!token) return;
+
+    // Fetch settings from MongoDB
+    fetch(`${BACKEND_URL}/api/settings?username=${selectedStreamer}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('API error');
+        return res.json();
+      })
+      .then((data) => {
+        dispatch(setSettings({ ...DEFAULT_SETTINGS, ...data }));
+      })
+      .catch((e) => {
+        console.error('Failed to load settings from DB:', e);
+      });
+
+    // Fetch mappings from MongoDB
+    fetch(`${BACKEND_URL}/api/settings/mappings?username=${selectedStreamer}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('API error');
+        return res.json();
+      })
+      .then((data) => {
+        dispatch(setMappings(data));
+      })
+      .catch((e) => {
+        console.error('Failed to load mappings from DB:', e);
+      });
+
+    // Fetch custom gifts from MongoDB
+    fetch(`${BACKEND_URL}/api/gifts?username=${selectedStreamer}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('API error');
+        return res.json();
+      })
+      .then((data) => {
+        dispatch(setCustomGifts(data));
+      })
+      .catch((e) => {
+        console.error('Failed to load custom gifts from DB:', e);
+      });
+
+    fetch(`${BACKEND_URL}/api/settings/npc-categories`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('API error');
+        return res.json();
+      })
+      .then((data) => {
+        dispatch(setNpcCategories(data));
+      })
+      .catch((e) => {
+        console.error('Failed to load NPC categories:', e);
+      });
+
+    // Sync WebSocket room for admin
+    if (user?.role === 'admin' && isConnected) {
+      sendCommand({
+        type: 'subscribe-streamer',
+        streamerUsername: selectedStreamer,
+      });
+    }
+  }, [selectedStreamer, dispatch, user?.role, sendCommand, isConnected]);
+
+  // Fetch chat conversations for Admin on tab change or mount
+  useEffect(() => {
+    if (role === 'admin' && adminTab === 'chat' && isConnected) {
+      const token = localStorage.getItem('auth_token');
+      fetch(`${BACKEND_URL}/api/chat/conversations`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+        .then(res => res.json())
+        .then(data => {
+          dispatch(setConversations(data));
+        })
+        .catch(err => console.error('Failed to load conversations:', err));
+    }
+  }, [adminTab, role, isConnected, dispatch]);
+
+  // Fetch chat history between Admin and activeChatUser
+  const activeChatUser = useAppSelector((state) => state.chat.activeChatUser);
+  useEffect(() => {
+    if (role === 'admin' && activeChatUser) {
+      const token = localStorage.getItem('auth_token');
+      fetch(`${BACKEND_URL}/api/chat/history?username=${activeChatUser}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+        .then(res => res.json())
+        .then(data => {
+          dispatch(setMessages(data));
+        })
+        .catch(err => console.error('Failed to load chat history:', err));
+    }
+  }, [activeChatUser, role, dispatch]);
+
+  // Fetch chat history for Streamer (user) with Admin on connection/mount
+  useEffect(() => {
+    if (role !== 'admin' && isConnected) {
+      const token = localStorage.getItem('auth_token');
+      fetch(`${BACKEND_URL}/api/chat/history`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+        .then(res => res.json())
+        .then(data => {
+          dispatch(setMessages(data));
+        })
+        .catch(err => console.error('Failed to load chat history with admin:', err));
+    }
+  }, [role, isConnected, dispatch]);
+
+  // Chat message sender handler
+  const handleSendChatMessage = (receiver: string, message: string) => {
+    sendCommand({
+      type: 'send-chat-message',
+      receiver,
+      message,
+    });
+  };
+
   // Overlay URL
-  const overlayUrl = typeof window !== 'undefined' && user?.username
+  const overlayUrl = typeof window !== 'undefined' && selectedStreamer
+    ? `${window.location.origin}/overlay?user=${selectedStreamer}`
+    : typeof window !== 'undefined' && user?.username
     ? `${window.location.origin}/overlay?user=${user.username}`
     : '';
 
   // Connection handlers
   const handleConnect = (username: string) => {
-    sendCommand({ type: 'connect-stream', username });
+    sendCommand({ type: 'connect-stream', username, targetUsername: selectedStreamer });
     dispatch(addLog('System', `Initiating connection to @${username}...`, 'system'));
   };
 
   const handleDisconnect = () => {
-    sendCommand({ type: 'disconnect-stream' });
+    sendCommand({ type: 'disconnect-stream', targetUsername: selectedStreamer });
     dispatch(addLog('System', 'Disconnecting stream connector...', 'system'));
   };
 
-  // Settings handlers
-  const handleSaveSettings = () => {
-    localStorage.setItem('tiktok_overlay_settings', JSON.stringify(settings));
-    sendCommand({
-      type: 'simulate-event',
-      eventType: 'settings-update',
-      payload: settings,
-    });
-    dispatch(addLog('System', 'Applied settings and broadcast to overlay.', 'system'));
-  };
 
-  // Mappings handlers
-  const handleAddMapping = (giftName: string, mapping: GiftMapping) => {
-    const updated = { ...mappings, [giftName]: mapping };
-    dispatch(addMapping({ giftName, mapping }));
-    localStorage.setItem('tiktok_overlay_mappings', JSON.stringify(updated));
-    sendCommand({
-      type: 'simulate-event',
-      eventType: 'mappings-update',
-      payload: updated,
-    });
-    dispatch(addLog('System', `Added mapping: "${giftName}" → Effect: ${mapping.effect}`, 'system'));
-  };
 
-  const handleDeleteMapping = (giftName: string) => {
-    const updated = { ...mappings };
-    delete updated[giftName];
-    dispatch(deleteMapping(giftName));
-    localStorage.setItem('tiktok_overlay_mappings', JSON.stringify(updated));
-    sendCommand({
-      type: 'simulate-event',
-      eventType: 'mappings-update',
-      payload: updated,
-    });
-    dispatch(addLog('System', `Removed mapping for "${giftName}"`, 'system'));
-  };
 
-  // Simulator handlers
-  const simulateGift = (giftName: string, diamondCount: number, repeatCount: number) => {
-    if (!isConnected) {
-      dispatch(addLog('SIMULATOR', 'Cannot simulate. Dashboard is not connected to server.', 'error'));
-      return;
-    }
-    const user = getRandomMockUser();
-    const picture = GIFT_PICTURES[giftName] || GIFT_PICTURES.Rose;
-
-    sendCommand({
-      type: 'simulate-event',
-      eventType: 'gift',
-      payload: {
-        nickname: user.nickname,
-        uniqueId: user.uniqueId,
-        giftName,
-        repeatCount,
-        diamondCount,
-        giftPictureUrl: picture,
-        profilePictureUrl: user.profile,
-      },
-    });
-  };
-
-  const simulateRoseCombo = (totalSteps: number) => {
-    if (!isConnected) {
-      dispatch(addLog('SIMULATOR', 'Cannot simulate. Dashboard is not connected to server.', 'error'));
-      return;
-    }
-    const user = getRandomMockUser();
-    dispatch(addLog('SIMULATOR', `Starting combo Rose simulation (combo x${totalSteps})...`, 'system'));
-    let count = 0;
-    const interval = setInterval(() => {
-      count++;
-      simulateGiftWithUser('Rose', 1, count, user);
-      if (count >= totalSteps) clearInterval(interval);
-    }, 450);
-  };
-
-  const simulateGiftWithUser = (
-    giftName: string,
-    diamondCount: number,
-    repeatCount: number,
-    user: (typeof MOCK_USERS)[0],
-  ) => {
-    const picture = GIFT_PICTURES[giftName] || GIFT_PICTURES.Rose;
-    sendCommand({
-      type: 'simulate-event',
-      eventType: 'gift',
-      payload: {
-        nickname: user.nickname,
-        uniqueId: user.uniqueId,
-        giftName,
-        repeatCount,
-        diamondCount,
-        giftPictureUrl: picture,
-        profilePictureUrl: user.profile,
-      },
-    });
-  };
-
-  const simulateMappedGift = (giftName: string) => {
-    if (!giftName || !mappings[giftName]) {
-      dispatch(addLog('SIMULATOR', 'No mapped gifts available to test.', 'error'));
-      return;
-    }
-    const mapping = mappings[giftName];
-    const diamondCount = mapping.effect === 'star' ? 1000 : mapping.effect === 'video' ? 500 : 1;
-    simulateGift(giftName, diamondCount, 1);
-  };
-
-  const simulateMappedGiftCombo = (giftName: string, totalSteps: number) => {
-    if (!giftName || !mappings[giftName]) {
-      dispatch(addLog('SIMULATOR', 'No mapped gifts available to test.', 'error'));
-      return;
-    }
-    if (!isConnected) {
-      dispatch(addLog('SIMULATOR', 'Cannot simulate. Dashboard is not connected to server.', 'error'));
-      return;
-    }
-    const mapping = mappings[giftName];
-    const diamondCount = mapping.effect === 'star' ? 1000 : mapping.effect === 'video' ? 500 : 1;
-    const user = getRandomMockUser();
-    let count = 0;
-    dispatch(addLog('SIMULATOR', `Starting combo simulation for "${giftName}" (combo x${totalSteps})...`, 'system'));
-    const interval = setInterval(() => {
-      count++;
-      simulateGiftWithUser(giftName, diamondCount, count, user);
-      if (count >= totalSteps) clearInterval(interval);
-    }, 450);
-  };
-
-  const simulateChat = () => {
-    if (!isConnected) {
-      dispatch(addLog('SIMULATOR', 'Cannot simulate. Dashboard is not connected to server.', 'error'));
-      return;
-    }
-    const user = getRandomMockUser();
-    const comment = getRandomMockChat();
-
-    sendCommand({
-      type: 'simulate-event',
-      eventType: 'chat',
-      payload: {
-        nickname: user.nickname,
-        uniqueId: user.uniqueId,
-        comment,
-        profilePictureUrl: user.profile,
-      },
-    });
-  };
-
-  const role = useAppSelector((state) => state.auth.user?.role) || 'user';
 
   if (isAuthLoading) {
     return (
@@ -363,32 +299,7 @@ export default function DashboardPage() {
           <AdminSidebar activeTab={adminTab} setActiveTab={setAdminTab} />
 
           <main className="flex-1 p-6 md:p-8 overflow-y-auto max-w-[1440px] mx-auto w-full">
-            {adminTab === 'home' && (
-              <div className="grid grid-cols-1 xl:grid-cols-[1fr_1.2fr] gap-6 animate-[fade-in-up_0.6s_ease-out]">
-                {/* Column 1: Controls & Settings */}
-                <div className="flex flex-col gap-6">
-                  <ConnectionPanel onConnect={handleConnect} onDisconnect={handleDisconnect} />
-                  <SettingsPanel onSave={handleSaveSettings} />
-                  <MappingsPanel
-                    onAddMapping={handleAddMapping}
-                    onDeleteMapping={handleDeleteMapping}
-                  />
-                  <ObsSetupPanel overlayUrl={overlayUrl} />
-                </div>
 
-                {/* Column 2: Simulator & Logs */}
-                <div className="flex flex-col gap-6">
-                  <SimulatorPanel
-                    onSimulateGift={simulateGift}
-                    onSimulateRoseCombo={simulateRoseCombo}
-                    onSimulateMappedGift={simulateMappedGift}
-                    onSimulateMappedGiftCombo={simulateMappedGiftCombo}
-                    onSimulateChat={simulateChat}
-                  />
-                  <LogsPanel />
-                </div>
-              </div>
-            )}
 
             {adminTab === 'effects' && (
               <GiftManagerPanel />
@@ -396,6 +307,14 @@ export default function DashboardPage() {
 
             {adminTab === 'users' && (
               <UserManagerPanel />
+            )}
+
+            {adminTab === 'chat' && (
+              <ChatDashboard onSendMessage={handleSendChatMessage} />
+            )}
+
+            {adminTab === 'npc' && (
+              <NpcManagerPanel />
             )}
           </main>
         </div>
@@ -413,7 +332,11 @@ export default function DashboardPage() {
       <BackgroundGlows />
       <div className="max-w-[1360px] mx-auto">
         <Header />
-        <UserHomepage onConnect={handleConnect} onDisconnect={handleDisconnect} />
+        <UserHomepage 
+          onConnect={handleConnect} 
+          onDisconnect={handleDisconnect} 
+          onSendMessage={handleSendChatMessage} 
+        />
       </div>
     </>
   );

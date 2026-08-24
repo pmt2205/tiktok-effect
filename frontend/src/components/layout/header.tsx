@@ -6,18 +6,40 @@ import Image from 'next/image';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { logout } from '@/features/auth/store/auth-slice';
 import { setLanguage } from '@/features/admin-dashboard/store/dashboard-slice';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Header() {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const toast = useToast();
   const user = useAppSelector((state) => state.auth.user);
   const language = useAppSelector((state) => state.dashboard.language) || 'vi';
   
   const [time, setTime] = useState('00:00:00');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isLightMode, setIsLightMode] = useState(false);
   
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // Sync isLightMode state with document class on mount
+  useEffect(() => {
+    const hasLightClass = document.documentElement.classList.contains('light-mode');
+    setIsLightMode(hasLightClass);
+  }, []);
+
+  const toggleTheme = () => {
+    const root = document.documentElement;
+    if (isLightMode) {
+      root.classList.remove('light-mode');
+      localStorage.setItem('theme_preference', 'dark');
+      setIsLightMode(false);
+    } else {
+      root.classList.add('light-mode');
+      localStorage.setItem('theme_preference', 'light');
+      setIsLightMode(true);
+    }
+  };
 
   useEffect(() => {
     const update = () => setTime(new Date().toTimeString().split(' ')[0]);
@@ -133,6 +155,19 @@ export default function Header() {
           >
             <i className="fa-solid fa-globe" />
             <span>{language.toUpperCase()}</span>
+          </button>
+
+          {/* Theme Toggle Button */}
+          <button
+            onClick={toggleTheme}
+            className="flex items-center justify-center w-8.5 h-8.5 rounded-full border border-border-color bg-white/4 text-text-muted hover:text-white hover:border-white/15 transition-all duration-200 cursor-pointer outline-none active:scale-[0.9] shadow-sm shrink-0"
+            title={isLightMode ? (language === 'vi' ? 'Chế độ Tối' : 'Dark Mode') : (language === 'vi' ? 'Chế độ Sáng' : 'Light Mode')}
+          >
+            {isLightMode ? (
+              <i className="fa-solid fa-moon text-[0.88rem] text-secondary" />
+            ) : (
+              <i className="fa-solid fa-sun text-[0.88rem] text-primary" />
+            )}
           </button>
 
           {/* Time Clock */}

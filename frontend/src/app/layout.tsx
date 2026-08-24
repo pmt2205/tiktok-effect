@@ -43,6 +43,18 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         />
+        {/* Persistent Theme Initialization Script */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                if (localStorage.getItem('theme_preference') === 'light') {
+                  document.documentElement.classList.add('light-mode');
+                }
+              } catch (_) {}
+            `,
+          }}
+        />
       </head>
       <body className={`${inter.variable} ${spaceGrotesk.variable} ${rubikMonoOne.variable} antialiased`}>
         <Providers>

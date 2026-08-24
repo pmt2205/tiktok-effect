@@ -1,7 +1,9 @@
-import { Controller, Get, Put, Body, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Put, Post, Delete, Param, Body, UseGuards, Req, Query } from '@nestjs/common';
 import { SettingsService } from './settings.service';
-import { OverlaySettings, GiftMappings } from '../../common/interfaces/events.interface';
+
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 
 @Controller('api/settings')
 @UseGuards(JwtAuthGuard)
@@ -9,23 +11,51 @@ export class SettingsController {
   constructor(private readonly settingsService: SettingsService) {}
 
   @Get()
-  async getSettings(@Req() req: any): Promise<OverlaySettings> {
-    return this.settingsService.getSettingsForUser(req.user.username);
+  async getSettings(
+    @Req() req: any,
+    @Query('username') queryUsername?: string,
+  ): Promise<any> {
+    const targetUsername = (req.user.role === 'admin' && queryUsername)
+      ? queryUsername
+      : req.user.username;
+    return this.settingsService.getSettingsForUser(targetUsername);
   }
 
   @Put()
-  async updateSettings(@Req() req: any, @Body() settings: Partial<OverlaySettings>): Promise<OverlaySettings> {
-    return this.settingsService.updateSettingsForUser(req.user.username, settings);
+  async updateSettings(
+    @Req() req: any,
+    @Body() settings: Partial<any> & { username?: string },
+    @Query('username') queryUsername?: string,
+  ): Promise<any> {
+    const targetUsername = (req.user.role === 'admin' && (queryUsername || settings.username))
+      ? (queryUsername || settings.username)
+      : req.user.username;
+    const bodyCopy = { ...settings };
+    delete bodyCopy.username;
+    return this.settingsService.updateSettingsForUser(targetUsername, bodyCopy);
   }
 
-  @Get('mappings')
-  async getMappings(@Req() req: any): Promise<GiftMappings> {
-    return this.settingsService.getMappingsForUser(req.user.username);
+
+  // NPC Categories CRUD
+  @Get('npc-categories')
+  async getAllNpcCategories(): Promise<any[]> {
+    return this.settingsService.getAllNpcCategories();
   }
 
-  @Put('mappings')
-  async updateMappings(@Req() req: any, @Body() mappings: GiftMappings): Promise<GiftMappings> {
-    return this.settingsService.updateMappingsForUser(req.user.username, mappings);
+  @Post('npc-categories')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
+  async createNpcCategory(
+    @Body('name') name: string,
+    @Body('displayName') displayName: string,
+  ): Promise<any> {
+    return this.settingsService.createNpcCategory(name, displayName);
+  }
+
+  @Delete('npc-categories/:id')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
+  async deleteNpcCategory(@Param('id') id: string): Promise<any> {
+    return this.settingsService.deleteNpcCategory(id);
   }
 }
-

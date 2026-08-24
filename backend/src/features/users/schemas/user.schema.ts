@@ -14,6 +14,12 @@ export class User extends Document {
 
   @Prop({ required: false, default: false })
   allowConnect: boolean;
+
+  @Prop({ required: false, default: false })
+  allowNpc: boolean;
+
+  @Prop({ type: [String], required: false, default: [] })
+  allowedNpcCategories: string[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

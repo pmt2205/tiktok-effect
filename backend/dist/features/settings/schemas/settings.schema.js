@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MappingSchema = exports.Mapping = exports.SettingsSchema = exports.Settings = void 0;
+exports.SettingsSchema = exports.Settings = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 let Settings = class Settings extends mongoose_2.Document {
@@ -31,32 +31,32 @@ __decorate([
     (0, mongoose_1.Prop)({ required: true, default: 'neon-pulse' }),
     __metadata("design:type", String)
 ], Settings.prototype, "theme", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: false }),
+    __metadata("design:type", Boolean)
+], Settings.prototype, "jarEnabled", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 85 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "jarX", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 75 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "jarY", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 1.0 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "jarScale", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 'single' }),
+    __metadata("design:type", String)
+], Settings.prototype, "liveMode", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 'anime' }),
+    __metadata("design:type", String)
+], Settings.prototype, "activeNpcCategory", void 0);
 exports.Settings = Settings = __decorate([
     (0, mongoose_1.Schema)()
 ], Settings);
 exports.SettingsSchema = mongoose_1.SchemaFactory.createForClass(Settings);
-let Mapping = class Mapping extends mongoose_2.Document {
-};
-exports.Mapping = Mapping;
-__decorate([
-    (0, mongoose_1.Prop)({ required: true, index: true }),
-    __metadata("design:type", String)
-], Mapping.prototype, "username", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
-], Mapping.prototype, "giftName", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
-], Mapping.prototype, "effect", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: false }),
-    __metadata("design:type", String)
-], Mapping.prototype, "videoUrl", void 0);
-exports.Mapping = Mapping = __decorate([
-    (0, mongoose_1.Schema)()
-], Mapping);
-exports.MappingSchema = mongoose_1.SchemaFactory.createForClass(Mapping);
-exports.MappingSchema.index({ username: 1, giftName: 1 }, { unique: true });
 //# sourceMappingURL=settings.schema.js.map
