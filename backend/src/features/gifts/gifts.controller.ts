@@ -77,6 +77,42 @@ export class GiftsController {
     };
   }
 
+  @Post('upload-sound')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'user')
+  @UseInterceptors(
+    FileInterceptor('sound', {
+      storage: diskStorage({
+        destination: join(process.cwd(), 'public', 'media'),
+        filename: (req: any, file: any, callback: any) => {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const cleanName = file.originalname
+            .replace(/\s+/g, '_')
+            .replace(/[^a-zA-Z0-9_.-]/g, '');
+          const ext = extname(cleanName);
+          const baseName = cleanName.substring(0, cleanName.length - ext.length);
+          callback(null, `${baseName}-${uniqueSuffix}${ext}`);
+        },
+      }),
+      fileFilter: (req: any, file: any, callback: any) => {
+        if (!file.originalname.match(/\.(mp3|wav|ogg|m4a|aac)$/i)) {
+          return callback(new Error('Only audio files (MP3, WAV, OGG, M4A, AAC) are allowed!'), false);
+        }
+        callback(null, true);
+      },
+    }),
+  )
+  uploadSound(@UploadedFile() file: any) {
+    if (!file) {
+      return { success: false, message: 'No file uploaded' };
+    }
+    return {
+      success: true,
+      filename: file.filename,
+      url: `/media/${file.filename}`,
+    };
+  }
+
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'user')
@@ -100,6 +136,9 @@ export class GiftsController {
       const allowedUpdate: Partial<Gift> = {};
       if (giftData.activeVideo !== undefined) {
         allowedUpdate.activeVideo = giftData.activeVideo;
+      }
+      if (giftData.activeSound !== undefined) {
+        allowedUpdate.activeSound = giftData.activeSound;
       }
       if (giftData.menuText !== undefined) {
         allowedUpdate.menuText = giftData.menuText;
@@ -181,6 +220,9 @@ export class GiftsController {
       const allowedUpdate: any = {};
       if (body.activeVideo !== undefined) {
         allowedUpdate.activeVideo = body.activeVideo;
+      }
+      if (body.activeSound !== undefined) {
+        allowedUpdate.activeSound = body.activeSound;
       }
       if (body.menuText !== undefined) {
         allowedUpdate.menuText = body.menuText;

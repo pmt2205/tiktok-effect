@@ -55,6 +55,16 @@ let GiftsController = class GiftsController {
             url: `/media/${file.filename}`,
         };
     }
+    uploadSound(file) {
+        if (!file) {
+            return { success: false, message: 'No file uploaded' };
+        }
+        return {
+            success: true,
+            filename: file.filename,
+            url: `/media/${file.filename}`,
+        };
+    }
     async create(giftData, req) {
         const targetUsername = (req.user.role === 'admin' && giftData.username)
             ? giftData.username
@@ -67,6 +77,9 @@ let GiftsController = class GiftsController {
             const allowedUpdate = {};
             if (giftData.activeVideo !== undefined) {
                 allowedUpdate.activeVideo = giftData.activeVideo;
+            }
+            if (giftData.activeSound !== undefined) {
+                allowedUpdate.activeSound = giftData.activeSound;
             }
             if (giftData.menuText !== undefined) {
                 allowedUpdate.menuText = giftData.menuText;
@@ -117,6 +130,9 @@ let GiftsController = class GiftsController {
             const allowedUpdate = {};
             if (body.activeVideo !== undefined) {
                 allowedUpdate.activeVideo = body.activeVideo;
+            }
+            if (body.activeSound !== undefined) {
+                allowedUpdate.activeSound = body.activeSound;
             }
             if (body.menuText !== undefined) {
                 allowedUpdate.menuText = body.menuText;
@@ -174,6 +190,35 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], GiftsController.prototype, "uploadVideo", null);
+__decorate([
+    (0, common_1.Post)('upload-sound'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('admin', 'user'),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('sound', {
+        storage: (0, multer_1.diskStorage)({
+            destination: (0, path_1.join)(process.cwd(), 'public', 'media'),
+            filename: (req, file, callback) => {
+                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+                const cleanName = file.originalname
+                    .replace(/\s+/g, '_')
+                    .replace(/[^a-zA-Z0-9_.-]/g, '');
+                const ext = (0, path_1.extname)(cleanName);
+                const baseName = cleanName.substring(0, cleanName.length - ext.length);
+                callback(null, `${baseName}-${uniqueSuffix}${ext}`);
+            },
+        }),
+        fileFilter: (req, file, callback) => {
+            if (!file.originalname.match(/\.(mp3|wav|ogg|m4a|aac)$/i)) {
+                return callback(new Error('Only audio files (MP3, WAV, OGG, M4A, AAC) are allowed!'), false);
+            }
+            callback(null, true);
+        },
+    })),
+    __param(0, (0, common_1.UploadedFile)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], GiftsController.prototype, "uploadSound", null);
 __decorate([
     (0, common_1.Post)(),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),

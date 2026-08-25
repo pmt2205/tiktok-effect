@@ -44,6 +44,14 @@ __decorate([
     __metadata("design:type", String)
 ], Gift.prototype, "activeVideo", void 0);
 __decorate([
+    (0, mongoose_1.Prop)({ type: [String], required: true, default: [] }),
+    __metadata("design:type", Array)
+], Gift.prototype, "sounds", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: String, required: false, default: '' }),
+    __metadata("design:type", String)
+], Gift.prototype, "activeSound", void 0);
+__decorate([
     (0, mongoose_1.Prop)({ type: String, required: false, default: '' }),
     __metadata("design:type", String)
 ], Gift.prototype, "menuText", void 0);

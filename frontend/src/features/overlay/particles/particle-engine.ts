@@ -14,7 +14,7 @@ export class ParticleEngine {
   private chromaCtx: CanvasRenderingContext2D;
   private effectVideo: HTMLVideoElement;
   private isVideoPlaying = false;
-  private videoQueue: string[] = [];
+  private videoQueue: { videoUrl: string; soundUrl?: string }[] = [];
 
 
 
@@ -116,9 +116,9 @@ export class ParticleEngine {
     }
   }
 
-  playVideoEffect(videoUrl: string) {
+  playVideoEffect(videoUrl: string, soundUrl?: string) {
     if (this.isVideoPlaying) {
-      this.videoQueue.push(videoUrl);
+      this.videoQueue.push({ videoUrl, soundUrl });
       return;
     }
 
@@ -126,6 +126,13 @@ export class ParticleEngine {
     this.effectVideo.load();
     this.effectVideo.muted = true;
     this.effectVideo.playsInline = true;
+
+    if (soundUrl) {
+      const audio = new Audio(soundUrl);
+      audio.play().catch((err: Error) => {
+        console.warn('Failed to play synced gift sound:', err.name, err.message);
+      });
+    }
 
     const attemptPlay = (retryCount = 0) => {
       this.effectVideo.play()
@@ -158,8 +165,8 @@ export class ParticleEngine {
 
   private playNextVideoInQueue() {
     if (this.videoQueue.length > 0) {
-      const nextVideoUrl = this.videoQueue.shift()!;
-      this.playVideoEffect(nextVideoUrl);
+      const next = this.videoQueue.shift()!;
+      this.playVideoEffect(next.videoUrl, next.soundUrl);
     }
   }
 

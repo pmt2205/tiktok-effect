@@ -15,6 +15,17 @@ export declare class GiftsController {
         url: string;
         message?: undefined;
     };
+    uploadSound(file: any): {
+        success: boolean;
+        message: string;
+        filename?: undefined;
+        url?: undefined;
+    } | {
+        success: boolean;
+        filename: any;
+        url: string;
+        message?: undefined;
+    };
     create(giftData: Partial<Gift>, req: any): Promise<Gift>;
     update(id: string, giftData: Partial<Gift>, req: any): Promise<Gift | null>;
     remove(id: string, req: any, queryUsername?: string): Promise<any>;

@@ -8,6 +8,8 @@ export declare class NpcGift extends Document {
     icon: string;
     videos: string[];
     activeVideo?: string;
+    sounds: string[];
+    activeSound?: string;
     menuText?: string;
     menuShow: boolean;
 }
@@ -84,6 +86,24 @@ export declare const NpcGiftSchema: import("mongoose").Schema<NpcGift, import("m
         id: string;
     }>> | undefined;
     activeVideo?: import("mongoose").SchemaDefinitionProperty<string | undefined, NpcGift, Document<unknown, {}, NpcGift, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<NpcGift & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    sounds?: import("mongoose").SchemaDefinitionProperty<string[], NpcGift, Document<unknown, {}, NpcGift, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<NpcGift & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    activeSound?: import("mongoose").SchemaDefinitionProperty<string | undefined, NpcGift, Document<unknown, {}, NpcGift, {
         id: string;
     }, import("mongoose").DefaultSchemaOptions> & Omit<NpcGift & Required<{
         _id: import("mongoose").Types.ObjectId;

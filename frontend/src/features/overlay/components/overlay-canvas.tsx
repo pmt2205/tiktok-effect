@@ -107,6 +107,7 @@ export default function OverlayCanvas() {
     const idKey = giftData.giftId ? giftData.giftId.toString() : '';
     let mappedEffect = 'sparkle';
     let videoUrl = '';
+    let soundUrl = '';
     let hasDatabaseGift = false;
 
     // 1. Check custom database gifts first
@@ -117,10 +118,19 @@ export default function OverlayCanvas() {
         (giftKey === 'tiktok' && g.name.toLowerCase().trim() === 'logo tiktok')
     );
 
-    if (dbGift && dbGift.videos && dbGift.videos.length > 0) {
+    if (dbGift) {
       hasDatabaseGift = true;
-      // Use the active video, or fallback to the first video in the list
-      videoUrl = dbGift.activeVideo || dbGift.videos[0];
+      if (dbGift.videos && dbGift.videos.length > 0) {
+        videoUrl = dbGift.activeVideo || dbGift.videos[0];
+      }
+      if (dbGift.sounds && dbGift.sounds.length > 0) {
+        if (dbGift.sounds.length === 1) {
+          soundUrl = dbGift.sounds[0];
+        } else {
+          const randIdx = Math.floor(Math.random() * dbGift.sounds.length);
+          soundUrl = dbGift.sounds[randIdx];
+        }
+      }
     }
 
     // 2. Fallback to settings mappings
@@ -148,21 +158,27 @@ export default function OverlayCanvas() {
 
     // Trigger visual effect
     if (engineRef.current) {
+      const fullSoundUrl = soundUrl
+        ? (soundUrl.startsWith('http://') || soundUrl.startsWith('https://') ? soundUrl : `${BACKEND_URL}/media/${soundUrl}`)
+        : undefined;
+
       if (hasDatabaseGift && videoUrl) {
         const fullVideoUrl = videoUrl.startsWith('http://') || videoUrl.startsWith('https://')
           ? videoUrl
           : `${BACKEND_URL}/media/${videoUrl}`;
-        engineRef.current.playVideoEffect(fullVideoUrl);
+        engineRef.current.playVideoEffect(fullVideoUrl, fullSoundUrl);
       } else if (mappedEffect === 'video' && videoUrl) {
         const fullVideoUrl = videoUrl.startsWith('http://') || videoUrl.startsWith('https://')
           ? videoUrl
           : `${BACKEND_URL}/media/${videoUrl}`;
-        engineRef.current.playVideoEffect(fullVideoUrl);
+        engineRef.current.playVideoEffect(fullVideoUrl, fullSoundUrl);
       } else {
         engineRef.current.spawnParticlesForGift(mappedEffect, repeatCount, settings);
+        if (fullSoundUrl) {
+          const audio = new Audio(fullSoundUrl);
+          audio.play().catch(err => console.warn('Failed to play sound without video:', err));
+        }
       }
-
-
     }
 
     // Banner management

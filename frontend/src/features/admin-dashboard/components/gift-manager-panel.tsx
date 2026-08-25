@@ -32,7 +32,10 @@ export default function GiftManagerPanel() {
   const [icon, setIcon] = useState('');
   const [videos, setVideos] = useState<string[]>([]);
   const [activeVideo, setActiveVideo] = useState<string>('');
+  const [sounds, setSounds] = useState<string[]>([]);
+  const [activeSound, setActiveSound] = useState<string>('');
   const [uploading, setUploading] = useState(false);
+  const [uploadingSound, setUploadingSound] = useState(false);
 
   // Editing state
   const [editingGift, setEditingGift] = useState<Gift | null>(null);
@@ -69,6 +72,12 @@ export default function GiftManagerPanel() {
       videoRequired: 'Vui lòng tải lên ít nhất 1 video.',
       activeBadge: 'Đang dùng',
       setActive: 'Chọn dùng',
+      soundsLabel: 'Danh sách Âm thanh (MP3, WAV...)',
+      uploadSoundBtn: 'Tải âm thanh lên',
+      uploadingSoundText: 'Đang tải âm thanh...',
+      noSounds: 'Chưa có âm thanh nào. Quà tặng sẽ phát mặc định hoặc không âm thanh.',
+      uploadSoundSuccess: 'Tải âm thanh lên thành công!',
+      uploadSoundError: 'Tải âm thanh lên thất bại!',
     },
     en: {
       title: 'Gift Effects Manager',
@@ -101,6 +110,12 @@ export default function GiftManagerPanel() {
       videoRequired: 'Please upload at least 1 video.',
       activeBadge: 'Active',
       setActive: 'Set Active',
+      soundsLabel: 'Sounds List (MP3, WAV...)',
+      uploadSoundBtn: 'Upload Sound',
+      uploadingSoundText: 'Uploading Sound...',
+      noSounds: 'No sounds added yet. Gift will play without custom sound.',
+      uploadSoundSuccess: 'Sound uploaded successfully!',
+      uploadSoundError: 'Sound upload failed!',
     }
   }[language];
 
@@ -166,6 +181,8 @@ export default function GiftManagerPanel() {
     setIcon('');
     setVideos([]);
     setActiveVideo('');
+    setSounds([]);
+    setActiveSound('');
     setIsFormOpen(true);
   };
 
@@ -218,6 +235,57 @@ export default function GiftManagerPanel() {
     }
   };
 
+  const handleSoundUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const allowedExtensions = ['.mp3', '.wav', '.ogg', '.m4a', '.aac'];
+    const hasAllowedExtension = allowedExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+    if (!hasAllowedExtension) {
+      toast.error(language === 'vi' ? 'Chỉ hỗ trợ file âm thanh MP3, WAV, OGG, M4A, AAC.' : 'Only audio files (MP3, WAV, OGG, M4A, AAC) are allowed.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('sound', file);
+
+    setUploadingSound(true);
+    try {
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch(`${BACKEND_URL}/api/gifts/upload-sound`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.filename) {
+          setSounds((prev) => {
+            const next = [...prev, data.filename];
+            if (next.length === 1) {
+              setActiveSound(data.filename);
+            }
+            return next;
+          });
+          toast.success(t.uploadSoundSuccess);
+        } else {
+          toast.error(data.message || t.uploadSoundError);
+        }
+      } else {
+        toast.error(t.uploadSoundError);
+      }
+    } catch (err) {
+      console.error('Failed to upload sound:', err);
+      toast.error(t.uploadSoundError);
+    } finally {
+      setUploadingSound(false);
+      e.target.value = ''; // Reset file input
+    }
+  };
+
   const handleRemoveVideo = (indexToRemove: number) => {
     const videoToRemove = videos[indexToRemove];
     setVideos((prev) => {
@@ -235,10 +303,6 @@ export default function GiftManagerPanel() {
       toast.error(t.permissionError);
       return;
     }
-    if (videos.length === 0) {
-      toast.error(t.videoRequired);
-      return;
-    }
 
     const payload = {
       giftId: Number(giftId),
@@ -247,6 +311,8 @@ export default function GiftManagerPanel() {
       icon: icon.trim() || 'https://sf16-website-nos.sofproxy.com/obj/tiktok-web-tx/tiktok/web/gift/rose.png',
       videos,
       activeVideo: activeVideo || undefined,
+      sounds,
+      activeSound: activeSound || undefined,
       username: selectedUsername,
     };
 
@@ -288,6 +354,8 @@ export default function GiftManagerPanel() {
     setIcon(gift.icon);
     setVideos(gift.videos || []);
     setActiveVideo(gift.activeVideo || (gift.videos && gift.videos[0]) || '');
+    setSounds(gift.sounds || []);
+    setActiveSound(gift.activeSound || (gift.sounds && gift.sounds[0]) || '');
     setIsFormOpen(true);
   };
 
@@ -299,6 +367,8 @@ export default function GiftManagerPanel() {
     setIcon('');
     setVideos([]);
     setActiveVideo('');
+    setSounds([]);
+    setActiveSound('');
     setIsFormOpen(false);
   };
 
@@ -309,10 +379,6 @@ export default function GiftManagerPanel() {
       toast.error(t.permissionError);
       return;
     }
-    if (videos.length === 0) {
-      toast.error(t.videoRequired);
-      return;
-    }
 
     const payload = {
       giftId: Number(giftId),
@@ -321,6 +387,8 @@ export default function GiftManagerPanel() {
       icon: icon.trim(),
       videos,
       activeVideo: activeVideo || undefined,
+      sounds,
+      activeSound: activeSound || undefined,
       username: selectedUsername,
     };
 
@@ -454,6 +522,7 @@ export default function GiftManagerPanel() {
                                 <span className="text-secondary font-semibold">{gift.activeVideo || gift.videos[0]}</span>
                               </>
                             )}
+                            {' | '}Sounds: <span className="text-white/80 font-semibold">{gift.sounds && gift.sounds.length > 0 ? `${gift.sounds.length} sound(s)` : 'None'}</span>
                           </span>
                         </div>
                       </div>
@@ -612,10 +681,82 @@ export default function GiftManagerPanel() {
                         <i className={`fa-solid ${uploading ? 'fa-spinner animate-spin' : 'fa-cloud-arrow-up'} mr-2`} />
                         {uploading ? t.uploadingText : t.uploadBtn}
                         <input
+                           type="file"
+                           accept="video/mp4"
+                           disabled={uploading}
+                           onChange={handleFileUpload}
+                           className="hidden"
+                        />
+                      </label>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[0.8rem] text-text-secondary font-semibold block mb-1.5">{t.soundsLabel}</label>
+                <div className="flex flex-col gap-2.5 bg-black/20 border border-border-color rounded-md p-3.5">
+                  {sounds.length === 0 ? (
+                    <span className="text-[0.78rem] text-text-muted italic block select-none">
+                      {t.noSounds}
+                    </span>
+                  ) : (
+                    <div className="flex flex-col gap-1.5 max-h-[140px] overflow-y-auto custom-scrollbar">
+                      {sounds.map((sound, idx) => {
+                        const isActive = sound === activeSound;
+                        return (
+                          <div
+                            key={idx}
+                            className={`flex justify-between items-center bg-black/40 px-3 py-2 rounded-sm border transition-all duration-150 ${isActive ? 'border-secondary/30 bg-secondary/5' : 'border-white/5'
+                              }`}
+                          >
+                            <div className="flex items-center gap-2 truncate max-w-[240px]">
+                              <button
+                                type="button"
+                                onClick={() => setActiveSound(sound)}
+                                className={`flex items-center justify-center w-5 h-5 rounded-full border transition-all duration-150 cursor-pointer ${isActive
+                                    ? 'bg-secondary border-secondary text-black shadow-[0_0_8px_rgba(0,242,254,0.3)]'
+                                    : 'border-white/30 hover:border-secondary'
+                                  }`}
+                                title={isActive ? t.activeBadge : t.setActive}
+                              >
+                                {isActive && <i className="fa-solid fa-check text-[0.68rem] font-bold" />}
+                              </button>
+                              <span className={`text-[0.8rem] font-body truncate ${isActive ? 'text-secondary font-semibold' : 'text-white/90'}`}>
+                                {sound}
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSounds((prev) => {
+                                  const next = prev.filter((_, idx2) => idx2 !== idx);
+                                  if (activeSound === sound) {
+                                    setActiveSound(next[0] || '');
+                                  }
+                                  return next;
+                                });
+                              }}
+                              className="text-primary hover:text-primary-glow text-[0.85rem] cursor-pointer outline-none transition-colors duration-150 active:scale-95 ml-2"
+                            >
+                              <i className="fa-solid fa-trash-can" />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {isAdmin && (
+                    <div className="mt-1">
+                      <label className="relative inline-flex items-center justify-center px-4 py-2.5 bg-secondary/15 hover:bg-secondary/25 border border-secondary/20 hover:border-secondary/35 rounded-sm text-secondary font-body text-[0.8rem] font-semibold cursor-pointer outline-none transition-all duration-150 select-none w-full text-center active:scale-[0.98]">
+                        <i className={`fa-solid ${uploadingSound ? 'fa-spinner animate-spin' : 'fa-cloud-arrow-up'} mr-2`} />
+                        {uploadingSound ? t.uploadingSoundText : t.uploadSoundBtn}
+                        <input
                           type="file"
-                          accept="video/mp4"
-                          disabled={uploading}
-                          onChange={handleFileUpload}
+                          accept="audio/*"
+                          disabled={uploadingSound}
+                          onChange={handleSoundUpload}
                           className="hidden"
                         />
                       </label>

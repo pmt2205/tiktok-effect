@@ -7,6 +7,8 @@ export declare class Gift extends Document {
     icon: string;
     videos: string[];
     activeVideo?: string;
+    sounds: string[];
+    activeSound?: string;
     menuText?: string;
     menuShow: boolean;
 }
@@ -83,6 +85,24 @@ export declare const GiftSchema: import("mongoose").Schema<Gift, import("mongoos
         id: string;
     }>> | undefined;
     activeVideo?: import("mongoose").SchemaDefinitionProperty<string | undefined, Gift, Document<unknown, {}, Gift, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Gift & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    sounds?: import("mongoose").SchemaDefinitionProperty<string[], Gift, Document<unknown, {}, Gift, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Gift & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    activeSound?: import("mongoose").SchemaDefinitionProperty<string | undefined, Gift, Document<unknown, {}, Gift, {
         id: string;
     }, import("mongoose").DefaultSchemaOptions> & Omit<Gift & Required<{
         _id: import("mongoose").Types.ObjectId;

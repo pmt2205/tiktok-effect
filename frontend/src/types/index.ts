@@ -96,6 +96,8 @@ export interface Gift {
   icon: string;
   videos: string[];
   activeVideo?: string;
+  sounds?: string[];
+  activeSound?: string;
   menuText?: string;
   menuShow?: boolean;
 }

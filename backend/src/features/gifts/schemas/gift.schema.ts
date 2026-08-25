@@ -24,6 +24,12 @@ export class Gift extends Document {
   @Prop({ type: String, required: false, default: '' })
   activeVideo?: string;
 
+  @Prop({ type: [String], required: true, default: [] })
+  sounds: string[];
+
+  @Prop({ type: String, required: false, default: '' })
+  activeSound?: string;
+
   @Prop({ type: String, required: false, default: '' })
   menuText?: string;
 
