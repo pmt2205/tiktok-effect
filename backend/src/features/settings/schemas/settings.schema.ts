@@ -40,6 +40,24 @@ export class Settings extends Document {
 
   @Prop({ required: true, default: 1 })
   menuColumns: number;
+
+  @Prop({ required: true, default: 'vertical' })
+  menuLayout: string;
+
+  @Prop({ required: true, default: false })
+  jarEnabled: boolean;
+
+  @Prop({ required: true, default: 75 })
+  jarX: number;
+
+  @Prop({ required: true, default: 50 })
+  jarY: number;
+
+  @Prop({ required: true, default: 1.0 })
+  jarScale: number;
+
+  @Prop({ required: true, default: 0 })
+  jarClearedAt: number;
 }
 
 export const SettingsSchema = SchemaFactory.createForClass(Settings);

@@ -18,7 +18,7 @@ export default function NpcManagerPanel() {
   const dispatch = useAppDispatch();
   const language = useAppSelector((state) => state.dashboard.language) || 'vi';
   const isAdmin = useAppSelector((state) => state.auth.user?.role === 'admin');
-  
+
   const npcCategories = useAppSelector((state) => state.dashboard.npcCategories) || [];
   const users = useAppSelector((state) => state.dashboard.usersList) || [];
 
@@ -440,7 +440,7 @@ export default function NpcManagerPanel() {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_2fr] gap-6 items-start">
-        
+
         {/* Left Side: Category CRUD */}
         <div className="flex flex-col gap-6">
           <GlassCard
@@ -622,7 +622,7 @@ export default function NpcManagerPanel() {
       {isFormOpen && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-5 bg-black/75 backdrop-blur-sm animate-[fade-in_0.2s_ease-out]">
           <div className="relative w-full max-w-[500px] bg-bg-surface border border-border-color rounded-2xl shadow-[0_12px_48px_rgba(0,0,0,0.6)] p-6 md:p-7 animate-[fade-in-up_0.3s_cubic-bezier(0.175,0.885,0.32,1.275)] flex flex-col gap-4.5">
-            
+
             <h3 className="font-header text-[1.25rem] font-bold text-white capitalize mb-1 border-b border-border-color pb-3 select-none flex items-center gap-2.5">
               <i className={`fa-solid ${editingGift ? 'fa-pen-to-square text-secondary' : 'fa-circle-plus text-primary animate-pulse'}`} />
               <span>{editingGift ? t.editTitle : t.formTitle}</span>
@@ -694,21 +694,19 @@ export default function NpcManagerPanel() {
                       {videos.map((video, idx) => {
                         const isActive = video === activeVideo;
                         return (
-                          <div 
-                            key={idx} 
-                            className={`flex justify-between items-center bg-black/40 px-3.5 py-2.5 rounded-lg border transition-all duration-150 ${
-                              isActive ? 'border-secondary/35 bg-secondary/5' : 'border-white/5'
-                            }`}
+                          <div
+                            key={idx}
+                            className={`flex justify-between items-center bg-black/40 px-3.5 py-2.5 rounded-lg border transition-all duration-150 ${isActive ? 'border-secondary/35 bg-secondary/5' : 'border-white/5'
+                              }`}
                           >
                             <div className="flex items-center gap-2.5 truncate max-w-[240px]">
                               <button
                                 type="button"
                                 onClick={() => setActiveVideo(video)}
-                                className={`flex items-center justify-center w-5.5 h-5.5 rounded-full border transition-all duration-200 cursor-pointer outline-none ${
-                                  isActive 
-                                    ? 'bg-secondary border-secondary text-black shadow-[0_0_8px_rgba(0,242,254,0.35)]' 
+                                className={`flex items-center justify-center w-5.5 h-5.5 rounded-full border transition-all duration-200 cursor-pointer outline-none ${isActive
+                                    ? 'bg-secondary border-secondary text-black shadow-[0_0_8px_rgba(0,242,254,0.35)]'
                                     : 'border-white/30 hover:border-secondary'
-                                }`}
+                                  }`}
                                 title={isActive ? t.activeBadge : t.setActive}
                               >
                                 {isActive && <i className="fa-solid fa-check text-[0.7rem] font-extrabold" />}

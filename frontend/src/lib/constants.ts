@@ -15,6 +15,12 @@ export const DEFAULT_SETTINGS = {
   menuY: 20,
   menuScale: 1.0,
   menuColumns: 1,
+  menuLayout: 'vertical',
+  jarEnabled: false,
+  jarX: 75,
+  jarY: 50,
+  jarScale: 1.0,
+  jarClearedAt: 0,
 };
 
 // Default gift mappings

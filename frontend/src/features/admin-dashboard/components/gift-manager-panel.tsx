@@ -1,5 +1,5 @@
 'use client';
- 
+
 import React, { useState, useEffect } from 'react';
 import GlassCard from '@/components/ui/glass-card';
 import Button from '@/components/ui/button';
@@ -412,7 +412,7 @@ export default function GiftManagerPanel() {
                 <i className="fa-solid fa-plus-circle" />
                 {t.createBtn}
               </Button>
-              
+
             )
           }
         >
@@ -500,7 +500,7 @@ export default function GiftManagerPanel() {
       {isFormOpen && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-5 bg-black/75 backdrop-blur-sm animate-[fade-in_0.2s_ease-out]">
           <div className="relative w-full max-w-[500px] bg-bg-surface border border-border-color rounded-2xl shadow-[0_12px_48px_rgba(0,0,0,0.6)] p-6 animate-[fade-in-up_0.3s_cubic-bezier(0.175,0.885,0.32,1.275)] flex flex-col gap-4">
-            
+
             <h3 className="font-header text-[1.25rem] font-bold text-white capitalize mb-1 border-b border-border-color pb-3 select-none flex items-center gap-2">
               <i className={`fa-solid ${editingGift ? 'fa-pen-to-square text-secondary' : 'fa-circle-plus text-primary'}`} />
               <span>{editingGift ? t.editTitle : t.formTitle}</span>
@@ -572,21 +572,19 @@ export default function GiftManagerPanel() {
                       {videos.map((video, idx) => {
                         const isActive = video === activeVideo;
                         return (
-                          <div 
-                            key={idx} 
-                            className={`flex justify-between items-center bg-black/40 px-3 py-2 rounded-sm border transition-all duration-150 ${
-                              isActive ? 'border-secondary/30 bg-secondary/5' : 'border-white/5'
-                            }`}
+                          <div
+                            key={idx}
+                            className={`flex justify-between items-center bg-black/40 px-3 py-2 rounded-sm border transition-all duration-150 ${isActive ? 'border-secondary/30 bg-secondary/5' : 'border-white/5'
+                              }`}
                           >
                             <div className="flex items-center gap-2 truncate max-w-[240px]">
                               <button
                                 type="button"
                                 onClick={() => setActiveVideo(video)}
-                                className={`flex items-center justify-center w-5 h-5 rounded-full border transition-all duration-150 cursor-pointer ${
-                                  isActive 
-                                    ? 'bg-secondary border-secondary text-black shadow-[0_0_8px_rgba(0,242,254,0.3)]' 
+                                className={`flex items-center justify-center w-5 h-5 rounded-full border transition-all duration-150 cursor-pointer ${isActive
+                                    ? 'bg-secondary border-secondary text-black shadow-[0_0_8px_rgba(0,242,254,0.3)]'
                                     : 'border-white/30 hover:border-secondary'
-                                }`}
+                                  }`}
                                 title={isActive ? t.activeBadge : t.setActive}
                               >
                                 {isActive && <i className="fa-solid fa-check text-[0.68rem] font-bold" />}

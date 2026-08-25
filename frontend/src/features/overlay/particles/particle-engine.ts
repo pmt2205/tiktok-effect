@@ -125,16 +125,35 @@ export class ParticleEngine {
     this.effectVideo.src = videoUrl;
     this.effectVideo.load();
     this.effectVideo.muted = true;
+    this.effectVideo.playsInline = true;
 
-    this.effectVideo.play()
-      .then(() => {
-        this.isVideoPlaying = true;
-      })
-      .catch((err) => {
-        console.error('Failed to play video effect:', err);
-        this.isVideoPlaying = false;
-        this.playNextVideoInQueue();
-      });
+    const attemptPlay = (retryCount = 0) => {
+      this.effectVideo.play()
+        .then(() => {
+          this.isVideoPlaying = true;
+        })
+        .catch((err: Error) => {
+          // AbortError = browser power-saving policy interrupted play()
+          // This is expected when the tab/OBS source is in background.
+          // Retry once after a short delay — usually succeeds on second attempt.
+          if (err.name === 'AbortError' && retryCount < 2) {
+            setTimeout(() => attemptPlay(retryCount + 1), 300);
+            return;
+          }
+          // NotAllowedError = autoplay blocked (needs user gesture) — safe to skip silently
+          if (err.name === 'NotAllowedError') {
+            this.isVideoPlaying = false;
+            this.playNextVideoInQueue();
+            return;
+          }
+          // Any other real error: log and continue queue
+          console.warn('Failed to play video effect:', err.name, err.message);
+          this.isVideoPlaying = false;
+          this.playNextVideoInQueue();
+        });
+    };
+
+    attemptPlay();
   }
 
   private playNextVideoInQueue() {

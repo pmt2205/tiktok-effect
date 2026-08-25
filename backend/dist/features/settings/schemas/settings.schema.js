@@ -63,6 +63,30 @@ __decorate([
     (0, mongoose_1.Prop)({ required: true, default: 1 }),
     __metadata("design:type", Number)
 ], Settings.prototype, "menuColumns", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 'vertical' }),
+    __metadata("design:type", String)
+], Settings.prototype, "menuLayout", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: false }),
+    __metadata("design:type", Boolean)
+], Settings.prototype, "jarEnabled", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 75 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "jarX", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 50 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "jarY", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 1.0 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "jarScale", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 0 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "jarClearedAt", void 0);
 exports.Settings = Settings = __decorate([
     (0, mongoose_1.Schema)()
 ], Settings);

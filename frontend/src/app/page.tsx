@@ -288,9 +288,14 @@ export default function DashboardPage() {
     dispatch(addLog('System', 'Disconnecting stream connector...', 'system'));
   };
 
-
-
-
+  const handleSimulateEvent = useCallback((eventType: string, payload: any) => {
+    sendCommand({
+      type: 'simulate-event',
+      targetUsername: selectedStreamer || user?.username || '',
+      eventType,
+      payload,
+    });
+  }, [selectedStreamer, user, sendCommand]);
 
   if (isAuthLoading) {
     return (
@@ -348,6 +353,7 @@ export default function DashboardPage() {
           onConnect={handleConnect} 
           onDisconnect={handleDisconnect} 
           onSendMessage={handleSendChatMessage} 
+          onSimulateEvent={handleSimulateEvent}
         />
       </div>
     </>
