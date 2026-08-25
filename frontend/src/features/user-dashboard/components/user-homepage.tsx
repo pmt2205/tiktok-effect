@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import ConnectionPanel from '@/features/admin-dashboard/components/connection-panel';
-import LogsPanel from '@/features/admin-dashboard/components/logs-panel';
 import { ChatWidget } from '@/features/shared/components/chat-dashboard';
 import { useUserEffects } from '@/features/user-dashboard/hooks/use-user-effects';
 import { Gift, NpcCategory } from '@/types';
@@ -26,7 +25,7 @@ export default function UserHomepage({
   const settings = useAppSelector((state) => state.dashboard.settings);
   const allowNpc = settings.allowNpc || false;
   const toast = useToast();
-  
+
   const [activeTab, setActiveTab] = useState<'single' | 'npc'>('single');
   const [npcCategory, setNpcCategory] = useState('anime');
   const [npcGifts, setNpcGifts] = useState<Gift[]>([]);
@@ -161,20 +160,16 @@ export default function UserHomepage({
   } = useUserEffects();
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_2fr] gap-6 p-5 md:p-8 w-full animate-[fade-in-up_0.6s_ease-out] relative z-10 items-start">
-      {/* Left Column: Connection widget, Logs, and Chat widget */}
-      <div className="flex flex-col gap-6">
-        <ConnectionPanel onConnect={onConnect} onDisconnect={onDisconnect} />
-        <LogsPanel t={t} />
-        <ChatWidget onSendMessage={onSendMessage} />
-      </div>
+    <div className="flex flex-col gap-6 p-5 md:p-8 w-full animate-[fade-in-up_0.6s_ease-out] relative z-10">
 
-      {/* Right Column: Settings + Dynamic Gifts Catalog */}
-      <div className="flex flex-col gap-6 w-full">
-        
-        {/* Interactive Stream Mode Configurations (Visible only if allowNpc is true) */}
-        {allowNpc && (
-          <div className="relative z-20 bg-bg-card border border-border-color rounded-2xl p-5.5 backdrop-blur-[24px] flex flex-col gap-4.5 glass-shadow transition-all duration-300 hover:border-border-glow">
+      {/* Top Section: Connection & Livestream Settings (Equal Height side-by-side) */}
+      {allowNpc ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+          <div className="flex">
+            <ConnectionPanel onConnect={onConnect} onDisconnect={onDisconnect} className="w-full" />
+          </div>
+
+          <div className="relative z-20 bg-bg-card border border-border-color rounded-2xl p-5.5 backdrop-blur-[24px] flex flex-col gap-4.5 glass-shadow transition-all duration-300 hover:border-border-glow w-full justify-between">
             <div className="flex flex-col gap-1 select-none">
               <h3 className="font-header text-[1.1rem] font-bold text-white uppercase tracking-[0.5px] flex items-center gap-2">
                 {savingSettings ? (
@@ -185,8 +180,8 @@ export default function UserHomepage({
                 <span>{language === 'vi' ? 'Cài đặt chế độ Livestream' : 'Livestream Mode Settings'}</span>
               </h3>
               <p className="text-[0.78rem] text-text-muted">
-                {language === 'vi' 
-                  ? 'Thiết lập chế độ hoạt động cho overlay và đồng bộ danh mục quà tặng tương ứng.' 
+                {language === 'vi'
+                  ? 'Thiết lập chế độ hoạt động cho overlay và đồng bộ danh mục quà tặng tương ứng.'
                   : 'Configure operation mode for overlay and sync visual gifts catalog.'}
               </p>
             </div>
@@ -202,11 +197,10 @@ export default function UserHomepage({
                     type="button"
                     onClick={() => handleModeChange('single')}
                     disabled={savingSettings}
-                    className={`py-2 px-3 rounded-lg text-[0.8rem] font-bold transition-all duration-200 cursor-pointer outline-none flex items-center justify-center gap-1.5 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none ${
-                      pendingMode === 'single'
-                        ? 'bg-secondary text-black shadow-[0_4px_12px_var(--secondary-glow)]'
-                        : 'tab-btn-inactive'
-                    }`}
+                    className={`py-2 px-3 rounded-lg text-[0.8rem] font-bold transition-all duration-200 cursor-pointer outline-none flex items-center justify-center gap-1.5 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none ${pendingMode === 'single'
+                      ? 'bg-secondary text-black shadow-[0_4px_12px_var(--secondary-glow)]'
+                      : 'tab-btn-inactive'
+                      }`}
                   >
                     <i className="fa-solid fa-user text-[0.85rem]" />
                     {language === 'vi' ? 'Live Đơn' : 'Single Live'}
@@ -215,11 +209,10 @@ export default function UserHomepage({
                     type="button"
                     onClick={() => handleModeChange('npc')}
                     disabled={savingSettings}
-                    className={`py-2 px-3 rounded-lg text-[0.8rem] font-bold transition-all duration-200 cursor-pointer outline-none flex items-center justify-center gap-1.5 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none ${
-                      pendingMode === 'npc'
-                        ? 'bg-primary text-white shadow-[0_4px_12px_var(--primary-glow)]'
-                        : 'tab-btn-inactive'
-                    }`}
+                    className={`py-2 px-3 rounded-lg text-[0.8rem] font-bold transition-all duration-200 cursor-pointer outline-none flex items-center justify-center gap-1.5 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none ${pendingMode === 'npc'
+                      ? 'bg-primary text-white shadow-[0_4px_12px_var(--primary-glow)]'
+                      : 'tab-btn-inactive'
+                      }`}
                   >
                     <i className="fa-solid fa-robot text-[0.85rem]" />
                     NPC Live
@@ -243,27 +236,15 @@ export default function UserHomepage({
               )}
             </div>
           </div>
-        )}
-
-        {/* Stream Mode Read-only Status Banner */}
-        <div className="flex items-center justify-between bg-bg-card border border-border-color rounded-2xl p-4.5 backdrop-blur-[24px] select-none glass-shadow">
-          <div className="flex items-center gap-3">
-            <div className={`w-3.5 h-3.5 rounded-full ${activeTab === 'npc' ? 'bg-primary animate-pulse shadow-[0_0_8px_rgba(255,0,80,0.6)]' : 'bg-secondary animate-pulse shadow-[0_0_8px_rgba(0,242,254,0.6)]'}`} />
-            <div className="flex flex-col gap-0.5">
-              <span className="text-[0.72rem] text-text-muted uppercase tracking-[1px] font-bold">{language === 'vi' ? 'Chế độ hoạt động hiện tại' : 'Active livestreams mode'}</span>
-              <span className="text-[0.98rem] text-text-main font-bold font-header tracking-[0.3px]">
-                {activeTab === 'npc' ? 'Live NPC' : 'Live Đơn (Mặc định)'}
-              </span>
-            </div>
-          </div>
-          
-          {activeTab === 'npc' && (
-            <div className="px-4 py-1.5 rounded-xl bg-primary/10 border border-primary/20 text-primary font-bold text-[0.82rem] font-header tracking-[0.5px] shadow-[0_2px_10px_rgba(255,0,80,0.06)] uppercase">
-              {language === 'vi' ? 'Chủ đề' : 'Theme'}: {npcCategory}
-            </div>
-          )}
         </div>
+      ) : (
+        <div className="max-w-xl">
+          <ConnectionPanel onConnect={onConnect} onDisconnect={onDisconnect} />
+        </div>
+      )}
 
+      {/* Bottom Section: Gift Catalog (1 hàng 6 cái on desktop) */}
+      <div className="w-full">
         {activeTab === 'npc' ? (
           <div className="flex flex-col gap-4 w-full animate-[fade-in-up_0.4s_ease-out]">
             {/* Grid of NPC custom gifts */}
@@ -273,11 +254,11 @@ export default function UserHomepage({
                 <span>Loading NPC category configs...</span>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-5">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
                 {npcGifts.map((gift) => {
                   const hasVideos = gift.videos && gift.videos.length > 0;
                   const activeVid = gift.activeVideo || (gift.videos && gift.videos[0]) || '';
-                  
+
                   return (
                     <div
                       key={gift._id}
@@ -293,7 +274,6 @@ export default function UserHomepage({
                       {/* Card Center: Gift Image Floating */}
                       <div className="absolute inset-0 flex flex-col items-center justify-center p-4 z-10">
                         <div className="relative w-18 h-18 mb-4 transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6 flex items-center justify-center select-none filter drop-shadow-[0_0_8px_rgba(255,0,80,0.15)]">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={gift.icon} alt={gift.name} className="w-full h-full object-contain animate-gift-bob" />
                         </div>
                       </div>
@@ -324,10 +304,10 @@ export default function UserHomepage({
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
             {customGifts.map((gift) => {
               const hasVideos = gift.videos && gift.videos.length > 0;
-              
+
               return (
                 <div
                   key={gift.giftId}
@@ -346,7 +326,6 @@ export default function UserHomepage({
                   {/* Card Center: Gift Image Floating */}
                   <div className="absolute inset-0 flex flex-col items-center justify-center p-4 z-10">
                     <div className="relative w-18 h-18 mb-4 transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6 flex items-center justify-center select-none filter drop-shadow-[0_0_8px_rgba(0,242,254,0.15)]">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={gift.icon} alt={gift.name} className="w-full h-full object-contain animate-gift-bob" />
                     </div>
                   </div>
@@ -356,7 +335,7 @@ export default function UserHomepage({
                     <span className="font-header text-[0.9rem] font-bold text-text-main tracking-[0.5px] uppercase select-none text-center truncate w-full group-hover:text-secondary transition-colors duration-150">
                       {gift.name}
                     </span>
-                    
+
                     {/* Active effect badge */}
                     {hasVideos ? (
                       <span className="text-[0.62rem] text-secondary font-semibold mt-1 px-2 py-0.5 rounded-md bg-secondary/10 border border-secondary/15 truncate max-w-full font-mono">
@@ -385,11 +364,11 @@ export default function UserHomepage({
 
       {/* Video Presets Modal */}
       {selectedGift && (
-        <VideoPresetsModal 
-          gift={selectedGift} 
+        <VideoPresetsModal
+          gift={selectedGift}
           activeVideo={activeVideo}
           setActiveVideo={selectVideo}
-          onClose={closePreview} 
+          onClose={closePreview}
           language={language}
           t={t}
         />
@@ -427,7 +406,7 @@ function VideoPresetsModal({
   return (
     <div className="fixed inset-0 z-[10000] flex items-center justify-center p-5 bg-black/75 backdrop-blur-sm animate-[fade-in_0.2s_ease-out]">
       <div className="relative w-full max-w-[760px] bg-bg-surface/95 border border-border-color rounded-2xl shadow-[0_12px_48px_rgba(0,0,0,0.6)] p-6 md:p-8 animate-[fade-in-up_0.3s_cubic-bezier(0.175,0.885,0.32,1.275)] flex flex-col md:flex-row gap-6 backdrop-blur-[24px]">
-        
+
         {/* Left Side: Simulation canvas player */}
         <div className="flex flex-col gap-3.5 items-center md:items-start shrink-0">
           <span className="font-header text-[0.92rem] font-bold text-white tracking-[0.5px] uppercase flex items-center gap-2 select-none">
@@ -480,11 +459,10 @@ function VideoPresetsModal({
                       <button
                         key={video}
                         onClick={() => setActiveVideo(video)}
-                        className={`w-full text-left px-4 py-3 rounded-xl border text-[0.78rem] font-semibold transition-all duration-200 flex items-center justify-between cursor-pointer outline-none active:scale-[0.98] ${
-                          isActive
-                            ? 'bg-secondary border-secondary text-black shadow-[0_4px_12px_rgba(0,242,254,0.18)] font-bold'
-                            : 'bg-black/25 border-border-color text-text-secondary hover:border-white/15 hover:text-white hover:bg-black/35'
-                        }`}
+                        className={`w-full text-left px-4 py-3 rounded-xl border text-[0.78rem] font-semibold transition-all duration-200 flex items-center justify-between cursor-pointer outline-none active:scale-[0.98] ${isActive
+                          ? 'bg-secondary border-secondary text-black shadow-[0_4px_12px_rgba(0,242,254,0.18)] font-bold'
+                          : 'bg-black/25 border-border-color text-text-secondary hover:border-white/15 hover:text-white hover:bg-black/35'
+                          }`}
                       >
                         <span className="truncate pr-3">{video}</span>
                         {isActive && <span className="text-[0.62rem] font-bold uppercase tracking-[0.5px] px-1.5 py-0.5 rounded bg-black/10 text-black shrink-0">{t.activeBadge}</span>}
@@ -499,7 +477,7 @@ function VideoPresetsModal({
           </div>
 
           <div className="flex justify-end mt-6">
-            <button 
+            <button
               onClick={onClose}
               className="px-5 py-2.5 rounded-xl font-body text-[0.82rem] font-bold bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:border-white/20 transition-all duration-200 cursor-pointer outline-none active:scale-[0.96]"
             >
@@ -531,7 +509,7 @@ function NpcPreviewModal({
   return (
     <div className="fixed inset-0 z-[10000] flex items-center justify-center p-5 bg-black/75 backdrop-blur-sm animate-[fade-in_0.2s_ease-out]">
       <div className="relative w-full max-w-[680px] bg-bg-surface/95 border border-border-color rounded-2xl shadow-[0_12px_48px_rgba(0,0,0,0.6)] p-6 md:p-8 animate-[fade-in-up_0.3s_cubic-bezier(0.175,0.885,0.32,1.275)] flex flex-col md:flex-row gap-6 backdrop-blur-[24px]">
-        
+
         {/* Left Side: Video Preview Player */}
         {hasVideo ? (
           <div className="flex flex-col gap-3.5 items-center md:items-start shrink-0">
@@ -590,7 +568,7 @@ function NpcPreviewModal({
           </div>
 
           <div className="flex justify-end mt-6">
-            <button 
+            <button
               type="button"
               onClick={onClose}
               className="px-5 py-2.5 rounded-xl font-body text-[0.82rem] font-bold bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all duration-200 cursor-pointer outline-none active:scale-[0.96]"

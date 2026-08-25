@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import GlassCard from '@/components/ui/glass-card';
 import { BACKEND_URL } from '@/lib/constants';
 import { useToast } from '@/hooks/use-toast';
@@ -107,7 +108,7 @@ export default function UserManagerPanel() {
       toast.error(t.permissionError);
       return;
     }
-    
+
     try {
       const token = localStorage.getItem('auth_token');
       const res = await fetch(`${BACKEND_URL}/api/users/${id}/permissions`, {
@@ -136,7 +137,7 @@ export default function UserManagerPanel() {
       toast.error(t.permissionError);
       return;
     }
-    
+
     try {
       const token = localStorage.getItem('auth_token');
       const res = await fetch(`${BACKEND_URL}/api/users/${id}/permissions`, {
@@ -238,25 +239,24 @@ export default function UserManagerPanel() {
                       </div>
                     </td>
                     <td className="py-4.5 px-5">
-                      <span className={`px-2.5 py-1 rounded-lg text-[0.7rem] font-bold uppercase tracking-[0.5px] border select-none ${
-                        u.role === 'admin' 
-                          ? 'bg-primary/10 border-primary/20 text-primary shadow-[0_2px_8px_rgba(255,0,80,0.1)]' 
+                      <span className={`px-2.5 py-1 rounded-lg text-[0.7rem] font-bold uppercase tracking-[0.5px] border select-none ${u.role === 'admin'
+                          ? 'bg-primary/10 border-primary/20 text-primary shadow-[0_2px_8px_rgba(255,0,80,0.1)]'
                           : 'bg-secondary/10 border-secondary/20 text-secondary shadow-[0_2px_8px_rgba(0,242,254,0.06)]'
-                      }`}>
+                        }`}>
                         {u.role === 'admin' ? t.adminRole : t.userRole}
                       </span>
                     </td>
                     <td className="py-4.5 px-5">
                       {u.role !== 'admin' ? (
                         <label className="relative inline-flex items-center cursor-pointer select-none">
-                           <input
-                             type="checkbox"
-                             checked={u.allowConnect || false}
-                             onChange={(e) => handleTogglePermission(u._id, 'allowConnect', e.target.checked)}
-                             disabled={!isAdmin}
-                             className="sr-only peer"
-                           />
-                           <div className="w-10 h-5.5 bg-black/40 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-text-muted after:border-border-color after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-secondary/40 peer-checked:after:bg-secondary peer-checked:after:border-secondary border border-border-color/80 shadow-inner"></div>
+                          <input
+                            type="checkbox"
+                            checked={u.allowConnect || false}
+                            onChange={(e) => handleTogglePermission(u._id, 'allowConnect', e.target.checked)}
+                            disabled={!isAdmin}
+                            className="sr-only peer"
+                          />
+                          <div className="w-10 h-5.5 bg-black/40 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-text-muted after:border-border-color after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-secondary/40 peer-checked:after:bg-secondary peer-checked:after:border-secondary border border-border-color/80 shadow-inner"></div>
                         </label>
                       ) : (
                         <span className="text-[0.75rem] text-text-muted italic select-none font-semibold">Always Allowed</span>
@@ -265,14 +265,14 @@ export default function UserManagerPanel() {
                     <td className="py-4.5 px-5">
                       {u.role !== 'admin' ? (
                         <label className="relative inline-flex items-center cursor-pointer select-none">
-                           <input
-                             type="checkbox"
-                             checked={u.allowNpc || false}
-                             onChange={(e) => handleTogglePermission(u._id, 'allowNpc', e.target.checked)}
-                             disabled={!isAdmin}
-                             className="sr-only peer"
-                           />
-                           <div className="w-10 h-5.5 bg-black/40 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-text-muted after:border-border-color after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-primary/45 peer-checked:after:bg-primary peer-checked:after:border-primary border border-border-color/80 shadow-inner"></div>
+                          <input
+                            type="checkbox"
+                            checked={u.allowNpc || false}
+                            onChange={(e) => handleTogglePermission(u._id, 'allowNpc', e.target.checked)}
+                            disabled={!isAdmin}
+                            className="sr-only peer"
+                          />
+                          <div className="w-10 h-5.5 bg-black/40 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-text-muted after:border-border-color after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-primary/45 peer-checked:after:bg-primary peer-checked:after:border-primary border border-border-color/80 shadow-inner"></div>
                         </label>
                       ) : (
                         <span className="text-[0.75rem] text-text-muted italic select-none font-semibold">Always Allowed</span>
@@ -329,10 +329,36 @@ function NpcCategoriesSelector({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [selected, setSelected] = useState<string[]>(user.allowedNpcCategories || []);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
 
   useEffect(() => {
     setSelected(user.allowedNpcCategories || []);
   }, [user.allowedNpcCategories]);
+
+  const updateCoords = () => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setCoords({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX,
+        width: rect.width,
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      updateCoords();
+      // Listen to scroll events on any element (useCapture = true)
+      window.addEventListener('scroll', updateCoords, true);
+      window.addEventListener('resize', updateCoords);
+    }
+    return () => {
+      window.removeEventListener('scroll', updateCoords, true);
+      window.removeEventListener('resize', updateCoords);
+    };
+  }, [isOpen]);
 
   const handleToggleCategory = (catName: string) => {
     setSelected((prev) => {
@@ -351,6 +377,7 @@ function NpcCategoriesSelector({
   return (
     <div className="relative">
       <button
+        ref={buttonRef}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="px-3.5 py-2 rounded-lg bg-black/45 border border-border-color hover:border-white/15 text-white font-body text-[0.8rem] font-semibold flex items-center gap-2 select-none cursor-pointer outline-none active:scale-[0.98] min-w-[140px] justify-between transition-all duration-200"
@@ -363,11 +390,20 @@ function NpcCategoriesSelector({
         <i className={`fa-solid fa-chevron-${isOpen ? 'up' : 'down'} text-[0.7rem] text-text-secondary`} />
       </button>
 
-      {isOpen && (
+      {isOpen && typeof document !== 'undefined' && createPortal(
         <>
+          {/* Global click-outside overlay */}
           <div className="fixed inset-0 z-[1000] cursor-default" onClick={handleSave} />
           
-          <div className="absolute left-0 mt-2 z-[1001] w-[230px] bg-bg-surface border border-border-color rounded-xl shadow-[0_12px_40px_rgba(0,0,0,0.6)] p-3.5 flex flex-col gap-3 animate-[fade-in-up_0.18s_cubic-bezier(0.16,1,0.3,1)] backdrop-blur-[24px]">
+          <div 
+            style={{
+              position: 'absolute',
+              top: `${coords.top + 8}px`,
+              left: `${coords.left}px`,
+              width: '230px',
+            }}
+            className="z-[1001] bg-bg-surface border border-border-color rounded-xl p-3.5 flex flex-col gap-3 animate-[fade-in-up_0.18s_cubic-bezier(0.16,1,0.3,1)] backdrop-blur-[24px]"
+          >
             <span className="text-[0.75rem] font-bold text-text-secondary select-none border-b border-border-color/85 pb-2">
               {language === 'vi' ? 'Chọn các thể loại NPC:' : 'Select NPC Themes:'}
             </span>
@@ -378,11 +414,10 @@ function NpcCategoriesSelector({
                 return (
                   <label
                     key={c.name}
-                    className={`flex items-center justify-between px-2.5 py-2 rounded-lg cursor-pointer text-[0.8rem] text-white transition-all select-none border border-transparent ${
-                      isChecked 
-                        ? 'bg-secondary/5 border-secondary/15 text-secondary font-semibold' 
+                    className={`flex items-center justify-between px-2.5 py-2 rounded-lg cursor-pointer text-[0.8rem] text-white transition-all select-none border border-transparent ${isChecked
+                        ? 'bg-secondary/5 border-secondary/15 text-secondary font-semibold'
                         : 'hover:bg-white/[0.04] text-white/80'
-                    }`}
+                      }`}
                   >
                     <span>{c.displayName}</span>
                     <input
@@ -400,13 +435,14 @@ function NpcCategoriesSelector({
               <button
                 type="button"
                 onClick={handleSave}
-                className="px-3.5 py-2 rounded-lg bg-secondary text-black font-body text-[0.75rem] font-bold cursor-pointer outline-none hover:bg-secondary/90 transition-colors shadow-[0_2px_8px_rgba(0,242,254,0.15)] active:scale-[0.96]"
+                className="px-3.5 py-2 rounded-lg bg-secondary text-black font-body text-[0.75rem] font-bold cursor-pointer outline-none hover:bg-secondary/90 transition-colors active:scale-[0.96]"
               >
                 {language === 'vi' ? 'Xác nhận' : 'Confirm'}
               </button>
             </div>
           </div>
-        </>
+        </>,
+        document.body
       )}
     </div>
   );

@@ -162,7 +162,7 @@ export default function DashboardPage() {
         dispatch(setMappings(data));
       })
       .catch((e) => {
-        console.error('Failed to load mappings from DB:', e);
+        console.warn('Failed to load custom mappings from DB, using local defaults:', e);
       });
 
     // Fetch custom gifts from MongoDB
@@ -207,10 +207,14 @@ export default function DashboardPage() {
   useEffect(() => {
     if (role === 'admin' && adminTab === 'chat' && isConnected) {
       const token = localStorage.getItem('auth_token');
+      if (!token) return;
       fetch(`${BACKEND_URL}/api/chat/conversations`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
-        .then(res => res.json())
+        .then(res => {
+          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+          return res.json();
+        })
         .then(data => {
           dispatch(setConversations(data));
         })
@@ -223,10 +227,14 @@ export default function DashboardPage() {
   useEffect(() => {
     if (role === 'admin' && activeChatUser) {
       const token = localStorage.getItem('auth_token');
+      if (!token) return;
       fetch(`${BACKEND_URL}/api/chat/history?username=${activeChatUser}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
-        .then(res => res.json())
+        .then(res => {
+          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+          return res.json();
+        })
         .then(data => {
           dispatch(setMessages(data));
         })
@@ -238,10 +246,14 @@ export default function DashboardPage() {
   useEffect(() => {
     if (role !== 'admin' && isConnected) {
       const token = localStorage.getItem('auth_token');
+      if (!token) return;
       fetch(`${BACKEND_URL}/api/chat/history`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
-        .then(res => res.json())
+        .then(res => {
+          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+          return res.json();
+        })
         .then(data => {
           dispatch(setMessages(data));
         })

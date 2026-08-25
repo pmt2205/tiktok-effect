@@ -36,6 +36,9 @@ let SettingsController = class SettingsController {
         delete bodyCopy.username;
         return this.settingsService.updateSettingsForUser(targetUsername, bodyCopy);
     }
+    async getMappings() {
+        return {};
+    }
     async getAllNpcCategories() {
         return this.settingsService.getAllNpcCategories();
     }
@@ -64,6 +67,12 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object, String]),
     __metadata("design:returntype", Promise)
 ], SettingsController.prototype, "updateSettings", null);
+__decorate([
+    (0, common_1.Get)('mappings'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], SettingsController.prototype, "getMappings", null);
 __decorate([
     (0, common_1.Get)('npc-categories'),
     __metadata("design:type", Function),

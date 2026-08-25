@@ -6,6 +6,7 @@ export declare class SettingsController {
     updateSettings(req: any, settings: Partial<any> & {
         username?: string;
     }, queryUsername?: string): Promise<any>;
+    getMappings(): Promise<any>;
     getAllNpcCategories(): Promise<any[]>;
     createNpcCategory(name: string, displayName: string): Promise<any>;
     deleteNpcCategory(id: string): Promise<any>;

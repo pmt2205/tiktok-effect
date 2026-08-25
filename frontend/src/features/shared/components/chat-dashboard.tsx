@@ -262,10 +262,14 @@ export function ChatWidget({ onSendMessage }: ChatWidgetProps) {
   useEffect(() => {
     if (isOpen) {
       const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+      if (!token) return;
       fetch(`${BACKEND_URL}/api/chat/history`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
-        .then(res => res.json())
+        .then(res => {
+          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+          return res.json();
+        })
         .then(data => {
           dispatch(setMessages(data));
         })

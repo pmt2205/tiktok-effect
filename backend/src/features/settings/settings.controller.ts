@@ -36,6 +36,11 @@ export class SettingsController {
   }
 
 
+  @Get('mappings')
+  async getMappings(): Promise<any> {
+    return {};
+  }
+
   // NPC Categories CRUD
   @Get('npc-categories')
   async getAllNpcCategories(): Promise<any[]> {

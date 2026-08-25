@@ -33,7 +33,7 @@ const chatSlice = createSlice({
   initialState,
   reducers: {
     setMessages(state, action: PayloadAction<ChatMessage[]>) {
-      state.messages = action.payload;
+      state.messages = Array.isArray(action.payload) ? action.payload : [];
     },
     addMessage(state, action: PayloadAction<ChatMessage>) {
       if (!state.messages.some((m) => m._id === action.payload._id)) {
@@ -67,7 +67,7 @@ const chatSlice = createSlice({
       state.conversations.sort((a, b) => new Date(b.lastTimestamp).getTime() - new Date(a.lastTimestamp).getTime());
     },
     setConversations(state, action: PayloadAction<ChatConversation[]>) {
-      state.conversations = action.payload;
+      state.conversations = Array.isArray(action.payload) ? action.payload : [];
     },
     setActiveChatUser(state, action: PayloadAction<string | null>) {
       state.activeChatUser = action.payload;

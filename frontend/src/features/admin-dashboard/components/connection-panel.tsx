@@ -11,6 +11,7 @@ import { useAppSelector } from '@/store/hooks';
 interface ConnectionPanelProps {
   onConnect: (username: string) => void;
   onDisconnect: () => void;
+  className?: string;
   t?: {
     connectionTitle?: string;
     connectionStatus?: string;
@@ -21,7 +22,7 @@ interface ConnectionPanelProps {
   };
 }
 
-export default function ConnectionPanel({ onConnect, onDisconnect, t }: ConnectionPanelProps) {
+export default function ConnectionPanel({ onConnect, onDisconnect, className, t }: ConnectionPanelProps) {
   const status = useAppSelector((state) => state.dashboard.status);
   const user = useAppSelector((state) => state.auth.user);
   const [username, setUsername] = useState('');
@@ -62,6 +63,7 @@ export default function ConnectionPanel({ onConnect, onDisconnect, t }: Connecti
     <GlassCard
       headerIcon={<i className="fa-solid fa-signal" />}
       headerTitle={t?.connectionTitle || "TikTok Stream Connection"}
+      className={className}
     >
       <div className="flex items-center gap-2.5 mb-4">
         <span className="text-[0.92rem] text-text-secondary">{t?.connectionStatus || "Status"}:</span>
@@ -75,37 +77,42 @@ export default function ConnectionPanel({ onConnect, onDisconnect, t }: Connecti
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="mt-4">
-        <InputGroup
-          addon="@"
-          value={isConnected || isConnecting ? status.username : username}
-          onChange={setUsername}
-          placeholder="tiktok_username"
-          disabled={!isDisconnected || !isAllowedToConnect}
-          id="username-input"
-        />
+      <form onSubmit={handleSubmit} className="mt-4 flex gap-3 items-center">
+        <div className="w-[70%]">
+          <InputGroup
+            addon="@"
+            value={isConnected || isConnecting ? status.username : username}
+            onChange={setUsername}
+            placeholder="tiktok_username"
+            disabled={!isDisconnected || !isAllowedToConnect}
+            id="username-input"
+            className="mb-0 h-[48px]"
+          />
+        </div>
         {isAllowedToConnect ? (
-          <div className="flex gap-3 mt-4">
+          <div className="w-[30%]">
             {isDisconnected && (
-              <Button type="submit" variant="gradient" id="btn-connect" className="flex-1">
+              <Button type="submit" variant="gradient" id="btn-connect" className="w-full py-2.5 h-[48px] whitespace-nowrap">
                 <i className="fa-solid fa-link" /> {t?.connect || 'Connect'}
               </Button>
             )}
             {!isDisconnected && (
-              <Button type="button" variant="danger" onClick={onDisconnect} id="btn-disconnect" className="flex-1">
+              <Button type="button" variant="danger" onClick={onDisconnect} id="btn-disconnect" className="w-full py-2.5 h-[48px] whitespace-nowrap">
                 <i className="fa-solid fa-link-slash" /> {t?.disconnect || 'Disconnect'}
               </Button>
             )}
           </div>
         ) : (
-          <div className="view-only-msg" style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '10px' }}>
-            <i className="fa-solid fa-lock" /> {t?.adminPrivileges || 'Admin privileges required to manage stream connection.'}
+          <div className="w-[30%] flex items-center justify-center h-[48px] text-text-muted text-[0.8rem]">
+            <i className="fa-solid fa-lock" />
           </div>
         )}
       </form>
 
       {status.error && (
-        <div className="bg-danger/6 border border-danger/18 text-[#f87171] px-3.5 py-2.5 rounded-md text-[0.85rem] mt-3">{status.error}</div>
+        <div className="bg-danger/6 border border-danger/18 text-[#f87171] px-3.5 py-2.5 rounded-md text-[0.85rem] mt-3 w-full">
+          {status.error}
+        </div>
       )}
     </GlassCard>
   );

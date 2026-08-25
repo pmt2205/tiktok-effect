@@ -9,6 +9,7 @@ interface InputGroupProps {
   id?: string;
   type?: string;
   readOnly?: boolean;
+  className?: string;
 }
 
 export default function InputGroup({
@@ -20,9 +21,13 @@ export default function InputGroup({
   id,
   type = 'text',
   readOnly = false,
+  className = '',
 }: InputGroupProps) {
+  const hasMargin = className.split(' ').some(c => /^m[trblxy]?-/.test(c));
+  const marginClass = hasMargin ? '' : 'mb-4';
+
   return (
-    <div className="flex items-center bg-bg-input border border-border-color rounded-md overflow-hidden transition-all duration-200 mb-4 focus-within:border-secondary focus-within:ring-3 focus-within:ring-secondary-glow/25">
+    <div className={`flex items-center bg-bg-input border border-border-color rounded-md overflow-hidden transition-all duration-200 ${marginClass} focus-within:border-secondary focus-within:ring-3 focus-within:ring-secondary-glow/25 ${className}`}>
       {addon && <span className="px-4 py-3 bg-white/[0.03] text-text-muted font-semibold border-r border-border-color text-base flex items-center">{addon}</span>}
       <input
         type={type}
