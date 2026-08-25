@@ -9,10 +9,12 @@ export const DEFAULT_SETTINGS = {
   duration: 5,
   density: 2,
   theme: 'neon-pulse',
-  jarEnabled: false,
-  jarX: 85,
-  jarY: 75,
-  jarScale: 1.0,
+  menuEnabled: false,
+  menuTitle: 'MENU QUÀ TẶNG',
+  menuX: 15,
+  menuY: 20,
+  menuScale: 1.0,
+  menuColumns: 1,
 };
 
 // Default gift mappings

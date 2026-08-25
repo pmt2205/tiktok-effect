@@ -55,4 +55,59 @@ export class AuthService {
       },
     };
   }
+
+  async loginWithGoogle(idToken: string) {
+    if (!idToken) {
+      throw new UnauthorizedException('Missing Google ID token');
+    }
+
+    try {
+      const res = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`);
+      if (!res.ok) {
+        throw new UnauthorizedException('Invalid Google ID token');
+      }
+
+      const payload = await res.json();
+      
+      const clientId = process.env.GOOGLE_CLIENT_ID;
+      if (clientId && payload.aud !== clientId) {
+        throw new UnauthorizedException('Google ID token client ID mismatch');
+      }
+
+      const email = payload.email;
+      if (!email) {
+        throw new UnauthorizedException('Google token missing email profile details');
+      }
+
+      let user = await this.usersService.findByUsername(email);
+      if (!user) {
+        const placeholderPassword = Math.random().toString(36).slice(-10) + Date.now();
+        const salt = await bcrypt.genSalt(10);
+        const hash = await bcrypt.hash(placeholderPassword, salt);
+        user = await this.usersService.create(email, hash, 'user');
+      }
+
+      const appPayload = {
+        sub: user._id,
+        username: user.username,
+        role: user.role,
+      };
+
+      return {
+        accessToken: this.jwtService.sign(appPayload),
+        user: {
+          userId: user._id,
+          username: user.username,
+          role: user.role,
+          allowConnect: user.allowConnect ?? false,
+          allowNpc: user.allowNpc ?? false,
+        },
+      };
+    } catch (err: any) {
+      if (err instanceof UnauthorizedException) {
+        throw err;
+      }
+      throw new UnauthorizedException(`Google login failed: ${err.message}`);
+    }
+  }
 }

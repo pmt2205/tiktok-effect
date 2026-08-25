@@ -17,4 +17,14 @@ export declare class AuthController {
             allowNpc: boolean;
         };
     }>;
+    googleLogin(idToken: string): Promise<{
+        accessToken: string;
+        user: {
+            userId: import("mongoose").Types.ObjectId;
+            username: string;
+            role: string;
+            allowConnect: boolean;
+            allowNpc: boolean;
+        };
+    }>;
 }

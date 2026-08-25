@@ -15,23 +15,31 @@ export class Settings extends Document {
   @Prop({ required: true, default: 'neon-pulse' })
   theme: string;
 
-  @Prop({ required: true, default: false })
-  jarEnabled: boolean;
 
-  @Prop({ required: true, default: 85 })
-  jarX: number;
-
-  @Prop({ required: true, default: 75 })
-  jarY: number;
-
-  @Prop({ required: true, default: 1.0 })
-  jarScale: number;
 
   @Prop({ required: true, default: 'single' })
   liveMode: string;
 
   @Prop({ required: true, default: 'anime' })
   activeNpcCategory: string;
+
+  @Prop({ required: true, default: false })
+  menuEnabled: boolean;
+
+  @Prop({ required: true, default: 'MENU QUÀ TẶNG' })
+  menuTitle: string;
+
+  @Prop({ required: true, default: 15 })
+  menuX: number;
+
+  @Prop({ required: true, default: 20 })
+  menuY: number;
+
+  @Prop({ required: true, default: 1.0 })
+  menuScale: number;
+
+  @Prop({ required: true, default: 1 })
+  menuColumns: number;
 }
 
 export const SettingsSchema = SchemaFactory.createForClass(Settings);

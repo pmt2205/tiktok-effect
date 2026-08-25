@@ -24,8 +24,14 @@ export class NpcGift extends Document {
   @Prop({ type: [String], required: true, default: [] })
   videos: string[];
 
-  @Prop({ type: String, required: false })
+  @Prop({ type: String, required: false, default: '' })
   activeVideo?: string;
+
+  @Prop({ type: String, required: false, default: '' })
+  menuText?: string;
+
+  @Prop({ type: Boolean, required: true, default: true })
+  menuShow: boolean;
 }
 
 export const NpcGiftSchema = SchemaFactory.createForClass(NpcGift);

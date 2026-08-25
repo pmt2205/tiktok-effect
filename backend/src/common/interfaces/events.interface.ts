@@ -36,10 +36,12 @@ export interface OverlaySettings {
   duration: number;
   density: number;
   theme: string;
-  jarEnabled: boolean;
-  jarX: number;
-  jarY: number;
-  jarScale: number;
+  menuEnabled: boolean;
+  menuTitle: string;
+  menuX: number;
+  menuY: number;
+  menuScale: number;
+  menuColumns: number;
 }
 
 export interface GiftMapping {

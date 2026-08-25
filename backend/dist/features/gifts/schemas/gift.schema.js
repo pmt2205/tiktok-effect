@@ -40,9 +40,17 @@ __decorate([
     __metadata("design:type", Array)
 ], Gift.prototype, "videos", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: String, required: false }),
+    (0, mongoose_1.Prop)({ type: String, required: false, default: '' }),
     __metadata("design:type", String)
 ], Gift.prototype, "activeVideo", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: String, required: false, default: '' }),
+    __metadata("design:type", String)
+], Gift.prototype, "menuText", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: Boolean, required: true, default: true }),
+    __metadata("design:type", Boolean)
+], Gift.prototype, "menuShow", void 0);
 exports.Gift = Gift = __decorate([
     (0, mongoose_1.Schema)()
 ], Gift);

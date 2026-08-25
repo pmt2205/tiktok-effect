@@ -16,15 +16,7 @@ export class ParticleEngine {
   private isVideoPlaying = false;
   private videoQueue: string[] = [];
 
-  // Gift Jar Overlay properties
-  private jarImage: HTMLImageElement | null = null;
-  private jarSettings = {
-    jarEnabled: false,
-    jarX: 85,
-    jarY: 75,
-    jarScale: 1.0,
-  };
-  private jarItems: any[] = [];
+
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -46,9 +38,7 @@ export class ParticleEngine {
       this.playNextVideoInQueue();
     };
 
-    // Load glass jar image
-    this.jarImage = new Image();
-    this.jarImage.src = '/jar.png';
+
 
     this.resize();
     window.addEventListener('resize', this.resize);
@@ -107,145 +97,7 @@ export class ParticleEngine {
         p.draw(this.ctx);
       });
 
-      // Update and draw Gift Jar if enabled
-      if (this.jarSettings.jarEnabled && this.jarImage && this.jarImage.complete) {
-        const jScale = this.jarSettings.jarScale;
-        const baseWidth = 320;
-        const baseHeight = 390;
-        const jarWidth = baseWidth * jScale;
-        const jarHeight = baseHeight * jScale;
 
-        const jarXCoords = (this.canvas.width - jarWidth) * (this.jarSettings.jarX / 100);
-        const jarYCoords = (this.canvas.height - jarHeight) * (this.jarSettings.jarY / 100);
-
-        // Define inner jar cavity bounds
-        const leftBound = jarXCoords + jarWidth * 0.11;
-        const rightBound = jarXCoords + jarWidth * 0.89;
-        const bottomBound = jarYCoords + jarHeight * 0.92;
-
-        const gravity = 0.35;
-        const frictionX = 0.98;
-        const frictionY = 0.98;
-        const bounce = 0.25;
-
-        // 1. Update positions & handle wall collisions
-        for (const item of this.jarItems) {
-          item.vy += gravity;
-          item.vx *= frictionX;
-          item.vy *= frictionY;
-
-          item.x += item.vx;
-          item.y += item.vy;
-          item.rotation += item.angularVelocity;
-
-          // Left Wall Collision
-          if (item.x - item.radius < leftBound) {
-            item.x = leftBound + item.radius;
-            item.vx = -item.vx * bounce;
-            item.angularVelocity = (Math.random() - 0.5) * 0.05;
-          }
-          // Right Wall Collision
-          if (item.x + item.radius > rightBound) {
-            item.x = rightBound - item.radius;
-            item.vx = -item.vx * bounce;
-            item.angularVelocity = (Math.random() - 0.5) * 0.05;
-          }
-          // Bottom Floor Collision
-          if (item.y + item.radius > bottomBound) {
-            item.y = bottomBound - item.radius;
-            item.vy = -item.vy * bounce;
-            item.vx *= 0.85; // Additional friction when sliding on bottom
-            item.angularVelocity *= 0.85;
-            if (Math.abs(item.vy) < 0.15) item.vy = 0;
-            if (Math.abs(item.vx) < 0.15) item.vx = 0;
-          }
-        }
-
-        // 2. Resolve collisions between items (multiple passes for physics stability)
-        for (let pass = 0; pass < 3; pass++) {
-          for (let i = 0; i < this.jarItems.length; i++) {
-            const itemA = this.jarItems[i];
-            for (let j = i + 1; j < this.jarItems.length; j++) {
-              const itemB = this.jarItems[j];
-              const dx = itemB.x - itemA.x;
-              const dy = itemB.y - itemA.y;
-              const distSq = dx * dx + dy * dy;
-              const minDist = itemA.radius + itemB.radius;
-
-              if (distSq < minDist * minDist) {
-                const dist = Math.sqrt(distSq) || 0.001;
-                const overlap = minDist - dist;
-
-                // Collision normal
-                const nx = dx / dist;
-                const ny = dy / dist;
-
-                // Push items apart based on overlap
-                const pushX = nx * overlap * 0.5;
-                const pushY = ny * overlap * 0.5;
-
-                itemA.x -= pushX;
-                itemA.y -= pushY;
-                itemB.x += pushX;
-                itemB.y += pushY;
-
-                // Calculate relative velocity
-                const rvx = itemB.vx - itemA.vx;
-                const rvy = itemB.vy - itemA.vy;
-                const velAlongNormal = rvx * nx + rvy * ny;
-
-                if (velAlongNormal < 0) {
-                  const impulse = -(1 + bounce) * velAlongNormal / 2;
-                  itemA.vx -= impulse * nx;
-                  itemA.vy -= impulse * ny;
-                  itemB.vx += impulse * nx;
-                  itemB.vy += impulse * ny;
-
-                  itemA.angularVelocity += (Math.random() - 0.5) * 0.02;
-                  itemB.angularVelocity += (Math.random() - 0.5) * 0.02;
-                }
-              }
-            }
-          }
-        }
-
-        // 3. Constrain boundary bounds post-solve just in case
-        for (const item of this.jarItems) {
-          if (item.x - item.radius < leftBound) item.x = leftBound + item.radius;
-          if (item.x + item.radius > rightBound) item.x = rightBound - item.radius;
-          if (item.y + item.radius > bottomBound) item.y = bottomBound - item.radius;
-        }
-
-        // 4. Draw falling and stacked items
-        for (const item of this.jarItems) {
-          this.ctx.save();
-          this.ctx.translate(item.x, item.y);
-          this.ctx.rotate(item.rotation);
-          
-          this.ctx.beginPath();
-          this.ctx.arc(0, 0, item.radius, 0, Math.PI * 2);
-          this.ctx.closePath();
-          this.ctx.clip();
-          
-          this.ctx.drawImage(
-            item.img,
-            -item.radius,
-            -item.radius,
-            item.radius * 2,
-            item.radius * 2
-          );
-          this.ctx.restore();
-        }
-
-        // 5. Draw transparent glass Jar layer ON TOP
-        this.ctx.drawImage(
-          this.jarImage,
-          jarXCoords,
-          jarYCoords,
-          jarWidth,
-          jarHeight
-        );
-      }
 
       this.animationId = requestAnimationFrame(loop);
     };
@@ -346,59 +198,5 @@ export class ParticleEngine {
     }
   }
 
-  updateJarSettings(settings: OverlaySettings) {
-    this.jarSettings = {
-      jarEnabled: settings.jarEnabled,
-      jarX: settings.jarX,
-      jarY: settings.jarY,
-      jarScale: settings.jarScale,
-    };
-    if (!this.jarSettings.jarEnabled) {
-      this.jarItems = [];
-    }
-  }
 
-  dropGiftIconInJar(imageUrl: string) {
-    if (!this.jarSettings.jarEnabled) return;
-
-    const img = new Image();
-    img.src = imageUrl;
-    img.onerror = (err) => {
-      console.error('Failed to load gift icon image in physics jar:', imageUrl, err);
-    };
-    img.onload = () => {
-      const jScale = this.jarSettings.jarScale;
-      const baseWidth = 320;
-      const baseHeight = 390;
-      const jarWidth = baseWidth * jScale;
-      const jarHeight = baseHeight * jScale;
-
-      const jarXCoords = (this.canvas.width - jarWidth) * (this.jarSettings.jarX / 100);
-      const jarYCoords = (this.canvas.height - jarHeight) * (this.jarSettings.jarY / 100);
-
-      // Neck coordinates
-      const neckWidth = jarWidth * 0.45;
-      const neckLeft = jarXCoords + (jarWidth - neckWidth) / 2;
-      const spawnX = neckLeft + Math.random() * neckWidth;
-      const spawnY = jarYCoords + jarHeight * 0.1 - 40;
-
-      const radius = Math.max(12, Math.min(20 * jScale, 28));
-
-      // Limit items inside the jar
-      if (this.jarItems.length > 80) {
-        this.jarItems.shift();
-      }
-
-      this.jarItems.push({
-        x: spawnX,
-        y: spawnY,
-        vx: (Math.random() - 0.5) * 1.5,
-        vy: 1.0,
-        radius,
-        rotation: Math.random() * Math.PI * 2,
-        angularVelocity: (Math.random() - 0.5) * 0.08,
-        img,
-      });
-    };
-  }
 }

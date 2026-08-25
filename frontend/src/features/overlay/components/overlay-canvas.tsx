@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { ParticleEngine } from '../particles/particle-engine';
 import { GiftEvent, OverlaySettings, GiftMappings, BannerInfo, Gift } from '@/types';
 import { DEFAULT_SETTINGS, DEFAULT_MAPPINGS, WS_URL, BACKEND_URL } from '@/lib/constants';
@@ -12,6 +12,8 @@ export default function OverlayCanvas() {
   const settingsRef = useRef<OverlaySettings>({ ...DEFAULT_SETTINGS });
   const mappingsRef = useRef<GiftMappings>({ ...DEFAULT_MAPPINGS });
   const giftsRef = useRef<Gift[]>([]);
+  const [settingsState, setSettingsState] = useState<OverlaySettings>({ ...DEFAULT_SETTINGS });
+  const [giftsList, setGiftsList] = useState<Gift[]>([]);
   const bannersRef = useRef<Map<string, BannerInfo>>(new Map());
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -107,11 +109,7 @@ export default function OverlayCanvas() {
         engineRef.current.spawnParticlesForGift(mappedEffect, repeatCount, settings);
       }
 
-      // Drop gift icon into the physics jar if enabled
-      if (settings.jarEnabled) {
-        const giftIconSrc = giftPictureUrl || 'https://sf16-website-nos.sofproxy.com/obj/tiktok-web-tx/tiktok/web/gift/rose.png';
-        engineRef.current.dropGiftIconInJar(giftIconSrc);
-      }
+
     }
 
     // Banner management
@@ -171,7 +169,11 @@ export default function OverlayCanvas() {
     // Load settings from localStorage
     try {
       const savedSettings = localStorage.getItem('tiktok_overlay_settings');
-      if (savedSettings) settingsRef.current = { ...settingsRef.current, ...JSON.parse(savedSettings) };
+      if (savedSettings) {
+        const parsed = JSON.parse(savedSettings);
+        settingsRef.current = { ...settingsRef.current, ...parsed };
+        setSettingsState(settingsRef.current);
+      }
       const savedMappings = localStorage.getItem('tiktok_overlay_mappings');
       if (savedMappings) mappingsRef.current = JSON.parse(savedMappings);
     } catch (e) {
@@ -186,6 +188,7 @@ export default function OverlayCanvas() {
       .then((res) => res.json())
       .then((data) => {
         giftsRef.current = data;
+        setGiftsList(data);
       })
       .catch((e) => console.error('Failed to load custom gifts from database in overlay:', e));
 
@@ -194,8 +197,7 @@ export default function OverlayCanvas() {
       engineRef.current = new ParticleEngine(canvasRef.current);
       engineRef.current.start();
       
-      // Initialize jar settings on mount
-      engineRef.current.updateJarSettings(settingsRef.current);
+
     }
 
     // Connect to WebSocket
@@ -210,28 +212,26 @@ export default function OverlayCanvas() {
       if (packet.type === 'gift') {
         handleGift(packet.data as GiftEvent);
       } else if (packet.type === 'settings-update') {
-        settingsRef.current = { ...settingsRef.current, ...(packet.data as Partial<OverlaySettings>) };
-        localStorage.setItem('tiktok_overlay_settings', JSON.stringify(settingsRef.current));
-        
-        // Propagate settings to physics engine
-        if (engineRef.current) {
-          engineRef.current.updateJarSettings(settingsRef.current);
-        }
+        const newSettings = { ...settingsRef.current, ...(packet.data as Partial<OverlaySettings>) };
+        settingsRef.current = newSettings;
+        localStorage.setItem('tiktok_overlay_settings', JSON.stringify(newSettings));
+        setSettingsState(newSettings);
       } else if (packet.type === 'mappings-update') {
         mappingsRef.current = packet.data as GiftMappings;
         localStorage.setItem('tiktok_overlay_mappings', JSON.stringify(mappingsRef.current));
       } else if (packet.type === 'gifts-update') {
-        giftsRef.current = (packet.data as Gift[]) || [];
+        const newGifts = (packet.data as Gift[]) || [];
+        giftsRef.current = newGifts;
+        setGiftsList(newGifts);
       }
     });
 
     // Cross-tab sync
     const handleStorage = (event: StorageEvent) => {
       if (event.key === 'tiktok_overlay_settings' && event.newValue) {
-        settingsRef.current = JSON.parse(event.newValue);
-        if (engineRef.current) {
-          engineRef.current.updateJarSettings(settingsRef.current);
-        }
+        const parsed = JSON.parse(event.newValue);
+        settingsRef.current = parsed;
+        setSettingsState(parsed);
       }
       if (event.key === 'tiktok_overlay_mappings' && event.newValue) {
         mappingsRef.current = JSON.parse(event.newValue);
@@ -246,10 +246,77 @@ export default function OverlayCanvas() {
     };
   }, [handleGift]);
 
+  const menuGifts = giftsList.filter(g => g.menuShow !== false && g.menuText && g.menuText.trim() !== '');
+
   return (
     <>
       <canvas id="effect-canvas" ref={canvasRef} className="absolute inset-0 z-1 pointer-events-none bg-transparent" />
       <div id="notification-container" className="absolute top-[20%] left-10 w-[450px] z-10 flex flex-col gap-3.5 pointer-events-none" ref={containerRef} />
+
+      {/* Real-time Gift Menu Overlay (No box, only floating title, icons, and streamer challenge text) */}
+      {settingsState.menuEnabled && menuGifts.length > 0 && (
+        <div
+          className="absolute z-20 flex flex-col gap-4 animate-[fade-in-up_0.5s_ease-out] transition-all duration-300 pointer-events-none select-none bg-transparent border-none shadow-none"
+          style={{
+            left: `${settingsState.menuX !== undefined ? settingsState.menuX : 15}%`,
+            top: `${settingsState.menuY !== undefined ? settingsState.menuY : 20}%`,
+            transform: `scale(${settingsState.menuScale !== undefined ? settingsState.menuScale : 1.0})`,
+            transformOrigin: 'top left',
+            width: settingsState.menuColumns === 2 ? '800px' : '400px',
+          }}
+        >
+          {/* Title Header */}
+          <div className="flex flex-col select-none">
+            <h3 
+              className="font-header text-[1.8rem] font-extrabold text-white uppercase tracking-[2.5px] flex items-center gap-2.5"
+              style={{
+                textShadow: settingsState.theme === 'cyberpunk'
+                  ? '0 2px 6px rgba(0,0,0,0.95), 0 0 10px rgba(255, 0, 80, 0.6)'
+                  : '0 2px 6px rgba(0,0,0,0.95), 0 0 10px rgba(0, 242, 254, 0.6)'
+              }}
+            >
+              <span className={`text-[1.1rem] ${settingsState.theme === 'cyberpunk' ? 'text-primary' : 'text-secondary'} animate-pulse`}>✦</span>
+              {settingsState.menuTitle || 'MENU QUÀ TẶNG'}
+              <span className={`text-[1.1rem] ${settingsState.theme === 'cyberpunk' ? 'text-primary' : 'text-secondary'} animate-pulse`}>✦</span>
+            </h3>
+          </div>
+
+          {/* List items */}
+          <div
+            className={`grid gap-y-5 gap-x-8 ${
+              settingsState.menuColumns === 2 ? 'grid-cols-2' : 'grid-cols-1'
+            }`}
+          >
+            {menuGifts.map((gift) => (
+              <div
+                key={gift._id}
+                className="flex items-center gap-4.5 transition-all duration-200 select-none bg-transparent border-none shadow-none"
+              >
+                <div className="w-14 h-14 shrink-0 flex items-center justify-center relative filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={gift.icon}
+                    alt=""
+                    className="w-11 h-11 object-contain animate-gift-bob"
+                  />
+                </div>
+                <div className="grow min-w-0 font-body flex items-center">
+                  <span 
+                    className="text-[1.35rem] font-extrabold text-white tracking-[0.5px] leading-snug truncate"
+                    style={{
+                      textShadow: settingsState.theme === 'cyberpunk'
+                        ? '0 2px 4px rgba(0,0,0,0.95), 0 0 8px rgba(255, 0, 80, 0.5)'
+                        : '0 2px 4px rgba(0,0,0,0.95), 0 0 8px rgba(0, 242, 254, 0.5)'
+                    }}
+                  >
+                    {gift.menuText}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </>
   );
 }

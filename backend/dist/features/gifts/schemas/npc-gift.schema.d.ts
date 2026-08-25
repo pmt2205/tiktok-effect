@@ -8,6 +8,8 @@ export declare class NpcGift extends Document {
     icon: string;
     videos: string[];
     activeVideo?: string;
+    menuText?: string;
+    menuShow: boolean;
 }
 export declare const NpcGiftSchema: import("mongoose").Schema<NpcGift, import("mongoose").Model<NpcGift, any, any, any, any, any, NpcGift>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, NpcGift, Document<unknown, {}, NpcGift, {
     id: string;
@@ -82,6 +84,24 @@ export declare const NpcGiftSchema: import("mongoose").Schema<NpcGift, import("m
         id: string;
     }>> | undefined;
     activeVideo?: import("mongoose").SchemaDefinitionProperty<string | undefined, NpcGift, Document<unknown, {}, NpcGift, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<NpcGift & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    menuText?: import("mongoose").SchemaDefinitionProperty<string | undefined, NpcGift, Document<unknown, {}, NpcGift, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<NpcGift & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    menuShow?: import("mongoose").SchemaDefinitionProperty<boolean, NpcGift, Document<unknown, {}, NpcGift, {
         id: string;
     }, import("mongoose").DefaultSchemaOptions> & Omit<NpcGift & Required<{
         _id: import("mongoose").Types.ObjectId;

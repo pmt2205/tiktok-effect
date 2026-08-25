@@ -7,6 +7,8 @@ export declare class Gift extends Document {
     icon: string;
     videos: string[];
     activeVideo?: string;
+    menuText?: string;
+    menuShow: boolean;
 }
 export declare const GiftSchema: import("mongoose").Schema<Gift, import("mongoose").Model<Gift, any, any, any, any, any, Gift>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Gift, Document<unknown, {}, Gift, {
     id: string;
@@ -81,6 +83,24 @@ export declare const GiftSchema: import("mongoose").Schema<Gift, import("mongoos
         id: string;
     }>> | undefined;
     activeVideo?: import("mongoose").SchemaDefinitionProperty<string | undefined, Gift, Document<unknown, {}, Gift, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Gift & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    menuText?: import("mongoose").SchemaDefinitionProperty<string | undefined, Gift, Document<unknown, {}, Gift, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Gift & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    menuShow?: import("mongoose").SchemaDefinitionProperty<boolean, Gift, Document<unknown, {}, Gift, {
         id: string;
     }, import("mongoose").DefaultSchemaOptions> & Omit<Gift & Required<{
         _id: import("mongoose").Types.ObjectId;

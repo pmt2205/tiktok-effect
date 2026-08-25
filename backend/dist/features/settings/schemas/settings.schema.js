@@ -32,22 +32,6 @@ __decorate([
     __metadata("design:type", String)
 ], Settings.prototype, "theme", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ required: true, default: false }),
-    __metadata("design:type", Boolean)
-], Settings.prototype, "jarEnabled", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true, default: 85 }),
-    __metadata("design:type", Number)
-], Settings.prototype, "jarX", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true, default: 75 }),
-    __metadata("design:type", Number)
-], Settings.prototype, "jarY", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true, default: 1.0 }),
-    __metadata("design:type", Number)
-], Settings.prototype, "jarScale", void 0);
-__decorate([
     (0, mongoose_1.Prop)({ required: true, default: 'single' }),
     __metadata("design:type", String)
 ], Settings.prototype, "liveMode", void 0);
@@ -55,6 +39,30 @@ __decorate([
     (0, mongoose_1.Prop)({ required: true, default: 'anime' }),
     __metadata("design:type", String)
 ], Settings.prototype, "activeNpcCategory", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: false }),
+    __metadata("design:type", Boolean)
+], Settings.prototype, "menuEnabled", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 'MENU QUÀ TẶNG' }),
+    __metadata("design:type", String)
+], Settings.prototype, "menuTitle", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 15 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "menuX", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 20 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "menuY", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 1.0 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "menuScale", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 1 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "menuColumns", void 0);
 exports.Settings = Settings = __decorate([
     (0, mongoose_1.Schema)()
 ], Settings);

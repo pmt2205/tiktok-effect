@@ -19,6 +19,9 @@ interface ConnectionPanelProps {
     connect?: string;
     disconnect?: string;
     adminPrivileges?: string;
+    statusConnected?: string;
+    statusConnecting?: string;
+    statusDisconnected?: string;
   };
 }
 
@@ -38,9 +41,9 @@ export default function ConnectionPanel({ onConnect, onDisconnect, className, t 
   const getTranslatedStatus = (statusVal: string) => {
     if (t) {
       switch (statusVal) {
-        case 'connected': return 'Đã kết nối';
-        case 'connecting': return 'Đang kết nối';
-        default: return 'Chưa kết nối';
+        case 'connected': return t.statusConnected || 'Đã kết nối';
+        case 'connecting': return t.statusConnecting || 'Đang kết nối';
+        default: return t.statusDisconnected || 'Chưa kết nối';
       }
     }
     return statusVal.charAt(0).toUpperCase() + statusVal.slice(1);

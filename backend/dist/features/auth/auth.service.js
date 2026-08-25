@@ -58,6 +58,54 @@ let AuthService = class AuthService {
             },
         };
     }
+    async loginWithGoogle(idToken) {
+        if (!idToken) {
+            throw new common_1.UnauthorizedException('Missing Google ID token');
+        }
+        try {
+            const res = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`);
+            if (!res.ok) {
+                throw new common_1.UnauthorizedException('Invalid Google ID token');
+            }
+            const payload = await res.json();
+            const clientId = process.env.GOOGLE_CLIENT_ID;
+            if (clientId && payload.aud !== clientId) {
+                throw new common_1.UnauthorizedException('Google ID token client ID mismatch');
+            }
+            const email = payload.email;
+            if (!email) {
+                throw new common_1.UnauthorizedException('Google token missing email profile details');
+            }
+            let user = await this.usersService.findByUsername(email);
+            if (!user) {
+                const placeholderPassword = Math.random().toString(36).slice(-10) + Date.now();
+                const salt = await bcrypt.genSalt(10);
+                const hash = await bcrypt.hash(placeholderPassword, salt);
+                user = await this.usersService.create(email, hash, 'user');
+            }
+            const appPayload = {
+                sub: user._id,
+                username: user.username,
+                role: user.role,
+            };
+            return {
+                accessToken: this.jwtService.sign(appPayload),
+                user: {
+                    userId: user._id,
+                    username: user.username,
+                    role: user.role,
+                    allowConnect: user.allowConnect ?? false,
+                    allowNpc: user.allowNpc ?? false,
+                },
+            };
+        }
+        catch (err) {
+            if (err instanceof common_1.UnauthorizedException) {
+                throw err;
+            }
+            throw new common_1.UnauthorizedException(`Google login failed: ${err.message}`);
+        }
+    }
 };
 exports.AuthService = AuthService;
 exports.AuthService = AuthService = __decorate([

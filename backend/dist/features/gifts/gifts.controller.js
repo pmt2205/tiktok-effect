@@ -68,6 +68,12 @@ let GiftsController = class GiftsController {
             if (giftData.activeVideo !== undefined) {
                 allowedUpdate.activeVideo = giftData.activeVideo;
             }
+            if (giftData.menuText !== undefined) {
+                allowedUpdate.menuText = giftData.menuText;
+            }
+            if (giftData.menuShow !== undefined) {
+                allowedUpdate.menuShow = giftData.menuShow;
+            }
             return this.giftsService.updateForUser(id, user.username, allowedUpdate);
         }
         const targetUsername = giftData.username || user.username;
@@ -111,6 +117,12 @@ let GiftsController = class GiftsController {
             const allowedUpdate = {};
             if (body.activeVideo !== undefined) {
                 allowedUpdate.activeVideo = body.activeVideo;
+            }
+            if (body.menuText !== undefined) {
+                allowedUpdate.menuText = body.menuText;
+            }
+            if (body.menuShow !== undefined) {
+                allowedUpdate.menuShow = body.menuShow;
             }
             return this.giftsService.updateNpcGiftForUser(id, user.username, body.category || 'anime', allowedUpdate);
         }
