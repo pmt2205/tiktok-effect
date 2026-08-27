@@ -48,6 +48,10 @@ export interface OverlaySettings {
   jarY?: number;
   jarScale?: number;
   jarClearedAt?: number;
+  jarGiftSize?: number;
+  jarFallSpeed?: number;
+  jarType?: string;
+  jarColor?: string;
 }
 
 export interface GiftMapping {

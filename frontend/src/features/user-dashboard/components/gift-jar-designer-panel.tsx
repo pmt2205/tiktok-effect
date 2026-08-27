@@ -20,34 +20,46 @@ export default function GiftJarDesignerPanel({
   const [localX, setLocalX] = useState(settings.jarX !== undefined ? settings.jarX : 75);
   const [localY, setLocalY] = useState(settings.jarY !== undefined ? settings.jarY : 50);
   const [localScale, setLocalScale] = useState(settings.jarScale !== undefined ? settings.jarScale : 1.0);
+  const [localGiftSize, setLocalGiftSize] = useState(settings.jarGiftSize !== undefined ? settings.jarGiftSize : 1.0);
+  const [localFallSpeed, setLocalFallSpeed] = useState(settings.jarFallSpeed !== undefined ? settings.jarFallSpeed : 1.0);
 
   useEffect(() => {
     setLocalX(settings.jarX !== undefined ? settings.jarX : 75);
     setLocalY(settings.jarY !== undefined ? settings.jarY : 50);
     setLocalScale(settings.jarScale !== undefined ? settings.jarScale : 1.0);
+    setLocalGiftSize(settings.jarGiftSize !== undefined ? settings.jarGiftSize : 1.0);
+    setLocalFallSpeed(settings.jarFallSpeed !== undefined ? settings.jarFallSpeed : 1.0);
   }, [settings]);
 
   const handleToggleJar = (enabled: boolean) => {
     onSaveSettings({ jarEnabled: enabled });
   };
 
-  const handleSliderChange = (field: 'x' | 'y' | 'scale', val: number) => {
+  const handleSliderChange = (field: 'x' | 'y' | 'scale' | 'giftSize' | 'fallSpeed', val: number) => {
     if (field === 'x') {
       setLocalX(val);
     } else if (field === 'y') {
       setLocalY(val);
     } else if (field === 'scale') {
       setLocalScale(val);
+    } else if (field === 'giftSize') {
+      setLocalGiftSize(val);
+    } else if (field === 'fallSpeed') {
+      setLocalFallSpeed(val);
     }
   };
 
-  const handleSliderRelease = (field: 'x' | 'y' | 'scale', val: number) => {
+  const handleSliderRelease = (field: 'x' | 'y' | 'scale' | 'giftSize' | 'fallSpeed', val: number) => {
     if (field === 'x') {
       onSaveSettings({ jarX: val });
     } else if (field === 'y') {
       onSaveSettings({ jarY: val });
     } else if (field === 'scale') {
       onSaveSettings({ jarScale: val });
+    } else if (field === 'giftSize') {
+      onSaveSettings({ jarGiftSize: val });
+    } else if (field === 'fallSpeed') {
+      onSaveSettings({ jarFallSpeed: val });
     }
   };
 
@@ -161,6 +173,125 @@ export default function GiftJarDesignerPanel({
             className="w-full accent-secondary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
           />
         </div>
+
+        {/* Gift Size Slider */}
+        <div className="flex flex-col gap-2">
+          <div className="flex justify-between items-center text-[0.8rem] text-text-secondary font-bold select-none">
+            <span>{language === 'vi' ? 'Kích thước quà:' : 'Gift Icon Size:'}</span>
+            <span className="text-secondary font-mono">{localGiftSize.toFixed(1)}x</span>
+          </div>
+          <input
+            type="range"
+            min="0.5"
+            max="2.0"
+            step="0.1"
+            value={localGiftSize}
+            onChange={(e) => handleSliderChange('giftSize', Number(e.target.value))}
+            onMouseUp={(e) => handleSliderRelease('giftSize', Number((e.target as HTMLInputElement).value))}
+            onTouchEnd={(e) => handleSliderRelease('giftSize', Number((e.target as HTMLInputElement).value))}
+            disabled={!settings.jarEnabled || savingSettings}
+            className="w-full accent-secondary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+          />
+        </div>
+
+        {/* Fall Speed Slider */}
+        <div className="flex flex-col gap-2">
+          <div className="flex justify-between items-center text-[0.8rem] text-text-secondary font-bold select-none">
+            <span>{language === 'vi' ? 'Tốc độ rơi:' : 'Fall Speed:'}</span>
+            <span className="text-secondary font-mono">{localFallSpeed.toFixed(1)}x</span>
+          </div>
+          <input
+            type="range"
+            min="0.2"
+            max="3.0"
+            step="0.1"
+            value={localFallSpeed}
+            onChange={(e) => handleSliderChange('fallSpeed', Number(e.target.value))}
+            onMouseUp={(e) => handleSliderRelease('fallSpeed', Number((e.target as HTMLInputElement).value))}
+            onTouchEnd={(e) => handleSliderRelease('fallSpeed', Number((e.target as HTMLInputElement).value))}
+            disabled={!settings.jarEnabled || savingSettings}
+            className="w-full accent-secondary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+          />
+        </div>
+
+        {/* Jar Type Selection */}
+        <div className="flex flex-col gap-2 pt-2 border-t border-border-color/20">
+          <span className="text-[0.82rem] text-text-secondary font-bold select-none">
+            {language === 'vi' ? 'Kiểu hũ quà:' : 'Jar Style:'}
+          </span>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => onSaveSettings({ jarType: 'standard' })}
+              disabled={!settings.jarEnabled || savingSettings}
+              className={`py-2 rounded-xl text-[0.78rem] font-bold cursor-pointer transition-all duration-200 border outline-none disabled:opacity-40 disabled:cursor-not-allowed ${
+                (settings.jarType || 'standard') === 'standard'
+                  ? 'bg-secondary text-black border-transparent shadow-[0_0_12px_var(--color-secondary-glow)]'
+                  : 'bg-white/5 text-text-secondary border-border-color hover:bg-white/10'
+              }`}
+            >
+              {language === 'vi' ? 'Hũ Thường' : 'Standard'}
+            </button>
+            <button
+              type="button"
+              onClick={() => onSaveSettings({ jarType: 'pro' })}
+              disabled={!settings.jarEnabled || savingSettings}
+              className={`py-2 rounded-xl text-[0.78rem] font-bold cursor-pointer transition-all duration-200 border outline-none disabled:opacity-40 disabled:cursor-not-allowed ${
+                settings.jarType === 'pro'
+                  ? 'bg-secondary text-black border-transparent shadow-[0_0_12px_var(--color-secondary-glow)]'
+                  : 'bg-white/5 text-text-secondary border-border-color hover:bg-white/10'
+              }`}
+            >
+              {language === 'vi' ? 'Hũ Cao Cấp (Pro)' : 'Pro Jar'}
+            </button>
+          </div>
+        </div>
+
+        {/* Pro Colors Selection */}
+        {settings.jarType === 'pro' && (
+          <div className="flex flex-col gap-2 pt-1 animate-[fade-in-up_0.2s_ease-out]">
+            <div className="flex justify-between items-center text-[0.82rem] text-text-secondary font-bold select-none">
+              <span>{language === 'vi' ? 'Tự chọn màu sắc Hũ Pro:' : 'Custom Pro Jar Color:'}</span>
+              <span className="text-secondary font-mono uppercase text-[0.76rem]">{settings.jarColor || '#ffffff'}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="relative w-12 h-10 border border-border-color rounded-xl overflow-hidden cursor-pointer bg-white/5 flex items-center justify-center transition-all duration-200 focus-within:border-secondary">
+                <input
+                  type="color"
+                  value={settings.jarColor || '#ffffff'}
+                  onChange={(e) => onSaveSettings({ jarColor: e.target.value })}
+                  disabled={!settings.jarEnabled || savingSettings}
+                  className="absolute inset-0 w-[200%] h-[200%] -translate-x-[25%] -translate-y-[25%] cursor-pointer border-none p-0 bg-transparent outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+                />
+              </div>
+              
+              {/* Preset quick colors */}
+              <div className="flex gap-1.5 grow justify-between">
+                {[
+                  { value: '#e2b3a3', label: language === 'vi' ? 'Hồng Vàng' : 'Rose Gold' },
+                  { value: '#f49bbb', label: language === 'vi' ? 'Hồng Đậm' : 'Pink' },
+                  { value: '#ffffff', label: language === 'vi' ? 'Bạc/Trắng' : 'Silver' },
+                  { value: '#00f2fe', label: language === 'vi' ? 'Xanh Neon' : 'Neon' },
+                  { value: '#ff0050', label: language === 'vi' ? 'Đỏ TikTok' : 'Red' },
+                ].map((preset) => (
+                  <button
+                    key={preset.value}
+                    type="button"
+                    onClick={() => onSaveSettings({ jarColor: preset.value })}
+                    disabled={!settings.jarEnabled || savingSettings}
+                    className={`px-2 py-1.5 bg-white/5 hover:bg-white/10 text-white/80 rounded-lg text-[0.62rem] font-bold border transition-all duration-150 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
+                      settings.jarColor === preset.value
+                        ? 'border-secondary text-secondary shadow-[0_0_8px_var(--color-secondary-glow)]'
+                        : 'border-border-color'
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Right Column: Actions & Tips */}

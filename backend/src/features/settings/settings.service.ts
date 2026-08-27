@@ -25,6 +25,10 @@ export class SettingsService implements OnModuleInit {
     jarY: 50,
     jarScale: 1.0,
     jarClearedAt: 0,
+    jarGiftSize: 1.0,
+    jarFallSpeed: 1.0,
+    jarType: 'standard',
+    jarColor: 'silver',
   };
 
   private onSettingsUpdateCb?: (username: string, settings: any) => void;
@@ -108,6 +112,10 @@ export class SettingsService implements OnModuleInit {
         jarY: settingsDoc.jarY !== undefined ? settingsDoc.jarY : this.defaultSettings.jarY,
         jarScale: settingsDoc.jarScale !== undefined ? settingsDoc.jarScale : this.defaultSettings.jarScale,
         jarClearedAt: settingsDoc.jarClearedAt !== undefined ? settingsDoc.jarClearedAt : this.defaultSettings.jarClearedAt,
+        jarGiftSize: (settingsDoc as any).jarGiftSize !== undefined ? (settingsDoc as any).jarGiftSize : this.defaultSettings.jarGiftSize,
+        jarFallSpeed: (settingsDoc as any).jarFallSpeed !== undefined ? (settingsDoc as any).jarFallSpeed : this.defaultSettings.jarFallSpeed,
+        jarType: (settingsDoc as any).jarType || this.defaultSettings.jarType,
+        jarColor: (settingsDoc as any).jarColor || this.defaultSettings.jarColor,
         liveMode: (settingsDoc as any).liveMode || 'single',
         activeNpcCategory: (settingsDoc as any).activeNpcCategory || fallbackCategory,
         allowNpc,
@@ -166,6 +174,10 @@ export class SettingsService implements OnModuleInit {
         jarY: updated.jarY,
         jarScale: updated.jarScale,
         jarClearedAt: updated.jarClearedAt,
+        jarGiftSize: (updated as any).jarGiftSize !== undefined ? (updated as any).jarGiftSize : this.defaultSettings.jarGiftSize,
+        jarFallSpeed: (updated as any).jarFallSpeed !== undefined ? (updated as any).jarFallSpeed : this.defaultSettings.jarFallSpeed,
+        jarType: (updated as any).jarType || this.defaultSettings.jarType,
+        jarColor: (updated as any).jarColor || this.defaultSettings.jarColor,
         liveMode: (updated as any).liveMode || 'single',
         activeNpcCategory: (updated as any).activeNpcCategory || fallbackCategory,
         allowNpc,

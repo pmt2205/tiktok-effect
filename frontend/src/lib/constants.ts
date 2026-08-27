@@ -21,6 +21,10 @@ export const DEFAULT_SETTINGS = {
   jarY: 50,
   jarScale: 1.0,
   jarClearedAt: 0,
+  jarGiftSize: 1.0,
+  jarFallSpeed: 1.0,
+  jarType: 'standard',
+  jarColor: 'silver',
 };
 
 // Default gift mappings

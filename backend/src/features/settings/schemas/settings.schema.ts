@@ -58,6 +58,18 @@ export class Settings extends Document {
 
   @Prop({ required: true, default: 0 })
   jarClearedAt: number;
+
+  @Prop({ required: true, default: 1.0 })
+  jarGiftSize: number;
+
+  @Prop({ required: true, default: 1.0 })
+  jarFallSpeed: number;
+
+  @Prop({ required: true, default: 'standard' })
+  jarType: string;
+
+  @Prop({ required: true, default: 'silver' })
+  jarColor: string;
 }
 
 export const SettingsSchema = SchemaFactory.createForClass(Settings);

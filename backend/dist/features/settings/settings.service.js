@@ -43,6 +43,10 @@ let SettingsService = SettingsService_1 = class SettingsService {
             jarY: 50,
             jarScale: 1.0,
             jarClearedAt: 0,
+            jarGiftSize: 1.0,
+            jarFallSpeed: 1.0,
+            jarType: 'standard',
+            jarColor: 'silver',
         };
     }
     async onModuleInit() {
@@ -111,6 +115,10 @@ let SettingsService = SettingsService_1 = class SettingsService {
                 jarY: settingsDoc.jarY !== undefined ? settingsDoc.jarY : this.defaultSettings.jarY,
                 jarScale: settingsDoc.jarScale !== undefined ? settingsDoc.jarScale : this.defaultSettings.jarScale,
                 jarClearedAt: settingsDoc.jarClearedAt !== undefined ? settingsDoc.jarClearedAt : this.defaultSettings.jarClearedAt,
+                jarGiftSize: settingsDoc.jarGiftSize !== undefined ? settingsDoc.jarGiftSize : this.defaultSettings.jarGiftSize,
+                jarFallSpeed: settingsDoc.jarFallSpeed !== undefined ? settingsDoc.jarFallSpeed : this.defaultSettings.jarFallSpeed,
+                jarType: settingsDoc.jarType || this.defaultSettings.jarType,
+                jarColor: settingsDoc.jarColor || this.defaultSettings.jarColor,
                 liveMode: settingsDoc.liveMode || 'single',
                 activeNpcCategory: settingsDoc.activeNpcCategory || fallbackCategory,
                 allowNpc,
@@ -162,6 +170,10 @@ let SettingsService = SettingsService_1 = class SettingsService {
                 jarY: updated.jarY,
                 jarScale: updated.jarScale,
                 jarClearedAt: updated.jarClearedAt,
+                jarGiftSize: updated.jarGiftSize !== undefined ? updated.jarGiftSize : this.defaultSettings.jarGiftSize,
+                jarFallSpeed: updated.jarFallSpeed !== undefined ? updated.jarFallSpeed : this.defaultSettings.jarFallSpeed,
+                jarType: updated.jarType || this.defaultSettings.jarType,
+                jarColor: updated.jarColor || this.defaultSettings.jarColor,
                 liveMode: updated.liveMode || 'single',
                 activeNpcCategory: updated.activeNpcCategory || fallbackCategory,
                 allowNpc,

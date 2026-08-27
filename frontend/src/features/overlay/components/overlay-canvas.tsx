@@ -65,20 +65,22 @@ export default function OverlayCanvas() {
       const spawnCount = Math.min(10, repeatCount || 1);
 
       for (let i = 0; i < spawnCount; i++) {
-        // Spawn from a random position within the jar neck (staggered vertically to avoid initial overlap)
-        const spawnX = 120 + Math.random() * 80;
-        const spawnY = -20 - i * 36;
+        // Spawn across the full neck width with random horizontal velocity so icons spread naturally
+        const neckLeft = 115;
+        const neckRight = 205;
+        const spawnX = neckLeft + Math.random() * (neckRight - neckLeft);
+        const spawnY = -20 - i * 30;
 
         jarGifts.push({
           id: `${uniqueId}-${giftName}-${Date.now()}-${i}-${Math.random()}`,
           x: spawnX,
           y: spawnY,
-          vx: (Math.random() - 0.5) * 0.8,   // tiny initial horizontal nudge for natural spread
-          vy: 0.5 + Math.random() * 0.5,       // slow initial fall
-          radius: 14,                           // collision radius (smaller than draw size for dense packing)
+          vx: (Math.random() - 0.5) * 2.5,    // wider random horizontal drift
+          vy: 0.5 + Math.random() * 1.0,
+          radius: 14,
           iconUrl: icon,
           rotation: Math.random() * Math.PI * 2,
-          angularVelocity: (Math.random() - 0.5) * 0.04,
+          angularVelocity: (Math.random() - 0.5) * 0.06,
           opacity: 1.0,
           createdAt: Date.now(),
           settled: false,
@@ -123,7 +125,9 @@ export default function OverlayCanvas() {
       if (dbGift.videos && dbGift.videos.length > 0) {
         videoUrl = dbGift.activeVideo || dbGift.videos[0];
       }
-      if (dbGift.sounds && dbGift.sounds.length > 0) {
+      if (dbGift.activeSound) {
+        soundUrl = dbGift.activeSound;
+      } else if (dbGift.sounds && dbGift.sounds.length > 0) {
         if (dbGift.sounds.length === 1) {
           soundUrl = dbGift.sounds[0];
         } else {
@@ -400,30 +404,34 @@ export default function OverlayCanvas() {
 
     const updatePhysics = () => {
       const gifts = jarGiftsRef.current;
-      const DRAW_R = 16;      // visual draw radius
-      const COL_R = 14;       // collision radius (slightly tighter = denser packing)
-      const GRAVITY = 0.28;
-      const DAMPING = 0.92;   // velocity damping per frame (low = gentle)
-      const FRICTION = 0.88;  // horizontal friction when touching floor/others
-      const RESTITUTION = 0.05; // nearly zero bounce
+      const sizeMultiplier = settingsRef.current.jarGiftSize !== undefined ? settingsRef.current.jarGiftSize : 1.0;
+      const speedMultiplier = settingsRef.current.jarFallSpeed !== undefined ? settingsRef.current.jarFallSpeed : 1.0;
+      const DRAW_R = 16 * sizeMultiplier;
+      const COL_R = 13 * sizeMultiplier;
+      const GRAVITY = 0.22 * speedMultiplier;
+      const LIN_DAMP = 0.985;    // linear velocity damping — gentle air resistance
+      const ANG_DAMP = 0.88;     // angular damping — spin dies out within ~1-2 seconds
+      const ANG_CUTOFF = 0.003;  // below this spin speed, zero it out completely
+      const RESTITUTION = 0.08;  // slight bounce on walls / floor
+      const WALL_BOUNCE = 0.15;  // wall bounciness
+      const FLOOR_FRICTION = 0.82; // horizontal friction on floor contact
+      const SETTLE_VEL = 0.08;   // velocity threshold below which icon is considered nearly still
 
       // --- Jar boundary helpers ---
-      // Jar interior walls at canvas coords (x: 38..282, y neck at ~95, body at 334 bottom curve)
-      const JAR_LEFT = 50;
-      const JAR_RIGHT = 270;
-      const JAR_NECK_Y = 95;   // Y where jar widens from neck to body
-      const JAR_NECK_LEFT = 108;
-      const JAR_NECK_RIGHT = 212;
+      const JAR_LEFT = 52;
+      const JAR_RIGHT = 268;
+      const JAR_NECK_Y = 95;
+      const JAR_NECK_LEFT = 110;
+      const JAR_NECK_RIGHT = 210;
 
       const getWallLeft = (y: number) => {
         if (y < JAR_NECK_Y) return JAR_NECK_LEFT;
-        // linearly widen from neck to body between y=95 and y=170
-        const t = Math.min(1, (y - JAR_NECK_Y) / 75);
+        const t = Math.min(1, (y - JAR_NECK_Y) / 80);
         return JAR_NECK_LEFT - t * (JAR_NECK_LEFT - JAR_LEFT);
       };
       const getWallRight = (y: number) => {
         if (y < JAR_NECK_Y) return JAR_NECK_RIGHT;
-        const t = Math.min(1, (y - JAR_NECK_Y) / 75);
+        const t = Math.min(1, (y - JAR_NECK_Y) / 80);
         return JAR_NECK_RIGHT + t * (JAR_RIGHT - JAR_NECK_RIGHT);
       };
 
@@ -433,56 +441,60 @@ export default function OverlayCanvas() {
         jarClearedAtRef.current = settingsState.jarClearedAt;
       }
 
-      // === STEP 1: Apply gravity + damping to every unsettled particle ===
+      // === STEP 1: Integrate every particle ===
+      // No "settled" freeze — every icon is always alive, just slows down via damping.
       gifts.forEach(p => {
-        if (p.settled) return;
         p.vy += GRAVITY;
-        p.vx *= DAMPING;
-        p.vy *= DAMPING;
+        p.vx *= LIN_DAMP;
+        p.vy *= LIN_DAMP;
+        p.angularVelocity *= ANG_DAMP;
+        // Hard cutoff — stop micro-spinning that never fully dies out
+        if (Math.abs(p.angularVelocity) < ANG_CUTOFF) p.angularVelocity = 0;
         p.rotation += p.angularVelocity;
-        p.angularVelocity *= 0.96;
         p.x += p.vx;
         p.y += p.vy;
       });
 
       // === STEP 2: Wall & floor constraints ===
       gifts.forEach(p => {
-        if (p.settled) return;
-
         const wallL = getWallLeft(p.y) + COL_R;
         const wallR = getWallRight(p.y) - COL_R;
 
         if (p.x < wallL) {
           p.x = wallL;
-          p.vx = Math.abs(p.vx) * RESTITUTION;
+          const speed = Math.abs(p.vx);
+          p.vx = speed * WALL_BOUNCE;
+          // Only kick spin on significant wall hit (not tiny resting contact)
+          if (speed > 0.5) p.angularVelocity += (Math.random() - 0.5) * speed * 0.03;
         } else if (p.x > wallR) {
           p.x = wallR;
-          p.vx = -Math.abs(p.vx) * RESTITUTION;
+          const speed = Math.abs(p.vx);
+          p.vx = -speed * WALL_BOUNCE;
+          if (speed > 0.5) p.angularVelocity += (Math.random() - 0.5) * speed * 0.03;
         }
 
         const floorY = getJarBottomY(p.x) - COL_R;
         if (p.y >= floorY) {
           p.y = floorY;
-          p.vy = -Math.abs(p.vy) * RESTITUTION;
-          p.vx *= FRICTION;
-          // Settle if barely moving
-          if (Math.abs(p.vy) < 0.15 && Math.abs(p.vx) < 0.15) {
-            p.settled = true;
-            p.vx = 0; p.vy = 0;
-            p.angularVelocity = 0;
-          }
+          const impactVy = Math.abs(p.vy);
+          p.vy = -impactVy * RESTITUTION;
+          p.vx *= FLOOR_FRICTION;
+          // Kill tiny vertical oscillations
+          if (Math.abs(p.vy) < SETTLE_VEL) p.vy = 0;
+          // Aggressively damp spin when resting on floor — no floor-to-spin conversion
+          p.angularVelocity *= 0.75;
+          if (Math.abs(p.angularVelocity) < ANG_CUTOFF) p.angularVelocity = 0;
         }
       });
 
-      // === STEP 3: Particle-to-particle collision (position-based, multiple iterations) ===
-      // Process from bottom-most to top-most so settled lower particles act as stable ground
-      const sorted = [...gifts].sort((a, b) => b.y - a.y);
-      const ITER = 3;
+      // === STEP 3: Impulse-based particle-to-particle collision ===
+      // Two passes to reduce jitter without the old sorted-pyramid approach
+      const ITER = 4;
       for (let iter = 0; iter < ITER; iter++) {
-        for (let i = 0; i < sorted.length; i++) {
-          for (let j = i + 1; j < sorted.length; j++) {
-            const a = sorted[i]; // lower (more stable)
-            const b = sorted[j]; // higher
+        for (let i = 0; i < gifts.length; i++) {
+          for (let j = i + 1; j < gifts.length; j++) {
+            const a = gifts[i];
+            const b = gifts[j];
 
             const dx = b.x - a.x;
             const dy = b.y - a.y;
@@ -495,50 +507,56 @@ export default function OverlayCanvas() {
             const nx = dx / dist;
             const ny = dy / dist;
 
-            // Lower (a) barely moves; upper (b) gets pushed away almost entirely
-            const aRatio = a.settled ? 0 : 0.05;
-            const bRatio = a.settled ? 1 : 0.95;
+            // Push both equally apart (no frozen lower particle bias)
+            const push = overlap * 0.5;
+            a.x -= nx * push;
+            a.y -= ny * push;
+            b.x += nx * push;
+            b.y += ny * push;
 
-            a.x -= nx * overlap * aRatio;
-            a.y -= ny * overlap * aRatio;
-            b.x += nx * overlap * bRatio;
-            b.y += ny * overlap * bRatio;
+            // Velocity impulse along normal
+            const relVx = b.vx - a.vx;
+            const relVy = b.vy - a.vy;
+            const velAlongN = relVx * nx + relVy * ny;
 
-            // Wake up lower particle if it was settled and got disturbed
-            if (!a.settled) {
-              const relVx = b.vx - a.vx;
-              const relVy = b.vy - a.vy;
-              const velN = relVx * nx + relVy * ny;
-              if (velN < 0) {
-                const imp = velN * RESTITUTION;
-                a.vx += nx * imp * aRatio;
-                a.vy += ny * imp * aRatio;
-                b.vx -= nx * imp * bRatio;
-                b.vy -= ny * imp * bRatio;
+            if (velAlongN < 0) {
+              const restitution = 0.15;
+              const impulseMag = -(1 + restitution) * velAlongN * 0.5;
+              const ix = impulseMag * nx;
+              const iy = impulseMag * ny;
+              a.vx -= ix;
+              a.vy -= iy;
+              b.vx += ix;
+              b.vy += iy;
+
+              // Tangential friction — converts sliding into spin
+              const tx = -ny;
+              const ty = nx;
+              const velT = relVx * tx + relVy * ty;
+              const frictionImpulse = velT * 0.06;
+              a.vx += frictionImpulse * tx;
+              a.vy += frictionImpulse * ty;
+              b.vx -= frictionImpulse * tx;
+              b.vy -= frictionImpulse * ty;
+
+              // Angular kick — only on significant collisions, not resting contact
+              if (impulseMag > 0.3) {
+                const spinKick = impulseMag * 0.04;
+                a.angularVelocity -= spinKick * (Math.random() - 0.5);
+                b.angularVelocity += spinKick * (Math.random() - 0.5);
               }
-            }
-
-            // Unsettled b: small lateral nudge to slide off round shoulder of a
-            if (!b.settled && Math.abs(ny) > 0.3) {
-              b.vx += nx * 0.1;  // slide in direction away from a center
-            }
-
-            // Mark b as unsettled since it was just pushed
-            if (b.settled && bRatio > 0.5) {
-              b.settled = false;
-              b.vy = overlap * 0.1;
             }
           }
         }
       }
 
-      // === STEP 4: Re-clamp after collision resolution ===
+      // === STEP 4: Re-clamp positions after collision resolution ===
       gifts.forEach(p => {
         const wallL = getWallLeft(p.y) + COL_R;
         const wallR = getWallRight(p.y) - COL_R;
         p.x = Math.max(wallL, Math.min(wallR, p.x));
         const floorY = getJarBottomY(p.x) - COL_R;
-        if (p.y > floorY) { p.y = floorY; }
+        if (p.y > floorY) p.y = floorY;
       });
 
       // === STEP 5: Draw ===
@@ -549,8 +567,8 @@ export default function OverlayCanvas() {
         ctx.translate(p.x, p.y);
         ctx.rotate(p.rotation);
 
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
-        ctx.shadowBlur = 5;
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+        ctx.shadowBlur = 4;
 
         let img = loadedImages[p.iconUrl];
         if (!img) {
@@ -581,6 +599,24 @@ export default function OverlayCanvas() {
       cancelAnimationFrame(animationFrameId);
     };
   }, [settingsState.jarEnabled, settingsState.jarClearedAt]);
+
+  const jarImages = useMemo(() => {
+    const jarType = settingsState.jarType || 'standard';
+
+    if (jarType === 'pro') {
+      return {
+        back: '/jar_pro_3.png',
+        front: '/jar_pro_front_3.png',
+        colorized: true,
+      };
+    }
+
+    return {
+      back: '/jarrrr.png',
+      front: '/jarrrr_front.png',
+      colorized: false,
+    };
+  }, [settingsState.jarType]);
 
   return (
     <>
@@ -731,20 +767,77 @@ export default function OverlayCanvas() {
             height: '380px',
           }}
         >
-          {/* Layer 1: Physics Canvas inside the jar container */}
+          {/* Layer 1: Jar Background (Back, sides, lid, and inner rim) */}
+          {jarImages.colorized ? (
+            <div className="absolute inset-0 w-full h-full pointer-events-none z-1" style={{ isolation: 'isolate' }}>
+              <img
+                src={jarImages.back}
+                alt=""
+                className="absolute inset-0 w-full h-full object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.35)]"
+              />
+              <div 
+                className="absolute inset-0 w-full h-full"
+                style={{
+                  backgroundColor: settingsState.jarColor || '#ffffff',
+                  mixBlendMode: 'color',
+                  WebkitMaskImage: `url(${jarImages.back})`,
+                  maskImage: `url(${jarImages.back})`,
+                  WebkitMaskSize: 'contain',
+                  maskSize: 'contain',
+                  WebkitMaskRepeat: 'no-repeat',
+                  maskRepeat: 'no-repeat',
+                  WebkitMaskPosition: 'center',
+                  maskPosition: 'center',
+                }}
+              />
+            </div>
+          ) : (
+            <img
+              src={jarImages.back}
+              alt=""
+              className="absolute inset-0 w-full h-full object-contain z-1 select-none pointer-events-none filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.35)]"
+            />
+          )}
+
+          {/* Layer 2: Physics Canvas in the middle (where gifts are drawn) */}
           <canvas
             ref={jarCanvasRef}
             width={320}
             height={380}
-            className="absolute inset-0 z-1 bg-transparent"
+            className="absolute inset-0 z-2 bg-transparent"
           />
-          {/* Layer 2: Jar transparent image on top of canvas */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/jar_transparent.png"
-            alt=""
-            className="absolute inset-0 w-full h-full object-contain z-2 select-none pointer-events-none filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.35)]"
-          />
+
+          {/* Layer 3: Jar Foreground (Front bottom glass thickness overlay) */}
+          {jarImages.colorized ? (
+            <div className="absolute inset-0 w-full h-full pointer-events-none z-3" style={{ isolation: 'isolate' }}>
+              <img
+                src={jarImages.front}
+                alt=""
+                className="absolute inset-0 w-full h-full object-contain"
+              />
+              <div 
+                className="absolute inset-0 w-full h-full"
+                style={{
+                  backgroundColor: settingsState.jarColor || '#ffffff',
+                  mixBlendMode: 'color',
+                  WebkitMaskImage: `url(${jarImages.front})`,
+                  maskImage: `url(${jarImages.front})`,
+                  WebkitMaskSize: 'contain',
+                  maskSize: 'contain',
+                  WebkitMaskRepeat: 'no-repeat',
+                  maskRepeat: 'no-repeat',
+                  WebkitMaskPosition: 'center',
+                  maskPosition: 'center',
+                }}
+              />
+            </div>
+          ) : (
+            <img
+              src={jarImages.front}
+              alt=""
+              className="absolute inset-0 w-full h-full object-contain z-3 select-none pointer-events-none"
+            />
+          )}
         </div>
       )}
     </>

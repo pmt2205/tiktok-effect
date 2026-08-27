@@ -87,6 +87,22 @@ __decorate([
     (0, mongoose_1.Prop)({ required: true, default: 0 }),
     __metadata("design:type", Number)
 ], Settings.prototype, "jarClearedAt", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 1.0 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "jarGiftSize", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 1.0 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "jarFallSpeed", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 'standard' }),
+    __metadata("design:type", String)
+], Settings.prototype, "jarType", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 'silver' }),
+    __metadata("design:type", String)
+], Settings.prototype, "jarColor", void 0);
 exports.Settings = Settings = __decorate([
     (0, mongoose_1.Schema)()
 ], Settings);

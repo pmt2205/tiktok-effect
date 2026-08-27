@@ -18,6 +18,10 @@ export declare class Settings extends Document {
     jarY: number;
     jarScale: number;
     jarClearedAt: number;
+    jarGiftSize: number;
+    jarFallSpeed: number;
+    jarType: string;
+    jarColor: string;
 }
 export declare const SettingsSchema: import("mongoose").Schema<Settings, import("mongoose").Model<Settings, any, any, any, any, any, Settings>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Settings, Document<unknown, {}, Settings, {
     id: string;
@@ -191,6 +195,42 @@ export declare const SettingsSchema: import("mongoose").Schema<Settings, import(
         id: string;
     }>> | undefined;
     jarClearedAt?: import("mongoose").SchemaDefinitionProperty<number, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    jarGiftSize?: import("mongoose").SchemaDefinitionProperty<number, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    jarFallSpeed?: import("mongoose").SchemaDefinitionProperty<number, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    jarType?: import("mongoose").SchemaDefinitionProperty<string, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    jarColor?: import("mongoose").SchemaDefinitionProperty<string, Settings, Document<unknown, {}, Settings, {
         id: string;
     }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
         _id: import("mongoose").Types.ObjectId;

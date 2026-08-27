@@ -45,8 +45,14 @@ export class ParticleEngine {
   }
 
   private resize = () => {
-    this.canvas.width = window.innerWidth;
-    this.canvas.height = window.innerHeight;
+    const parent = this.canvas.parentElement;
+    if (parent && parent.clientWidth > 0 && parent.clientHeight > 0) {
+      this.canvas.width = parent.clientWidth;
+      this.canvas.height = parent.clientHeight;
+    } else {
+      this.canvas.width = window.innerWidth;
+      this.canvas.height = window.innerHeight;
+    }
   };
 
   start() {
@@ -124,7 +130,7 @@ export class ParticleEngine {
 
     this.effectVideo.src = videoUrl;
     this.effectVideo.load();
-    this.effectVideo.muted = true;
+    this.effectVideo.muted = false; // Start unmuted so we can hear video audio
     this.effectVideo.playsInline = true;
 
     if (soundUrl) {
@@ -140,6 +146,21 @@ export class ParticleEngine {
           this.isVideoPlaying = true;
         })
         .catch((err: Error) => {
+          if (err.name === 'NotAllowedError' && !this.effectVideo.muted) {
+            // Autoplay blocked because video is unmuted. Fallback to muted so the video still plays visually.
+            console.warn('Autoplay blocked unmuted video. Retrying muted.');
+            this.effectVideo.muted = true;
+            this.effectVideo.play()
+              .then(() => {
+                this.isVideoPlaying = true;
+              })
+              .catch((e: Error) => {
+                console.error('Failed to play muted video:', e.name, e.message);
+                this.isVideoPlaying = false;
+                this.playNextVideoInQueue();
+              });
+            return;
+          }
           // AbortError = browser power-saving policy interrupted play()
           // This is expected when the tab/OBS source is in background.
           // Retry once after a short delay — usually succeeds on second attempt.
@@ -179,10 +200,10 @@ export class ParticleEngine {
       const petalCount = Math.floor((15 + Math.min(comboCount * 3, 20)) * mult);
       const sparkleCount = Math.floor((10 + Math.min(comboCount * 2, 15)) * mult);
       const spawnX = 220;
-      const spawnY = window.innerHeight * 0.22;
+      const spawnY = this.canvas.height * 0.22;
 
       for (let i = 0; i < petalCount; i++) {
-        const x = Math.random() * window.innerWidth * 0.6;
+        const x = Math.random() * this.canvas.width * 0.6;
         const y = -20 - Math.random() * 50;
         this.particles.push(new Particle(x, y, 'rose-petal'));
       }
@@ -193,8 +214,8 @@ export class ParticleEngine {
     } else if (isGalaxy) {
       const starCount = Math.floor(100 * mult);
       const dustCount = Math.floor(40 * mult);
-      const centerX = window.innerWidth / 2;
-      const centerY = window.innerHeight / 2;
+      const centerX = this.canvas.width / 2;
+      const centerY = this.canvas.height / 2;
 
       for (let i = 0; i < dustCount; i++) {
         const offsetDist = Math.random() * 100;
@@ -210,13 +231,13 @@ export class ParticleEngine {
 
       for (let i = 0; i < 30; i++) {
         this.particles.push(
-          new Particle(Math.random() * window.innerWidth, Math.random() * window.innerHeight, 'sparkle'),
+          new Particle(Math.random() * this.canvas.width, Math.random() * this.canvas.height, 'sparkle'),
         );
       }
     } else {
       const sparkleCount = Math.floor(30 * mult);
-      const spawnX = window.innerWidth * 0.6;
-      const spawnY = window.innerHeight * 0.4;
+      const spawnX = this.canvas.width * 0.6;
+      const spawnY = this.canvas.height * 0.4;
 
       for (let i = 0; i < sparkleCount; i++) {
         this.particles.push(new Particle(spawnX, spawnY, 'sparkle'));

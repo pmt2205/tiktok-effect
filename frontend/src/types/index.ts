@@ -49,6 +49,10 @@ export interface OverlaySettings {
   jarY?: number;
   jarScale?: number;
   jarClearedAt?: number;
+  jarGiftSize?: number;
+  jarFallSpeed?: number;
+  jarType?: string;
+  jarColor?: string;
   liveMode?: string;
   activeNpcCategory?: string;
   allowNpc?: boolean;
