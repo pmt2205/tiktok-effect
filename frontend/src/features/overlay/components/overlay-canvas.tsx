@@ -377,13 +377,19 @@ export default function OverlayCanvas() {
     };
   }, [menuGifts, settingsState.menuColumns, settingsState.menuLayout, isHorizontal, scrollThreshold]);
 
-  // Helper for Jar Bottom Ellipse Curve
-  const getJarBottomY = (x: number): number => {
-    const centerX = 160;
-    const a = 122; // half of bottom width (282 - 38)
-    const b = 24;  // bottom curve depth
-    const dx = Math.min(1, Math.max(-1, (x - centerX) / a));
-    return 334 + b * Math.sqrt(1 - dx * dx);
+  // Helper for Jar Bottom Ellipse Curve (jarType-aware)
+  const getJarBottomY = (x: number, jarType?: string): number => {
+    if (jarType === 'promax') {
+      const a = 80, b = 35, cy = 231;
+      const dx = Math.min(1, Math.max(-1, (x - 160) / a));
+      return cy + b * Math.sqrt(1 - dx * dx);
+    }
+    // Standard / Pro jar: asymmetric bottom curve
+    // Left side (x<160): a=137 matches measured L at y=345 → x=55
+    // Right side (x>=160): a=100 matches measured R at y=325 → x=265
+    const a = x < 160 ? 137 : 100;
+    const dx = Math.min(1, Math.max(-1, (x - 160) / a));
+    return 305 + 63 * Math.sqrt(1 - dx * dx);
   };
 
   // Gift Jar Physics simulation
@@ -409,30 +415,74 @@ export default function OverlayCanvas() {
       const DRAW_R = 16 * sizeMultiplier;
       const COL_R = 13 * sizeMultiplier;
       const GRAVITY = 0.22 * speedMultiplier;
-      const LIN_DAMP = 0.985;    // linear velocity damping — gentle air resistance
-      const ANG_DAMP = 0.88;     // angular damping — spin dies out within ~1-2 seconds
-      const ANG_CUTOFF = 0.003;  // below this spin speed, zero it out completely
+      const LIN_DAMP = 0.985;
+      const ANG_DAMP = 0.80;     // stronger angular damping to kill spinning sooner
+      const ANG_CUTOFF = 0.01;   // higher cutoff to stop micro-spin at rest
       const RESTITUTION = 0.08;  // slight bounce on walls / floor
       const WALL_BOUNCE = 0.15;  // wall bounciness
       const FLOOR_FRICTION = 0.82; // horizontal friction on floor contact
       const SETTLE_VEL = 0.08;   // velocity threshold below which icon is considered nearly still
 
-      // --- Jar boundary helpers ---
-      const JAR_LEFT = 52;
-      const JAR_RIGHT = 268;
-      const JAR_NECK_Y = 95;
-      const JAR_NECK_LEFT = 110;
-      const JAR_NECK_RIGHT = 210;
+      // --- Jar boundary helpers (measured from actual images) ---
+      const currentJarType = settingsRef.current.jarType || 'standard';
+      const isProMax = currentJarType === 'promax';
 
       const getWallLeft = (y: number) => {
-        if (y < JAR_NECK_Y) return JAR_NECK_LEFT;
-        const t = Math.min(1, (y - JAR_NECK_Y) / 80);
-        return JAR_NECK_LEFT - t * (JAR_NECK_LEFT - JAR_LEFT);
+        if (isProMax) {
+          let wL = 88;
+          if (y < 90) wL = 108;
+          else { const t = Math.min(1, (y - 90) / 40); wL = 108 - t * (108 - 88); }
+          if (y >= 231) {
+            const dy = (y - 231) / 35;
+            if (dy < 1) wL = Math.max(wL, 160 - 80 * Math.sqrt(1 - dy * dy));
+          }
+          return wL;
+        }
+        // Standard / Pro — measured: body L≈47, neck taper y=100-130, bottom curve y=305+
+        let wL: number;
+        if (y < 100) {
+          wL = 74; // under lid/ring — narrow opening
+        } else if (y < 130) {
+          const t = Math.min(1, (y - 100) / 30);
+          wL = 74 - t * (74 - 47);  // taper from 74 to 47
+        } else {
+          wL = 47;  // straight body
+        }
+        // Bottom curve: ellipse kicks in from y=305
+        if (y >= 305) {
+          const dy = (y - 305) / 63;
+          if (dy < 1) wL = Math.max(wL, 160 - 137 * Math.sqrt(1 - dy * dy));
+        }
+        return wL;
       };
+
       const getWallRight = (y: number) => {
-        if (y < JAR_NECK_Y) return JAR_NECK_RIGHT;
-        const t = Math.min(1, (y - JAR_NECK_Y) / 80);
-        return JAR_NECK_RIGHT + t * (JAR_RIGHT - JAR_NECK_RIGHT);
+        if (isProMax) {
+          let wR = 240;
+          if (y < 90) wR = 218;
+          else { const t = Math.min(1, (y - 90) / 40); wR = 218 + t * (240 - 218); }
+          if (y >= 231) {
+            const dy = (y - 231) / 35;
+            if (dy < 1) wR = Math.min(wR, 160 + 80 * Math.sqrt(1 - dy * dy));
+          }
+          return wR;
+        }
+        // Standard / Pro — measured: body R≈256, neck taper y=100-130, bottom curve y=305+
+        let wR: number;
+        if (y < 100) {
+          wR = 248; // under lid/ring — narrow opening
+        } else if (y < 130) {
+          const t = Math.min(1, (y - 100) / 30);
+          wR = 248 + t * (256 - 248);  // taper from 248 to 256
+        } else {
+          wR = 256;  // straight body
+        }
+        // Bottom curve: ellipse kicks in from y=305
+        if (y >= 305) {
+          const dy = (y - 305) / 63;
+          if (dy < 1) wR = Math.min(wR, 160 + 100 * Math.sqrt(1 - dy * dy));
+        }
+        return wR;
       };
 
       // Check for jar cleared signal
@@ -457,8 +507,8 @@ export default function OverlayCanvas() {
 
       // === STEP 2: Wall & floor constraints ===
       gifts.forEach(p => {
-        const wallL = getWallLeft(p.y) + COL_R;
-        const wallR = getWallRight(p.y) - COL_R;
+        const wallL = getWallLeft(p.y) + DRAW_R;
+        const wallR = getWallRight(p.y) - DRAW_R;
 
         if (p.x < wallL) {
           p.x = wallL;
@@ -473,7 +523,7 @@ export default function OverlayCanvas() {
           if (speed > 0.5) p.angularVelocity += (Math.random() - 0.5) * speed * 0.03;
         }
 
-        const floorY = getJarBottomY(p.x) - COL_R;
+        const floorY = getJarBottomY(p.x, currentJarType) - COL_R;
         if (p.y >= floorY) {
           p.y = floorY;
           const impactVy = Math.abs(p.vy);
@@ -507,8 +557,9 @@ export default function OverlayCanvas() {
             const nx = dx / dist;
             const ny = dy / dist;
 
-            // Push both equally apart (no frozen lower particle bias)
-            const push = overlap * 0.5;
+            // Position correction (Baumgarte stabilization) — resolve 20% of overlap per frame
+            // to prevent explosive overshoots in packed stacks
+            const push = overlap * 0.20;
             a.x -= nx * push;
             a.y -= ny * push;
             b.x += nx * push;
@@ -520,7 +571,9 @@ export default function OverlayCanvas() {
             const velAlongN = relVx * nx + relVy * ny;
 
             if (velAlongN < 0) {
-              const restitution = 0.15;
+              // Resting contact threshold: set restitution to 0 for very slow contacts
+              // to prevent resting particles from bouncing off each other
+              const restitution = Math.abs(velAlongN) < 0.25 ? 0.0 : 0.15;
               const impulseMag = -(1 + restitution) * velAlongN * 0.5;
               const ix = impulseMag * nx;
               const iy = impulseMag * ny;
@@ -528,23 +581,6 @@ export default function OverlayCanvas() {
               a.vy -= iy;
               b.vx += ix;
               b.vy += iy;
-
-              // Tangential friction — converts sliding into spin
-              const tx = -ny;
-              const ty = nx;
-              const velT = relVx * tx + relVy * ty;
-              const frictionImpulse = velT * 0.06;
-              a.vx += frictionImpulse * tx;
-              a.vy += frictionImpulse * ty;
-              b.vx -= frictionImpulse * tx;
-              b.vy -= frictionImpulse * ty;
-
-              // Angular kick — only on significant collisions, not resting contact
-              if (impulseMag > 0.3) {
-                const spinKick = impulseMag * 0.04;
-                a.angularVelocity -= spinKick * (Math.random() - 0.5);
-                b.angularVelocity += spinKick * (Math.random() - 0.5);
-              }
             }
           }
         }
@@ -552,11 +588,17 @@ export default function OverlayCanvas() {
 
       // === STEP 4: Re-clamp positions after collision resolution ===
       gifts.forEach(p => {
-        const wallL = getWallLeft(p.y) + COL_R;
-        const wallR = getWallRight(p.y) - COL_R;
+        const wallL = getWallLeft(p.y) + DRAW_R;
+        const wallR = getWallRight(p.y) - DRAW_R;
         p.x = Math.max(wallL, Math.min(wallR, p.x));
-        const floorY = getJarBottomY(p.x) - COL_R;
-        if (p.y > floorY) p.y = floorY;
+        const floorY = getJarBottomY(p.x, currentJarType) - COL_R;
+        if (p.y >= floorY) {
+          p.y = floorY;
+          // Damp velocities at the end of the frame to dissolve any collision jitter
+          p.vx *= 0.80;
+          p.vy = 0;
+          if (Math.abs(p.vx) < 0.1) p.vx = 0;
+        }
       });
 
       // === STEP 5: Draw ===
@@ -602,6 +644,14 @@ export default function OverlayCanvas() {
 
   const jarImages = useMemo(() => {
     const jarType = settingsState.jarType || 'standard';
+
+    if (jarType === 'promax') {
+      return {
+        back: '/jar_promax.png',
+        front: '/jar_promax_front.png',
+        colorized: false,
+      };
+    }
 
     if (jarType === 'pro') {
       return {

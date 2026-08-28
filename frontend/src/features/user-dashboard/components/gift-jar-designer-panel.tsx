@@ -219,12 +219,12 @@ export default function GiftJarDesignerPanel({
           <span className="text-[0.82rem] text-text-secondary font-bold select-none">
             {language === 'vi' ? 'Kiểu hũ quà:' : 'Jar Style:'}
           </span>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-2">
             <button
               type="button"
               onClick={() => onSaveSettings({ jarType: 'standard' })}
               disabled={!settings.jarEnabled || savingSettings}
-              className={`py-2 rounded-xl text-[0.78rem] font-bold cursor-pointer transition-all duration-200 border outline-none disabled:opacity-40 disabled:cursor-not-allowed ${
+              className={`py-2 rounded-xl text-[0.7rem] md:text-[0.78rem] font-bold cursor-pointer transition-all duration-200 border outline-none disabled:opacity-40 disabled:cursor-not-allowed ${
                 (settings.jarType || 'standard') === 'standard'
                   ? 'bg-secondary text-black border-transparent shadow-[0_0_12px_var(--color-secondary-glow)]'
                   : 'bg-white/5 text-text-secondary border-border-color hover:bg-white/10'
@@ -236,13 +236,25 @@ export default function GiftJarDesignerPanel({
               type="button"
               onClick={() => onSaveSettings({ jarType: 'pro' })}
               disabled={!settings.jarEnabled || savingSettings}
-              className={`py-2 rounded-xl text-[0.78rem] font-bold cursor-pointer transition-all duration-200 border outline-none disabled:opacity-40 disabled:cursor-not-allowed ${
+              className={`py-2 rounded-xl text-[0.7rem] md:text-[0.78rem] font-bold cursor-pointer transition-all duration-200 border outline-none disabled:opacity-40 disabled:cursor-not-allowed ${
                 settings.jarType === 'pro'
                   ? 'bg-secondary text-black border-transparent shadow-[0_0_12px_var(--color-secondary-glow)]'
                   : 'bg-white/5 text-text-secondary border-border-color hover:bg-white/10'
               }`}
             >
-              {language === 'vi' ? 'Hũ Cao Cấp (Pro)' : 'Pro Jar'}
+              {language === 'vi' ? 'Hũ Pro' : 'Pro Jar'}
+            </button>
+            <button
+              type="button"
+              onClick={() => onSaveSettings({ jarType: 'promax' })}
+              disabled={!settings.jarEnabled || savingSettings}
+              className={`py-2 rounded-xl text-[0.7rem] md:text-[0.78rem] font-bold cursor-pointer transition-all duration-200 border outline-none disabled:opacity-40 disabled:cursor-not-allowed ${
+                settings.jarType === 'promax'
+                  ? 'bg-secondary text-black border-transparent shadow-[0_0_12px_var(--color-secondary-glow)]'
+                  : 'bg-white/5 text-text-secondary border-border-color hover:bg-white/10'
+              }`}
+            >
+              {language === 'vi' ? 'Pro Max' : 'Pro Max'}
             </button>
           </div>
         </div>
