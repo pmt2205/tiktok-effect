@@ -25,6 +25,13 @@ export const DEFAULT_SETTINGS = {
   jarFallSpeed: 1.0,
   jarType: 'standard',
   jarColor: 'silver',
+  treeEnabled: false,
+  treeX: 20,
+  treeY: 50,
+  treeScale: 1.0,
+  treeGiftSize: 1.0,
+  treeClearedAt: 0,
+  treeDebug: false,
 };
 
 // Default gift mappings

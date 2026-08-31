@@ -52,6 +52,15 @@ export interface OverlaySettings {
   jarFallSpeed?: number;
   jarType?: string;
   jarColor?: string;
+  singleEnabled?: boolean;
+  npcEnabled?: boolean;
+  treeEnabled?: boolean;
+  treeX?: number;
+  treeY?: number;
+  treeScale?: number;
+  treeGiftSize?: number;
+  treeClearedAt?: number;
+  treeDebug?: boolean;
 }
 
 export interface GiftMapping {

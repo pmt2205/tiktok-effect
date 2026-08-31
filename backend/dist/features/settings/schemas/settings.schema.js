@@ -103,6 +103,42 @@ __decorate([
     (0, mongoose_1.Prop)({ required: true, default: 'silver' }),
     __metadata("design:type", String)
 ], Settings.prototype, "jarColor", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: true }),
+    __metadata("design:type", Boolean)
+], Settings.prototype, "singleEnabled", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: true }),
+    __metadata("design:type", Boolean)
+], Settings.prototype, "npcEnabled", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: false }),
+    __metadata("design:type", Boolean)
+], Settings.prototype, "treeEnabled", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 20 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "treeX", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 50 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "treeY", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 1.0 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "treeScale", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 1.0 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "treeGiftSize", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 0 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "treeClearedAt", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: false }),
+    __metadata("design:type", Boolean)
+], Settings.prototype, "treeDebug", void 0);
 exports.Settings = Settings = __decorate([
     (0, mongoose_1.Schema)()
 ], Settings);

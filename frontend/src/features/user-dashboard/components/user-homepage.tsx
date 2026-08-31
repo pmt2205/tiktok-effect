@@ -15,6 +15,7 @@ import VideoPresetsModal from './video-presets-modal';
 import NpcPreviewModal from './npc-preview-modal';
 import GiftMenuDesignerPanel from './gift-menu-designer-panel';
 import GiftJarDesignerPanel from './gift-jar-designer-panel';
+import GiftTreeDesignerPanel from './gift-tree-designer-panel';
 
 export default function UserHomepage({
   onConnect,
@@ -33,7 +34,7 @@ export default function UserHomepage({
   const toast = useToast();
 
   const [activeTab, setActiveTab] = useState<'single' | 'npc'>('single');
-  const [subTab, setSubTab] = useState<'catalog' | 'menu' | 'jar'>('catalog');
+  const [subTab, setSubTab] = useState<'catalog' | 'menu' | 'jar' | 'tree'>('catalog');
   const [npcCategory, setNpcCategory] = useState('anime');
   const [npcGifts, setNpcGifts] = useState<Gift[]>([]);
   const [npcLoading, setNpcLoading] = useState(false);
@@ -180,6 +181,14 @@ export default function UserHomepage({
       console.error('Failed to save menu settings:', err);
       toast.error('Failed to save settings.');
     }
+  };
+
+  const handleToggleSingle = (enabled: boolean) => {
+    handleSaveMenuSettings({ singleEnabled: enabled });
+  };
+
+  const handleToggleNpc = (enabled: boolean) => {
+    handleSaveMenuSettings({ npcEnabled: enabled });
   };
 
   const handleTriggerSimulation = (gift: Gift) => {
@@ -340,6 +349,53 @@ export default function UserHomepage({
                 />
               )}
             </div>
+
+            {/* Toggle switches for enabling/disabling modes */}
+            <div className="flex flex-col gap-3.5 border-t border-border-color/20 pt-3.5">
+              {/* Single Live Active Toggle */}
+              <div className="flex justify-between items-center select-none">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[0.82rem] text-text-secondary font-bold">
+                    {language === 'vi' ? 'Trạng thái Live Đơn:' : 'Single Live State:'}
+                  </span>
+                  <span className="text-[0.66rem] text-text-muted">
+                    {language === 'vi' ? 'Bật/tắt hiển thị hiệu ứng Live Đơn trên live' : 'Enable/disable Single Live overlay effects'}
+                  </span>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer select-none">
+                  <input 
+                    type="checkbox" 
+                    checked={settings.singleEnabled !== undefined ? settings.singleEnabled : true} 
+                    onChange={(e) => handleToggleSingle(e.target.checked)} 
+                    className="peer sr-only"
+                    disabled={savingSettings}
+                  />
+                  <span className="w-10 h-[20px] bg-white/8 rounded-full relative transition-all duration-300 border border-border-color after:absolute after:w-[14px] after:h-[14px] after:rounded-full after:bg-white after:top-[2px] after:left-[2px] after:transition-all after:duration-300 after:ease-out peer-checked:bg-secondary peer-checked:border-transparent peer-checked:shadow-[0_0_8px_var(--color-secondary-glow)] peer-checked:after:translate-x-[20px] peer-disabled:opacity-40" />
+                </label>
+              </div>
+
+              {/* NPC Live Active Toggle */}
+              <div className="flex justify-between items-center select-none">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[0.82rem] text-text-secondary font-bold">
+                    {language === 'vi' ? 'Trạng thái NPC Live:' : 'NPC Live State:'}
+                  </span>
+                  <span className="text-[0.66rem] text-text-muted">
+                    {language === 'vi' ? 'Bật/tắt hiển thị hiệu ứng NPC Live trên live' : 'Enable/disable NPC Live overlay effects'}
+                  </span>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer select-none">
+                  <input 
+                    type="checkbox" 
+                    checked={settings.npcEnabled !== undefined ? settings.npcEnabled : true} 
+                    onChange={(e) => handleToggleNpc(e.target.checked)} 
+                    className="peer sr-only"
+                    disabled={savingSettings}
+                  />
+                  <span className="w-10 h-[20px] bg-white/8 rounded-full relative transition-all duration-300 border border-border-color after:absolute after:w-[14px] after:h-[14px] after:rounded-full after:bg-white after:top-[2px] after:left-[2px] after:transition-all after:duration-300 after:ease-out peer-checked:bg-primary peer-checked:border-transparent peer-checked:shadow-[0_0_8px_var(--color-primary-glow)] peer-checked:after:translate-x-[20px] peer-disabled:opacity-40" />
+                </label>
+              </div>
+            </div>
           </div>
         </div>
       ) : (
@@ -380,9 +436,18 @@ export default function UserHomepage({
             >
               {language === 'vi' ? 'Thiết kế Hũ Quà' : 'Gift Jar Designer'}
             </button>
+            <button
+              onClick={() => setSubTab('tree')}
+              className={`px-4 py-2 text-[0.85rem] font-bold tracking-[0.5px] uppercase rounded-lg transition-all duration-200 cursor-pointer outline-none active:scale-[0.98] ${subTab === 'tree'
+                  ? 'bg-primary/10 border border-primary/20 text-primary font-bold'
+                  : 'text-text-muted hover:text-white bg-transparent border border-transparent'
+                }`}
+            >
+              {language === 'vi' ? 'Thiết kế Cây Quà' : 'Gift Tree Designer'}
+            </button>
           </div>
           <span className="text-[0.7rem] text-text-muted select-none uppercase tracking-[1px] font-mono hidden sm:inline">
-            {subTab === 'catalog' ? (language === 'vi' ? 'Xem & Demo Hiệu ứng' : 'View & Demo Effects') : subTab === 'menu' ? (language === 'vi' ? 'Cài đặt Bảng Quà hiển thị trên live' : 'Configure OBS Overlay Gift Menu') : (language === 'vi' ? 'Cài đặt Hũ Quà hiển thị trên live' : 'Configure OBS Overlay Gift Jar')}
+            {subTab === 'catalog' ? (language === 'vi' ? 'Xem & Demo Hiệu ứng' : 'View & Demo Effects') : subTab === 'menu' ? (language === 'vi' ? 'Cài đặt Bảng Quà hiển thị trên live' : 'Configure OBS Overlay Gift Menu') : subTab === 'jar' ? (language === 'vi' ? 'Cài đặt Hũ Quà hiển thị trên live' : 'Configure OBS Overlay Gift Jar') : (language === 'vi' ? 'Cài đặt Cây Quà hiển thị trên live' : 'Configure OBS Overlay Gift Tree')}
           </span>
         </div>
 
@@ -564,6 +629,15 @@ export default function UserHomepage({
         )}
         {subTab === 'jar' && (
           <GiftJarDesignerPanel
+            language={language}
+            settings={settings}
+            savingSettings={savingSettings}
+            onSaveSettings={handleSaveMenuSettings}
+            onSimulateEvent={onSimulateEvent}
+          />
+        )}
+        {subTab === 'tree' && (
+          <GiftTreeDesignerPanel
             language={language}
             settings={settings}
             savingSettings={savingSettings}

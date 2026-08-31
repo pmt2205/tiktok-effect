@@ -57,6 +57,15 @@ export interface OverlaySettings {
   activeNpcCategory?: string;
   allowNpc?: boolean;
   allowedNpcCategories?: string[];
+  singleEnabled?: boolean;
+  npcEnabled?: boolean;
+  treeEnabled?: boolean;
+  treeX?: number;
+  treeY?: number;
+  treeScale?: number;
+  treeGiftSize?: number;
+  treeClearedAt?: number;
+  treeDebug?: boolean;
 }
 
 export interface GiftMapping {

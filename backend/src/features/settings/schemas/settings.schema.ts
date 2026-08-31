@@ -70,6 +70,33 @@ export class Settings extends Document {
 
   @Prop({ required: true, default: 'silver' })
   jarColor: string;
+
+  @Prop({ required: true, default: true })
+  singleEnabled: boolean;
+
+  @Prop({ required: true, default: true })
+  npcEnabled: boolean;
+
+  @Prop({ required: true, default: false })
+  treeEnabled: boolean;
+
+  @Prop({ required: true, default: 20 })
+  treeX: number;
+
+  @Prop({ required: true, default: 50 })
+  treeY: number;
+
+  @Prop({ required: true, default: 1.0 })
+  treeScale: number;
+
+  @Prop({ required: true, default: 1.0 })
+  treeGiftSize: number;
+
+  @Prop({ required: true, default: 0 })
+  treeClearedAt: number;
+
+  @Prop({ required: true, default: false })
+  treeDebug: boolean;
 }
 
 export const SettingsSchema = SchemaFactory.createForClass(Settings);

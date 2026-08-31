@@ -22,6 +22,15 @@ export declare class Settings extends Document {
     jarFallSpeed: number;
     jarType: string;
     jarColor: string;
+    singleEnabled: boolean;
+    npcEnabled: boolean;
+    treeEnabled: boolean;
+    treeX: number;
+    treeY: number;
+    treeScale: number;
+    treeGiftSize: number;
+    treeClearedAt: number;
+    treeDebug: boolean;
 }
 export declare const SettingsSchema: import("mongoose").Schema<Settings, import("mongoose").Model<Settings, any, any, any, any, any, Settings>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Settings, Document<unknown, {}, Settings, {
     id: string;
@@ -231,6 +240,87 @@ export declare const SettingsSchema: import("mongoose").Schema<Settings, import(
         id: string;
     }>> | undefined;
     jarColor?: import("mongoose").SchemaDefinitionProperty<string, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    singleEnabled?: import("mongoose").SchemaDefinitionProperty<boolean, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    npcEnabled?: import("mongoose").SchemaDefinitionProperty<boolean, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    treeEnabled?: import("mongoose").SchemaDefinitionProperty<boolean, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    treeX?: import("mongoose").SchemaDefinitionProperty<number, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    treeY?: import("mongoose").SchemaDefinitionProperty<number, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    treeScale?: import("mongoose").SchemaDefinitionProperty<number, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    treeGiftSize?: import("mongoose").SchemaDefinitionProperty<number, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    treeClearedAt?: import("mongoose").SchemaDefinitionProperty<number, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    treeDebug?: import("mongoose").SchemaDefinitionProperty<boolean, Settings, Document<unknown, {}, Settings, {
         id: string;
     }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
         _id: import("mongoose").Types.ObjectId;
