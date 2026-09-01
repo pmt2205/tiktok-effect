@@ -97,6 +97,36 @@ export class Settings extends Document {
 
   @Prop({ required: true, default: false })
   treeDebug: boolean;
+
+  @Prop({ required: true, default: true })
+  ttsEnabled: boolean;
+
+  @Prop({ required: true, default: 'auto' })
+  ttsVoice: string;
+
+  @Prop({ required: true, default: 1.0 })
+  ttsRate: number;
+
+  @Prop({ required: true, default: 1.0 })
+  ttsPitch: number;
+
+  @Prop({ required: true, default: 1.0 })
+  ttsVolume: number;
+
+  @Prop({ required: true, default: '{nickname} nói: {comment}' })
+  ttsTemplate: string;
+
+  @Prop({ required: true, default: 100 })
+  ttsMaxChars: number;
+
+  @Prop({ required: true, default: true })
+  ttsFilterEmoji: boolean;
+
+  @Prop({ required: true, default: true })
+  ttsFilterBadWords: boolean;
+
+  @Prop({ required: true, default: 'all' })
+  ttsMode: string;
 }
 
 export const SettingsSchema = SchemaFactory.createForClass(Settings);

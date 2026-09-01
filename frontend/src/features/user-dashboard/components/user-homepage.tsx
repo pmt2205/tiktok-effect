@@ -16,6 +16,7 @@ import NpcPreviewModal from './npc-preview-modal';
 import GiftMenuDesignerPanel from './gift-menu-designer-panel';
 import GiftJarDesignerPanel from './gift-jar-designer-panel';
 import GiftTreeDesignerPanel from './gift-tree-designer-panel';
+import TtsDesignerPanel from './tts-designer-panel';
 
 export default function UserHomepage({
   onConnect,
@@ -34,7 +35,7 @@ export default function UserHomepage({
   const toast = useToast();
 
   const [activeTab, setActiveTab] = useState<'single' | 'npc'>('single');
-  const [subTab, setSubTab] = useState<'catalog' | 'menu' | 'jar' | 'tree'>('catalog');
+  const [subTab, setSubTab] = useState<'catalog' | 'menu' | 'jar' | 'tree' | 'tts'>('catalog');
   const [npcCategory, setNpcCategory] = useState('anime');
   const [npcGifts, setNpcGifts] = useState<Gift[]>([]);
   const [npcLoading, setNpcLoading] = useState(false);
@@ -445,9 +446,19 @@ export default function UserHomepage({
             >
               {language === 'vi' ? 'Thiết kế Cây Quà' : 'Gift Tree Designer'}
             </button>
+            <button
+              onClick={() => setSubTab('tts')}
+              className={`px-4 py-2 text-[0.85rem] font-bold tracking-[0.5px] uppercase rounded-lg transition-all duration-200 cursor-pointer outline-none active:scale-[0.98] ${subTab === 'tts'
+                  ? 'bg-secondary/10 border border-secondary/20 text-secondary font-bold'
+                  : 'text-text-muted hover:text-white bg-transparent border border-transparent'
+                }`}
+            >
+              <i className="fa-solid fa-volume-high mr-1.5" />
+              {language === 'vi' ? 'Đọc Comment (TTS)' : 'TTS Comment Bot'}
+            </button>
           </div>
           <span className="text-[0.7rem] text-text-muted select-none uppercase tracking-[1px] font-mono hidden sm:inline">
-            {subTab === 'catalog' ? (language === 'vi' ? 'Xem & Demo Hiệu ứng' : 'View & Demo Effects') : subTab === 'menu' ? (language === 'vi' ? 'Cài đặt Bảng Quà hiển thị trên live' : 'Configure OBS Overlay Gift Menu') : subTab === 'jar' ? (language === 'vi' ? 'Cài đặt Hũ Quà hiển thị trên live' : 'Configure OBS Overlay Gift Jar') : (language === 'vi' ? 'Cài đặt Cây Quà hiển thị trên live' : 'Configure OBS Overlay Gift Tree')}
+            {subTab === 'catalog' ? (language === 'vi' ? 'Xem & Demo Hiệu ứng' : 'View & Demo Effects') : subTab === 'menu' ? (language === 'vi' ? 'Cài đặt Bảng Quà hiển thị trên live' : 'Configure OBS Overlay Gift Menu') : subTab === 'jar' ? (language === 'vi' ? 'Cài đặt Hũ Quà hiển thị trên live' : 'Configure OBS Overlay Gift Jar') : subTab === 'tree' ? (language === 'vi' ? 'Cài đặt Cây Quà hiển thị trên live' : 'Configure OBS Overlay Gift Tree') : (language === 'vi' ? 'Cài đặt Bot Đọc Comment tự động (TTS)' : 'Configure AI TTS Comment Reader Bot')}
           </span>
         </div>
 
@@ -638,6 +649,15 @@ export default function UserHomepage({
         )}
         {subTab === 'tree' && (
           <GiftTreeDesignerPanel
+            language={language}
+            settings={settings}
+            savingSettings={savingSettings}
+            onSaveSettings={handleSaveMenuSettings}
+            onSimulateEvent={onSimulateEvent}
+          />
+        )}
+        {subTab === 'tts' && (
+          <TtsDesignerPanel
             language={language}
             settings={settings}
             savingSettings={savingSettings}

@@ -66,6 +66,16 @@ export interface OverlaySettings {
   treeGiftSize?: number;
   treeClearedAt?: number;
   treeDebug?: boolean;
+  ttsEnabled?: boolean;
+  ttsVoice?: string;
+  ttsRate?: number;
+  ttsPitch?: number;
+  ttsVolume?: number;
+  ttsTemplate?: string;
+  ttsMaxChars?: number;
+  ttsFilterEmoji?: boolean;
+  ttsFilterBadWords?: boolean;
+  ttsMode?: string;
 }
 
 export interface GiftMapping {

@@ -11,6 +11,7 @@ const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const settings_service_1 = require("./settings.service");
 const settings_controller_1 = require("./settings.controller");
+const tts_proxy_controller_1 = require("./tts-proxy.controller");
 const settings_schema_1 = require("./schemas/settings.schema");
 const npc_category_schema_1 = require("./schemas/npc-category.schema");
 const auth_module_1 = require("../auth/auth.module");
@@ -26,7 +27,7 @@ exports.SettingsModule = SettingsModule = __decorate([
             ]),
             auth_module_1.AuthModule,
         ],
-        controllers: [settings_controller_1.SettingsController],
+        controllers: [settings_controller_1.SettingsController, tts_proxy_controller_1.TtsProxyController],
         providers: [settings_service_1.SettingsService],
         exports: [settings_service_1.SettingsService],
     })

@@ -139,6 +139,46 @@ __decorate([
     (0, mongoose_1.Prop)({ required: true, default: false }),
     __metadata("design:type", Boolean)
 ], Settings.prototype, "treeDebug", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: true }),
+    __metadata("design:type", Boolean)
+], Settings.prototype, "ttsEnabled", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 'auto' }),
+    __metadata("design:type", String)
+], Settings.prototype, "ttsVoice", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 1.0 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "ttsRate", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 1.0 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "ttsPitch", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 1.0 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "ttsVolume", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: '{nickname} nói: {comment}' }),
+    __metadata("design:type", String)
+], Settings.prototype, "ttsTemplate", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 100 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "ttsMaxChars", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: true }),
+    __metadata("design:type", Boolean)
+], Settings.prototype, "ttsFilterEmoji", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: true }),
+    __metadata("design:type", Boolean)
+], Settings.prototype, "ttsFilterBadWords", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 'all' }),
+    __metadata("design:type", String)
+], Settings.prototype, "ttsMode", void 0);
 exports.Settings = Settings = __decorate([
     (0, mongoose_1.Schema)()
 ], Settings);

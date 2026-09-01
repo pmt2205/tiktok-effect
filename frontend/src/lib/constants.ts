@@ -32,6 +32,16 @@ export const DEFAULT_SETTINGS = {
   treeGiftSize: 1.0,
   treeClearedAt: 0,
   treeDebug: false,
+  ttsEnabled: true,
+  ttsVoice: 'auto',
+  ttsRate: 1.0,
+  ttsPitch: 1.0,
+  ttsVolume: 1.0,
+  ttsTemplate: '{nickname} nói: {comment}',
+  ttsMaxChars: 100,
+  ttsFilterEmoji: true,
+  ttsFilterBadWords: true,
+  ttsMode: 'all',
 };
 
 // Default gift mappings

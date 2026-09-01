@@ -31,6 +31,16 @@ export declare class Settings extends Document {
     treeGiftSize: number;
     treeClearedAt: number;
     treeDebug: boolean;
+    ttsEnabled: boolean;
+    ttsVoice: string;
+    ttsRate: number;
+    ttsPitch: number;
+    ttsVolume: number;
+    ttsTemplate: string;
+    ttsMaxChars: number;
+    ttsFilterEmoji: boolean;
+    ttsFilterBadWords: boolean;
+    ttsMode: string;
 }
 export declare const SettingsSchema: import("mongoose").Schema<Settings, import("mongoose").Model<Settings, any, any, any, any, any, Settings>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Settings, Document<unknown, {}, Settings, {
     id: string;
@@ -321,6 +331,96 @@ export declare const SettingsSchema: import("mongoose").Schema<Settings, import(
         id: string;
     }>> | undefined;
     treeDebug?: import("mongoose").SchemaDefinitionProperty<boolean, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    ttsEnabled?: import("mongoose").SchemaDefinitionProperty<boolean, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    ttsVoice?: import("mongoose").SchemaDefinitionProperty<string, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    ttsRate?: import("mongoose").SchemaDefinitionProperty<number, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    ttsPitch?: import("mongoose").SchemaDefinitionProperty<number, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    ttsVolume?: import("mongoose").SchemaDefinitionProperty<number, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    ttsTemplate?: import("mongoose").SchemaDefinitionProperty<string, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    ttsMaxChars?: import("mongoose").SchemaDefinitionProperty<number, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    ttsFilterEmoji?: import("mongoose").SchemaDefinitionProperty<boolean, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    ttsFilterBadWords?: import("mongoose").SchemaDefinitionProperty<boolean, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    ttsMode?: import("mongoose").SchemaDefinitionProperty<string, Settings, Document<unknown, {}, Settings, {
         id: string;
     }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
         _id: import("mongoose").Types.ObjectId;

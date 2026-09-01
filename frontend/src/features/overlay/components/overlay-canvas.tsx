@@ -2,12 +2,13 @@
 
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { ParticleEngine } from '../particles/particle-engine';
-import { GiftEvent, OverlaySettings, GiftMappings, BannerInfo, Gift } from '@/types';
+import { GiftEvent, ChatEvent, OverlaySettings, GiftMappings, BannerInfo, Gift } from '@/types';
 import { DEFAULT_SETTINGS, DEFAULT_MAPPINGS, WS_URL, BACKEND_URL } from '@/lib/constants';
 import { io } from 'socket.io-client';
 import GiftMenuOverlay from './gift-menu-overlay';
 import { GiftJarOverlay, GiftJarOverlayRef } from './gift-jar-overlay';
 import { GiftTreeOverlay, GiftTreeOverlayRef } from './gift-tree-overlay';
+import { useTtsQueue } from '../hooks/use-tts-queue';
 
 export default function OverlayCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -25,6 +26,8 @@ export default function OverlayCanvas() {
 
   const treeRef = useRef<GiftTreeOverlayRef>(null);
   const treeClearedAtRef = useRef<number>(0);
+
+  const { enqueueChat } = useTtsQueue(settingsState);
 
   const removeBanner = (key: string) => {
     const bannerInfo = bannersRef.current.get(key);
@@ -262,6 +265,8 @@ export default function OverlayCanvas() {
     socket.on('event', (packet: { type: string; data: unknown }) => {
       if (packet.type === 'gift') {
         handleGift(packet.data as GiftEvent);
+      } else if (packet.type === 'chat') {
+        enqueueChat(packet.data as ChatEvent, settingsRef.current);
       } else if (packet.type === 'settings-update') {
         const newSettings = { ...settingsRef.current, ...(packet.data as Partial<OverlaySettings>) };
         settingsRef.current = newSettings;
