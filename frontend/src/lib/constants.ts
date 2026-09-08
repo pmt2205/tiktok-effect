@@ -16,6 +16,9 @@ export const DEFAULT_SETTINGS = {
   menuScale: 1.0,
   menuColumns: 1,
   menuLayout: 'vertical',
+  menuFrame: '',
+  menuFrameScale: 1.0,
+  menuScrollThreshold: 5,
   jarEnabled: false,
   jarX: 75,
   jarY: 50,
@@ -25,7 +28,16 @@ export const DEFAULT_SETTINGS = {
   jarFallSpeed: 1.0,
   jarType: 'standard',
   jarColor: 'silver',
+  jarDanceEnabled: true,
+  jarDancePosition: 'left',
+  jarDanceScale: 1.0,
+  jarDanceOffsetX: 185,
+  jarDanceVideo: '/dance/capy_dance.mp4',
+  videoEnabled: true,
+  soundEnabled: true,
   treeEnabled: false,
+  treeType: 'standard',
+  treeImage: 'tree.png',
   treeX: 20,
   treeY: 50,
   treeScale: 1.0,
@@ -42,6 +54,13 @@ export const DEFAULT_SETTINGS = {
   ttsFilterEmoji: true,
   ttsFilterBadWords: true,
   ttsMode: 'all',
+  likeLeaderboardEnabled: true,
+  likeLeaderboardTitle: 'BXH TAP TAY ❤️',
+  likeLeaderboardX: 78,
+  likeLeaderboardY: 15,
+  likeLeaderboardScale: 1.0,
+  likeLeaderboardTopCount: 3,
+  likeLeaderboardResetAt: 0,
 };
 
 // Default gift mappings
@@ -96,6 +115,36 @@ export const THEME_OPTIONS = [
   { value: 'neon-pulse', label: 'Neon Pulse (Default)' },
   { value: 'glassmorphism', label: 'Minimal Glass' },
   { value: 'cyberpunk', label: 'Cyberpunk Glow' },
+];
+
+// Available frames in public/frame
+export const FRAME_OPTIONS = [
+  { id: '', nameVi: 'Không dùng khung', nameEn: 'No Frame', file: '' },
+  { id: 'khung1.png', nameVi: 'Khung 1 (Cổ điển)', nameEn: 'Frame 1 (Classic)', file: 'khung1.png' },
+  { id: 'kpop.png', nameVi: 'K-Pop Neon', nameEn: 'K-Pop Neon', file: 'kpop.png' },
+  { id: 'may.png', nameVi: 'Mây Bồng Bềnh', nameEn: 'Fluffy Cloud', file: 'may.png' },
+  { id: 'vang.png', nameVi: 'Vàng Hoàng Gia', nameEn: 'Royal Gold', file: 'vang.png' },
+  { id: 'vuongmien.png', nameVi: 'Vương Miện', nameEn: 'Crown', file: 'vuongmien.png' },
+  { id: 'ChatGPT Image 14_40_11 2 thg 9, 2026.png', nameVi: 'Cyber Neon 1', nameEn: 'Cyber Neon 1', file: 'ChatGPT Image 14_40_11 2 thg 9, 2026.png' },
+  { id: 'ChatGPT Image 14_40_53 2 thg 9, 2026.png', nameVi: 'Cyber Neon 2', nameEn: 'Cyber Neon 2', file: 'ChatGPT Image 14_40_53 2 thg 9, 2026.png' },
+];
+
+// Available trees in public/tree
+export const TREE_OPTIONS = [
+  {
+    id: 'standard',
+    file: 'tree.png',
+    nameVi: 'Cây Tiêu Chuẩn',
+    nameEn: 'Standard Tree',
+    isPro: false,
+  },
+  {
+    id: 'pro',
+    file: 'ChatGPT Image 15_42_48 2 thg 9, 2026.png',
+    nameVi: 'Cây Thần Thoại',
+    nameEn: 'Mythic Cyber Tree',
+    isPro: true,
+  },
 ];
 
 /**

@@ -23,8 +23,31 @@ export interface GiftEvent {
     giftType?: number;
     giftId?: number;
 }
+export interface LikeEvent {
+    nickname: string;
+    uniqueId: string;
+    profilePictureUrl: string;
+    likeCount: number;
+    totalLikeCount?: number;
+    isSimulated?: boolean;
+}
+export interface LikeLeaderboardItem {
+    uniqueId: string;
+    nickname: string;
+    profilePictureUrl: string;
+    totalLikes: number;
+    rank: number;
+}
 export interface RoomUserEvent {
     viewerCount: number;
+}
+export interface TopGifterJoinEvent {
+    uniqueId: string;
+    nickname: string;
+    profilePictureUrl: string;
+    totalDiamonds: number;
+    rank: number;
+    isSimulated?: boolean;
 }
 export interface OverlaySettings {
     duration: number;
@@ -37,6 +60,9 @@ export interface OverlaySettings {
     menuScale: number;
     menuColumns: number;
     menuLayout?: string;
+    menuFrame?: string;
+    menuFrameScale?: number;
+    menuScrollThreshold?: number;
     jarEnabled?: boolean;
     jarX?: number;
     jarY?: number;
@@ -46,9 +72,18 @@ export interface OverlaySettings {
     jarFallSpeed?: number;
     jarType?: string;
     jarColor?: string;
+    jarDanceEnabled?: boolean;
+    jarDancePosition?: string;
+    jarDanceScale?: number;
+    jarDanceOffsetX?: number;
+    jarDanceVideo?: string;
     singleEnabled?: boolean;
     npcEnabled?: boolean;
+    videoEnabled?: boolean;
+    soundEnabled?: boolean;
     treeEnabled?: boolean;
+    treeType?: string;
+    treeImage?: string;
     treeX?: number;
     treeY?: number;
     treeScale?: number;
@@ -65,6 +100,17 @@ export interface OverlaySettings {
     ttsFilterEmoji?: boolean;
     ttsFilterBadWords?: boolean;
     ttsMode?: string;
+    topGifterEnabled?: boolean;
+    topGifterDuration?: number;
+    topGifterRankLimit?: number;
+    topGifterMinDiamonds?: number;
+    likeLeaderboardEnabled?: boolean;
+    likeLeaderboardTitle?: string;
+    likeLeaderboardX?: number;
+    likeLeaderboardY?: number;
+    likeLeaderboardScale?: number;
+    likeLeaderboardTopCount?: number;
+    likeLeaderboardResetAt?: number;
 }
 export interface GiftMapping {
     effect: string;

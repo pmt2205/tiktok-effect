@@ -122,7 +122,7 @@ export class ParticleEngine {
     }
   }
 
-  playVideoEffect(videoUrl: string, soundUrl?: string) {
+  playVideoEffect(videoUrl: string, soundUrl?: string, soundEnabled: boolean = true) {
     if (this.isVideoPlaying) {
       this.videoQueue.push({ videoUrl, soundUrl });
       return;
@@ -130,10 +130,10 @@ export class ParticleEngine {
 
     this.effectVideo.src = videoUrl;
     this.effectVideo.load();
-    this.effectVideo.muted = false; // Start unmuted so we can hear video audio
+    this.effectVideo.muted = !soundEnabled; // Mute video audio if sound is disabled
     this.effectVideo.playsInline = true;
 
-    if (soundUrl) {
+    if (soundUrl && soundEnabled) {
       const audio = new Audio(soundUrl);
       audio.play().catch((err: Error) => {
         console.warn('Failed to play synced gift sound:', err.name, err.message);

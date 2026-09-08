@@ -194,6 +194,10 @@ export const GiftTreeOverlay = forwardRef<GiftTreeOverlayRef, GiftTreeOverlayPro
       }
     }));
 
+    const TREE_CANVAS_SIZE = 520;
+    const TREE_OFFSET_X = 45;
+    const TREE_OFFSET_Y = 45;
+
     // Helper to turn an active gift into a falling gift
     const triggerFallingGift = (gift: TreeGift) => {
       const canvas = fallingCanvasRef.current;
@@ -205,8 +209,8 @@ export const GiftTreeOverlay = forwardRef<GiftTreeOverlayRef, GiftTreeOverlayPro
       const treeLeftPixels = ((settings.treeX !== undefined ? settings.treeX : 20) / 100) * screenW;
       const treeTopPixels = ((settings.treeY !== undefined ? settings.treeY : 50) / 100) * screenH;
 
-      const screenX = treeLeftPixels + gift.x * treeScale;
-      const screenY = treeTopPixels + gift.y * treeScale;
+      const screenX = treeLeftPixels + (gift.x + TREE_OFFSET_X) * treeScale;
+      const screenY = treeTopPixels + (gift.y + TREE_OFFSET_Y) * treeScale;
       const giftSize = 20 * (settings.treeGiftSize !== undefined ? settings.treeGiftSize : 1.0) * treeScale;
 
       fallingGiftsRef.current.push({
@@ -280,7 +284,6 @@ export const GiftTreeOverlay = forwardRef<GiftTreeOverlayRef, GiftTreeOverlayPro
         const fallingGifts = fallingGiftsRef.current;
         const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
 
-        const treeScale = settings.treeScale !== undefined ? settings.treeScale : 1.0;
         const giftSizeMultiplier = settings.treeGiftSize !== undefined ? settings.treeGiftSize : 1.0;
         const BASE_GIFT_R = 18 * giftSizeMultiplier;
 
@@ -318,7 +321,7 @@ export const GiftTreeOverlay = forwardRef<GiftTreeOverlayRef, GiftTreeOverlayPro
         // 3. DRAW ACTIVE GIFTS ON TREE CANVAS
         const tScale = dpr * 2;
         tCtx.setTransform(tScale, 0, 0, tScale, 0, 0);
-        tCtx.clearRect(0, 0, 400, 400);
+        tCtx.clearRect(0, 0, TREE_CANVAS_SIZE, TREE_CANVAS_SIZE);
         tCtx.imageSmoothingEnabled = true;
         tCtx.imageSmoothingQuality = 'high';
         activeGifts.forEach(g => {
@@ -327,7 +330,7 @@ export const GiftTreeOverlay = forwardRef<GiftTreeOverlayRef, GiftTreeOverlayPro
           // Calculate sway angle: gentle back and forth
           const swayAngle = Math.sin(now * 0.0015 * g.swaySpeed + g.phase) * 0.09;
           
-          tCtx.translate(g.x, g.y);
+          tCtx.translate(g.x + TREE_OFFSET_X, g.y + TREE_OFFSET_Y);
           tCtx.rotate(swayAngle);
           tCtx.scale(g.scale, g.scale);
 
@@ -360,9 +363,12 @@ export const GiftTreeOverlay = forwardRef<GiftTreeOverlayRef, GiftTreeOverlayPro
         if (settings.treeDebug) {
           tCtx.save();
           BRANCH_POINTS.forEach((pt, idx) => {
+            const posX = pt.x + TREE_OFFSET_X;
+            const posY = pt.y + TREE_OFFSET_Y;
+
             // Draw a small bright green dot
             tCtx.beginPath();
-            tCtx.arc(pt.x, pt.y, 4, 0, Math.PI * 2);
+            tCtx.arc(posX, posY, 4, 0, Math.PI * 2);
             tCtx.fillStyle = '#00f2fe'; // Neon Blue dot
             tCtx.strokeStyle = '#ffffff';
             tCtx.lineWidth = 1;
@@ -373,7 +379,7 @@ export const GiftTreeOverlay = forwardRef<GiftTreeOverlayRef, GiftTreeOverlayPro
             const isOccupied = activeGifts.some(g => g.branchIndex === idx);
             if (isOccupied) {
               tCtx.beginPath();
-              tCtx.arc(pt.x, pt.y, 6.5, 0, Math.PI * 2);
+              tCtx.arc(posX, posY, 6.5, 0, Math.PI * 2);
               tCtx.strokeStyle = '#ff0050';
               tCtx.lineWidth = 1.5;
               tCtx.stroke();
@@ -384,7 +390,7 @@ export const GiftTreeOverlay = forwardRef<GiftTreeOverlayRef, GiftTreeOverlayPro
             tCtx.font = 'bold 9px monospace';
             tCtx.shadowColor = '#000000';
             tCtx.shadowBlur = 3.5;
-            tCtx.fillText(`#${idx} (${pt.x},${pt.y})`, pt.x + 7, pt.y + 3);
+            tCtx.fillText(`#${idx} (${pt.x},${pt.y})`, posX + 7, posY + 3);
           });
           tCtx.restore();
         }
@@ -449,8 +455,8 @@ export const GiftTreeOverlay = forwardRef<GiftTreeOverlayRef, GiftTreeOverlayPro
             top: `${settings.treeY !== undefined ? settings.treeY : 50}%`,
             transform: `scale(${settings.treeScale !== undefined ? settings.treeScale : 1.0})`,
             transformOrigin: 'top left',
-            width: '400px',
-            height: '400px',
+            width: `${TREE_CANVAS_SIZE}px`,
+            height: `${TREE_CANVAS_SIZE}px`,
             animation: 'treeSway 8s ease-in-out infinite',
           }}
         >
@@ -463,18 +469,32 @@ export const GiftTreeOverlay = forwardRef<GiftTreeOverlayRef, GiftTreeOverlayPro
           `}} />
 
           {/* Layer 1: Bare Tree Image */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/tree.png"
+            src={
+              settings.treeImage
+                ? `/tree/${settings.treeImage}`
+                : settings.treeType === 'pro'
+                ? '/tree/ChatGPT Image 15_42_48 2 thg 9, 2026.png'
+                : '/tree/tree.png'
+            }
             alt=""
-            className="absolute inset-0 w-full h-full z-1 select-none pointer-events-none filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
+            style={{
+              left: '35px',
+              top: '35px',
+              width: '450px',
+              height: '450px',
+              objectFit: 'contain',
+            }}
+            className="absolute z-1 select-none pointer-events-none filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
           />
 
           {/* Layer 2: Physics Canvas overlaying the tree (blooming gifts) */}
           <canvas
             ref={treeCanvasRef}
-            width={400 * dpr * 2}
-            height={400 * dpr * 2}
-            style={{ width: '400px', height: '400px' }}
+            width={TREE_CANVAS_SIZE * dpr * 2}
+            height={TREE_CANVAS_SIZE * dpr * 2}
+            style={{ width: `${TREE_CANVAS_SIZE}px`, height: `${TREE_CANVAS_SIZE}px` }}
             className="absolute inset-0 z-2 bg-transparent"
           />
         </div>

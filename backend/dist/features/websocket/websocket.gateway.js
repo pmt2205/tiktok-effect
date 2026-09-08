@@ -50,6 +50,15 @@ let WebsocketGateway = WebsocketGateway_1 = class WebsocketGateway {
             onGiftsList: (appUsername, gifts) => {
                 this.server.to(`user:${appUsername}`).emit('event', { type: 'gifts-list', data: gifts });
             },
+            onTopGifterJoin: (appUsername, data) => {
+                this.server.to(`user:${appUsername}`).emit('event', { type: 'top-gifter-join', data });
+            },
+            onLike: (appUsername, data) => {
+                this.server.to(`user:${appUsername}`).emit('event', { type: 'like', data });
+            },
+            onLikeLeaderboard: (appUsername, items) => {
+                this.server.to(`user:${appUsername}`).emit('event', { type: 'like-leaderboard', data: items });
+            },
         });
         this.giftsService.registerChangeCallback((appUsername, gifts) => {
             this.server.to(`user:${appUsername}`).emit('event', { type: 'gifts-update', data: gifts });
@@ -113,6 +122,10 @@ let WebsocketGateway = WebsocketGateway_1 = class WebsocketGateway {
                 data: gifts,
             });
         }
+        client.emit('event', {
+            type: 'like-leaderboard',
+            data: this.tiktokService.getLikeLeaderboard(username),
+        });
         let settings = null;
         try {
             settings = await this.settingsService.getSettingsForUser(username);
@@ -255,7 +268,16 @@ let WebsocketGateway = WebsocketGateway_1 = class WebsocketGateway {
                 });
                 break;
             case 'simulate-event':
-                if (packet.eventType === 'gift' || packet.eventType === 'chat') {
+                if (packet.eventType === 'like') {
+                    if (packet.payload) {
+                        this.tiktokService.recordLike(targetUsername, { ...packet.payload, isSimulated: true });
+                    }
+                }
+                else if (packet.eventType === 'reset-like-leaderboard') {
+                    this.logger.log(`Resetting like leaderboard for user ${targetUsername}`);
+                    this.tiktokService.resetLikeLeaderboard(targetUsername);
+                }
+                else if (packet.eventType === 'gift' || packet.eventType === 'chat' || packet.eventType === 'top-gifter-join') {
                     this.logger.log(`Broadcasting simulated ${packet.eventType} event to room user:${targetUsername}`);
                     this.server.to(`user:${targetUsername}`).emit('event', {
                         type: packet.eventType,
@@ -271,6 +293,10 @@ let WebsocketGateway = WebsocketGateway_1 = class WebsocketGateway {
                         });
                     }
                 }
+                break;
+            case 'reset-like-leaderboard':
+                this.logger.log(`Resetting like leaderboard for user ${targetUsername}`);
+                this.tiktokService.resetLikeLeaderboard(targetUsername);
                 break;
             case 'send-chat-message':
                 if (packet.receiver && packet.message && username) {

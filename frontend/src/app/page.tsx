@@ -10,7 +10,8 @@ import GiftManagerPanel from '@/features/admin-dashboard/components/gift-manager
 import UserManagerPanel from '@/features/admin-dashboard/components/user-manager-panel';
 import NpcManagerPanel from '@/features/admin-dashboard/components/npc-manager-panel';
 import UserHomepage from '@/features/user-dashboard/components/user-homepage';
-import ChatDashboard from '@/features/shared/components/chat-dashboard';
+import ChatDashboard, { ChatWidget } from '@/features/shared/components/chat-dashboard';
+import UserSidebar, { UserSubTab } from '@/components/layout/user-sidebar';
 import { useWebSocket } from '@/hooks/use-websocket';
 import { TiktokStatus, GiftEvent, ChatEvent, Gift, OverlaySettings } from '@/types';
 import { DEFAULT_SETTINGS, BACKEND_URL } from '@/lib/constants';
@@ -23,6 +24,7 @@ import {
   setMappings,
   setAvailableGifts,
   setCustomGifts,
+  setLikeLeaderboard,
   addLog,
   setSelectedStreamer,
   setUsersList,
@@ -40,6 +42,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const [adminTab, setAdminTab] = useState<'effects' | 'users' | 'chat' | 'npc'>('effects');
+  const [userTab, setUserTab] = useState<UserSubTab>('overview');
 
   // Get state from Redux
   const isAuthLoading = useAppSelector((state) => state.auth.isAuthLoading);
@@ -107,6 +110,9 @@ export default function DashboardPage() {
           if (packet.data) {
             dispatch(addMessage(packet.data as ChatMessage));
           }
+          break;
+        case 'like-leaderboard':
+          dispatch(setLikeLeaderboard((packet.data as any[]) || []));
           break;
         default:
           break;
@@ -339,22 +345,23 @@ export default function DashboardPage() {
     );
   }
 
-  // Render User Homepage view
+  // Render User Homepage view with vertical sidebar layout
   return (
     <>
-      <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.8)_1px,_transparent_1px)] bg-[size:180px_180px] bg-[position:0_0] pointer-events-none z-0 animate-twinkle" style={{ animationDuration: '5s' }} />
-      <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.6)_1.5px,_transparent_1.5px)] bg-[size:280px_280px] bg-[position:40px_70px] pointer-events-none z-0 animate-twinkle" style={{ animationDuration: '8s', animationDelay: '1.5s' } as React.CSSProperties} />
-      <div className="absolute inset-0 bg-[radial-gradient(rgba(0,242,254,0.4)_2px,_transparent_2px)] bg-[size:400px_400px] bg-[position:100px_220px] pointer-events-none z-0 animate-twinkle" style={{ animationDuration: '11s', animationDelay: '3s' } as React.CSSProperties} />
-      <ShootingStars />
       <BackgroundGlows />
-      <div className="max-w-[1360px] mx-auto">
-        <Header />
-        <UserHomepage 
-          onConnect={handleConnect} 
-          onDisconnect={handleDisconnect} 
-          onSendMessage={handleSendChatMessage} 
-          onSimulateEvent={handleSimulateEvent}
-        />
+      <div className="flex h-screen overflow-hidden relative z-30">
+        <UserSidebar activeTab={userTab} setActiveTab={setUserTab} />
+        <main className="flex-1 overflow-y-auto max-w-[1440px] w-full">
+          <UserHomepage
+            activeSubTab={userTab}
+            onSelectSubTab={setUserTab}
+            onConnect={handleConnect}
+            onDisconnect={handleDisconnect}
+            onSendMessage={handleSendChatMessage}
+            onSimulateEvent={handleSimulateEvent}
+          />
+        </main>
+        <ChatWidget onSendMessage={handleSendChatMessage} />
       </div>
     </>
   );

@@ -44,6 +44,15 @@ export class Settings extends Document {
   @Prop({ required: true, default: 'vertical' })
   menuLayout: string;
 
+  @Prop({ required: true, default: '' })
+  menuFrame: string;
+
+  @Prop({ required: true, default: 1.0 })
+  menuFrameScale: number;
+
+  @Prop({ required: true, default: 5 })
+  menuScrollThreshold: number;
+
   @Prop({ required: true, default: false })
   jarEnabled: boolean;
 
@@ -72,13 +81,40 @@ export class Settings extends Document {
   jarColor: string;
 
   @Prop({ required: true, default: true })
+  jarDanceEnabled: boolean;
+
+  @Prop({ required: true, default: 'left' })
+  jarDancePosition: string;
+
+  @Prop({ required: true, default: 1.0 })
+  jarDanceScale: number;
+
+  @Prop({ required: true, default: 185 })
+  jarDanceOffsetX: number;
+
+  @Prop({ required: true, default: '/dance/capy_dance.mp4' })
+  jarDanceVideo: string;
+
+  @Prop({ required: true, default: true })
   singleEnabled: boolean;
 
   @Prop({ required: true, default: true })
   npcEnabled: boolean;
 
+  @Prop({ required: true, default: true })
+  videoEnabled: boolean;
+
+  @Prop({ required: true, default: true })
+  soundEnabled: boolean;
+
   @Prop({ required: true, default: false })
   treeEnabled: boolean;
+
+  @Prop({ required: true, default: 'standard' })
+  treeType: string;
+
+  @Prop({ required: true, default: 'tree.png' })
+  treeImage: string;
 
   @Prop({ required: true, default: 20 })
   treeX: number;
@@ -127,6 +163,39 @@ export class Settings extends Document {
 
   @Prop({ required: true, default: 'all' })
   ttsMode: string;
+
+  @Prop({ required: true, default: true })
+  topGifterEnabled: boolean;
+
+  @Prop({ required: true, default: 4 })
+  topGifterDuration: number;
+
+  @Prop({ required: true, default: 5 })
+  topGifterRankLimit: number;
+
+  @Prop({ required: true, default: 1 })
+  topGifterMinDiamonds: number;
+
+  @Prop({ required: true, default: true })
+  likeLeaderboardEnabled: boolean;
+
+  @Prop({ required: true, default: 'BXH TAP TAY ❤️' })
+  likeLeaderboardTitle: string;
+
+  @Prop({ required: true, default: 78 })
+  likeLeaderboardX: number;
+
+  @Prop({ required: true, default: 15 })
+  likeLeaderboardY: number;
+
+  @Prop({ required: true, default: 1.0 })
+  likeLeaderboardScale: number;
+
+  @Prop({ required: true, default: 3 })
+  likeLeaderboardTopCount: number;
+
+  @Prop({ required: true, default: 0 })
+  likeLeaderboardResetAt: number;
 }
 
 export const SettingsSchema = SchemaFactory.createForClass(Settings);

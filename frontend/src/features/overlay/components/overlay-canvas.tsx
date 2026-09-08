@@ -2,12 +2,14 @@
 
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { ParticleEngine } from '../particles/particle-engine';
-import { GiftEvent, ChatEvent, OverlaySettings, GiftMappings, BannerInfo, Gift } from '@/types';
+import { GiftEvent, ChatEvent, OverlaySettings, GiftMappings, BannerInfo, Gift, TopGifterJoinEvent, LikeLeaderboardItem } from '@/types';
 import { DEFAULT_SETTINGS, DEFAULT_MAPPINGS, WS_URL, BACKEND_URL } from '@/lib/constants';
 import { io } from 'socket.io-client';
 import GiftMenuOverlay from './gift-menu-overlay';
 import { GiftJarOverlay, GiftJarOverlayRef } from './gift-jar-overlay';
 import { GiftTreeOverlay, GiftTreeOverlayRef } from './gift-tree-overlay';
+import TopGifterOverlay from './top-gifter-overlay';
+import LikeLeaderboardOverlay from './like-leaderboard-overlay';
 import { useTtsQueue } from '../hooks/use-tts-queue';
 
 export default function OverlayCanvas() {
@@ -18,7 +20,13 @@ export default function OverlayCanvas() {
   const giftsRef = useRef<Gift[]>([]);
   const [settingsState, setSettingsState] = useState<OverlaySettings>({ ...DEFAULT_SETTINGS });
   const [giftsList, setGiftsList] = useState<Gift[]>([]);
+  const [topGifterQueue, setTopGifterQueue] = useState<TopGifterJoinEvent[]>([]);
+  const [likeLeaderboard, setLikeLeaderboard] = useState<LikeLeaderboardItem[]>([]);
   const bannersRef = useRef<Map<string, BannerInfo>>(new Map());
+
+  const handleTopGifterEventFinished = useCallback((uniqueId: string) => {
+    setTopGifterQueue((prev) => prev.filter((item) => item.uniqueId !== uniqueId));
+  }, []);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const jarRef = useRef<GiftJarOverlayRef>(null);
@@ -48,26 +56,22 @@ export default function OverlayCanvas() {
     const isSingleMode = settings.liveMode === 'single' || !settings.liveMode;
     const isNpcMode = settings.liveMode === 'npc';
 
-    if (isSingleMode && settings.singleEnabled === false) {
-      return;
-    }
-    if (isNpcMode && settings.npcEnabled === false) {
-      return;
-    }
-
-    const { nickname, uniqueId, giftName, repeatCount, giftPictureUrl, profilePictureUrl, diamondCount } = giftData;
-    const bannerKey = `${uniqueId}_${giftName}`;
-    const mappings = mappingsRef.current;
-
-    // Add to Gift Jar if enabled
+    // 1. Add to Gift Jar if enabled (always drop gifts to jar if enabled, independent of mode/video toggles)
     if (settings.jarEnabled) {
       jarRef.current?.spawnGift(giftData);
     }
 
-    // Add to Gift Tree if enabled
+    // 2. Add to Gift Tree if enabled (always drop gifts to tree if enabled)
     if (settings.treeEnabled) {
       treeRef.current?.spawnGift(giftData);
     }
+
+    const isVideoEnabled = settings.videoEnabled !== false;
+    const isSoundEnabled = settings.soundEnabled !== false;
+
+    const { nickname, uniqueId, giftName, repeatCount, giftPictureUrl, profilePictureUrl, diamondCount } = giftData;
+    const bannerKey = `${uniqueId}_${giftName}`;
+    const mappings = mappingsRef.current;
 
     // Check if this is a duplicate repeat count for an ongoing streak (only for real, non-simulated events)
     if (!giftData.isSimulated && bannersRef.current.has(bannerKey)) {
@@ -137,9 +141,9 @@ export default function OverlayCanvas() {
       }
     }
 
-    // Trigger visual effect
-    if (engineRef.current) {
-      const fullSoundUrl = soundUrl
+    // Trigger visual video/particle effect if videoEnabled is true
+    if (engineRef.current && isVideoEnabled) {
+      const fullSoundUrl = (soundUrl && isSoundEnabled)
         ? (soundUrl.startsWith('http://') || soundUrl.startsWith('https://') ? soundUrl : `${BACKEND_URL}/media/${soundUrl}`)
         : undefined;
 
@@ -147,20 +151,28 @@ export default function OverlayCanvas() {
         const fullVideoUrl = videoUrl.startsWith('http://') || videoUrl.startsWith('https://')
           ? videoUrl
           : `${BACKEND_URL}/media/${videoUrl}`;
-        engineRef.current.playVideoEffect(fullVideoUrl, fullSoundUrl);
+        engineRef.current.playVideoEffect(fullVideoUrl, fullSoundUrl, isSoundEnabled);
       } else if (mappedEffect === 'video' && videoUrl) {
         const fullVideoUrl = videoUrl.startsWith('http://') || videoUrl.startsWith('https://')
           ? videoUrl
           : `${BACKEND_URL}/media/${videoUrl}`;
-        engineRef.current.playVideoEffect(fullVideoUrl, fullSoundUrl);
+        engineRef.current.playVideoEffect(fullVideoUrl, fullSoundUrl, isSoundEnabled);
       } else {
         engineRef.current.spawnParticlesForGift(mappedEffect, repeatCount, settings);
-        if (fullSoundUrl) {
+        if (fullSoundUrl && isSoundEnabled) {
           const audio = new Audio(fullSoundUrl);
           audio.play().catch(err => console.warn('Failed to play sound without video:', err));
         }
       }
+    } else if (!isVideoEnabled && isSoundEnabled && soundUrl) {
+      // If video is disabled but sound is enabled, play sound only
+      const fullSoundUrl = soundUrl.startsWith('http://') || soundUrl.startsWith('https://')
+        ? soundUrl
+        : `${BACKEND_URL}/media/${soundUrl}`;
+      const audio = new Audio(fullSoundUrl);
+      audio.play().catch(err => console.warn('Failed to play sound only:', err));
     }
+
 
     // Banner management
     const container = containerRef.current;
@@ -289,6 +301,11 @@ export default function OverlayCanvas() {
         const newGifts = (packet.data as Gift[]) || [];
         giftsRef.current = newGifts;
         setGiftsList(newGifts);
+      } else if (packet.type === 'top-gifter-join') {
+        const joinEvent = packet.data as TopGifterJoinEvent;
+        setTopGifterQueue((prev) => [...prev, joinEvent]);
+      } else if (packet.type === 'like-leaderboard') {
+        setLikeLeaderboard((packet.data as LikeLeaderboardItem[]) || []);
       }
     });
 
@@ -331,8 +348,14 @@ export default function OverlayCanvas() {
       {/* Gift Jar Overlay component (contains physics simulation & full-screen overflow canvas) */}
       <GiftJarOverlay ref={jarRef} settings={settingsState} />
 
+      {/* Top Gifter Join Overlay Banner (4s pop-up) */}
+      <TopGifterOverlay eventsQueue={topGifterQueue} onEventFinished={handleTopGifterEventFinished} settings={settingsState} />
+
       {/* Gift Tree Overlay component (contains swaying tree & blooming/falling gifts) */}
       <GiftTreeOverlay ref={treeRef} settings={settingsState} />
+
+      {/* Like Leaderboard (BXH Tap Tay) Overlay */}
+      <LikeLeaderboardOverlay settings={settingsState} items={likeLeaderboard} />
     </>
   );
 }

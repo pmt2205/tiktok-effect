@@ -35,16 +35,23 @@ const getJarBottomY = (x: number, jarType?: string): number => {
     const dx = Math.min(1, Math.max(-1, (x - 160) / a));
     return cy + b * Math.sqrt(1 - dx * dx);
   }
-  // Standard / Pro jar: asymmetric bottom curve
-  const a = x < 160 ? 137 : 100;
-  const dx = Math.min(1, Math.max(-1, (x - 160) / a));
-  return 305 + 63 * Math.sqrt(1 - dx * dx);
+  if (jarType === 'pro') {
+    const a = x < 160 ? 137 : 100;
+    const dx = Math.min(1, Math.max(-1, (x - 160) / a));
+    return 305 + 63 * Math.sqrt(1 - dx * dx);
+  }
+  // Standard Jar (Symmetric jar.png)
+  const a = 90, b = 46, cy = 286;
+  const dx = Math.min(1, Math.max(-1, (x - 161) / a));
+  return cy + b * Math.sqrt(1 - dx * dx);
 };
 
 export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>(
   ({ settings }, ref) => {
     const jarCanvasRef = useRef<HTMLCanvasElement | null>(null);
     const overflowCanvasRef = useRef<HTMLCanvasElement | null>(null);
+    const danceCanvasRef = useRef<HTMLCanvasElement | null>(null);
+    const danceVideoRef = useRef<HTMLVideoElement | null>(null);
     const jarGiftsRef = useRef<JarGift[]>([]);
     const overflowGiftsRef = useRef<JarGift[]>([]);
 
@@ -119,6 +126,93 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
       }
     }, [settings.jarEnabled]);
 
+    // Dance Mascot Chroma Key Loop
+    useEffect(() => {
+      const isEnabled = settings.jarEnabled && settings.jarDanceEnabled !== false;
+      if (!isEnabled) return;
+
+      const videoSrc = settings.jarDanceVideo || '/dance/capy_dance.mp4';
+      const video = document.createElement('video');
+      video.src = videoSrc;
+      video.loop = true;
+      video.muted = true;
+      video.playsInline = true;
+      video.crossOrigin = 'anonymous';
+      danceVideoRef.current = video;
+
+      video.play().catch((err) => {
+        console.warn('Dance mascot video play handling:', err);
+      });
+
+      const chromaCanvas = document.createElement('canvas');
+      const chromaCtx = chromaCanvas.getContext('2d', { willReadFrequently: true });
+
+      let animId: number;
+
+      const renderDanceFrame = () => {
+        const displayCanvas = danceCanvasRef.current;
+        if (
+          video &&
+          video.readyState >= 2 &&
+          !video.paused &&
+          displayCanvas &&
+          chromaCtx
+        ) {
+          const displayCtx = displayCanvas.getContext('2d');
+          if (displayCtx) {
+            const vw = video.videoWidth || 320;
+            const vh = video.videoHeight || 320;
+
+            if (chromaCanvas.width !== vw || chromaCanvas.height !== vh) {
+              chromaCanvas.width = vw;
+              chromaCanvas.height = vh;
+            }
+            if (displayCanvas.width !== vw || displayCanvas.height !== vh) {
+              displayCanvas.width = vw;
+              displayCanvas.height = vh;
+            }
+
+            chromaCtx.drawImage(video, 0, 0, vw, vh);
+            const frame = chromaCtx.getImageData(0, 0, vw, vh);
+            const data = frame.data;
+
+            for (let i = 0; i < data.length; i += 4) {
+              const r = data[i];
+              const g = data[i + 1];
+              const b = data[i + 2];
+
+              // Green screen keying
+              if (g > 100 && g > r * 1.3 && g > b * 1.3) {
+                data[i + 3] = 0;
+              } else if (g > 80 && g > r * 1.1 && g > b * 1.1) {
+                const maxRGB = Math.max(r, b);
+                const diff = g - maxRGB;
+                if (diff > 0) {
+                  data[i + 3] = Math.floor(Math.max(0, 1 - diff / 40) * 255);
+                  data[i + 1] = maxRGB;
+                }
+              }
+            }
+
+            chromaCtx.putImageData(frame, 0, 0);
+            displayCtx.clearRect(0, 0, vw, vh);
+            displayCtx.drawImage(chromaCanvas, 0, 0);
+          }
+        }
+
+        animId = requestAnimationFrame(renderDanceFrame);
+      };
+
+      animId = requestAnimationFrame(renderDanceFrame);
+
+      return () => {
+        cancelAnimationFrame(animId);
+        video.pause();
+        video.src = '';
+        danceVideoRef.current = null;
+      };
+    }, [settings.jarEnabled, settings.jarDanceEnabled, settings.jarDanceVideo]);
+
     // Main Physics Loop
     useEffect(() => {
       if (!settings.jarEnabled) return;
@@ -164,18 +258,35 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
             }
             return wL;
           }
-          let wL: number;
-          if (y < 100) {
-            wL = 74;
-          } else if (y < 130) {
-            const t = Math.min(1, (y - 100) / 30);
-            wL = 74 - t * (74 - 47);
-          } else {
-            wL = 47;
+          if (currentJarType === 'pro') {
+            let wL: number;
+            if (y < 100) {
+              wL = 74;
+            } else if (y < 130) {
+              const t = Math.min(1, (y - 100) / 30);
+              wL = 74 - t * (74 - 47);
+            } else {
+              wL = 47;
+            }
+            if (y >= 305) {
+              const dy = (y - 305) / 63;
+              if (dy < 1) wL = Math.max(wL, 160 - 137 * Math.sqrt(1 - dy * dy));
+            }
+            return wL;
           }
-          if (y >= 305) {
-            const dy = (y - 305) / 63;
-            if (dy < 1) wL = Math.max(wL, 160 - 137 * Math.sqrt(1 - dy * dy));
+          // Standard Jar (Symmetric jar.png)
+          let wL: number;
+          if (y < 90) {
+            wL = 71;
+          } else if (y < 120) {
+            const t = Math.min(1, (y - 90) / 30);
+            wL = 71 - t * (71 - 65);
+          } else {
+            wL = 65;
+          }
+          if (y >= 286) {
+            const dy = (y - 286) / 46;
+            if (dy < 1) wL = Math.max(wL, 161 - 90 * Math.sqrt(1 - dy * dy));
           }
           return wL;
         };
@@ -191,18 +302,35 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
             }
             return wR;
           }
-          let wR: number;
-          if (y < 100) {
-            wR = 248;
-          } else if (y < 130) {
-            const t = Math.min(1, (y - 100) / 30);
-            wR = 248 + t * (256 - 248);
-          } else {
-            wR = 256;
+          if (currentJarType === 'pro') {
+            let wR: number;
+            if (y < 100) {
+              wR = 248;
+            } else if (y < 130) {
+              const t = Math.min(1, (y - 100) / 30);
+              wR = 248 + t * (256 - 248);
+            } else {
+              wR = 256;
+            }
+            if (y >= 305) {
+              const dy = (y - 305) / 63;
+              if (dy < 1) wR = Math.min(wR, 160 + 100 * Math.sqrt(1 - dy * dy));
+            }
+            return wR;
           }
-          if (y >= 305) {
-            const dy = (y - 305) / 63;
-            if (dy < 1) wR = Math.min(wR, 160 + 100 * Math.sqrt(1 - dy * dy));
+          // Standard Jar (Symmetric jar.png)
+          let wR: number;
+          if (y < 90) {
+            wR = 251;
+          } else if (y < 120) {
+            const t = Math.min(1, (y - 90) / 30);
+            wR = 251 + t * (257 - 251);
+          } else {
+            wR = 257;
+          }
+          if (y >= 286) {
+            const dy = (y - 286) / 46;
+            if (dy < 1) wR = Math.min(wR, 161 + 90 * Math.sqrt(1 - dy * dy));
           }
           return wR;
         };
@@ -278,7 +406,7 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
           if (p.settled) return;
           
           // Disable horizontal boundaries above neck mouth rim (y < neckLevel) to let gifts spill sideways
-          const neckLevel = isProMax ? 90 : 100;
+          const neckLevel = isProMax ? 90 : (currentJarType === 'pro' ? 100 : 90);
           if (p.y >= neckLevel) {
             const wallL = getWallLeft(p.y) + DRAW_R;
             const wallR = getWallRight(p.y) - DRAW_R;
@@ -380,7 +508,7 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
           if (p.settled) return;
 
           // Transition to screen-wide overflow if pushed beyond neck boundaries while above neck level
-          const neckLevel = isProMax ? 90 : 100;
+          const neckLevel = isProMax ? 90 : (currentJarType === 'pro' ? 100 : 90);
           if (p.y < neckLevel) {
             const wL = getWallLeft(p.y);
             const wR = getWallRight(p.y);
@@ -739,26 +867,47 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
     const jarImages = useMemo(() => {
       const jarType = settings.jarType || 'standard';
 
-      if (jarType === 'promax') {
+      if (jarType === 'pro_1' || jarType === 'pro1') {
         return {
-          back: '/jar_promax.png',
-          front: '/jar_promax_front.png',
+          back: '/jar/jar_pro_1.png',
+          front: '',
           colorized: false,
+          scale: 0.90,
         };
       }
 
-      if (jarType === 'pro') {
+      if (jarType === 'pro_2' || jarType === 'pro2') {
         return {
-          back: '/jar_pro_3.png',
-          front: '/jar_pro_front_3.png',
-          colorized: true,
+          back: '/jar/jar_pro_2.png',
+          front: '',
+          colorized: false,
+          scale: 0.90,
+        };
+      }
+
+      if (jarType === 'pro_3' || jarType === 'pro3' || jarType === 'pro') {
+        return {
+          back: '/jar/jar_pro_3.png',
+          front: '',
+          colorized: false,
+          scale: 0.90,
+        };
+      }
+
+      if (jarType === 'pro_4' || jarType === 'pro4' || jarType === 'promax') {
+        return {
+          back: '/jar/jar_pro_4.png',
+          front: '',
+          colorized: false,
+          scale: 0.90,
         };
       }
 
       return {
-        back: '/jarrrr.png',
-        front: '/jarrrr_front.png',
-        colorized: false,
+        back: '/jar/jar_back.png',
+        front: '/jar/jar_front.png',
+        colorized: true,
+        scale: 1.0,
       };
     }, [settings.jarType]);
 
@@ -807,37 +956,65 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
               src={jarImages.back}
               alt=""
               className="absolute inset-0 w-full h-full object-contain z-1 select-none pointer-events-none filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.35)]"
+              style={jarImages.scale && jarImages.scale !== 1.0 ? { transform: `scale(${jarImages.scale})`, transformOrigin: 'center center' } : undefined}
             />
           )}
 
           {/* Layer 2: Physics Canvas in the middle (where gifts are drawn) */}
           <canvas ref={jarCanvasRef} width={320} height={380} className="absolute inset-0 z-2 bg-transparent" />
 
-          {/* Layer 3: Jar Foreground (Front bottom glass thickness overlay) */}
-          {jarImages.colorized ? (
-            <div className="absolute inset-0 w-full h-full pointer-events-none z-3" style={{ isolation: 'isolate' }}>
-              <img src={jarImages.front} alt="" className="absolute inset-0 w-full h-full object-contain" />
-              <div
-                className="absolute inset-0 w-full h-full"
-                style={{
-                  backgroundColor: settings.jarColor || '#ffffff',
-                  mixBlendMode: 'color',
-                  WebkitMaskImage: `url(${jarImages.front})`,
-                  maskImage: `url(${jarImages.front})`,
-                  WebkitMaskSize: 'contain',
-                  maskSize: 'contain',
-                  WebkitMaskRepeat: 'no-repeat',
-                  maskRepeat: 'no-repeat',
-                  WebkitMaskPosition: 'center',
-                  maskPosition: 'center',
-                }}
+          {/* Layer 3: Jar Foreground (Front bottom glass thickness & glass highlights overlay) */}
+          {jarImages.front ? (
+            jarImages.colorized ? (
+              <div className="absolute inset-0 w-full h-full pointer-events-none z-3" style={{ isolation: 'isolate' }}>
+                <img src={jarImages.front} alt="" className="absolute inset-0 w-full h-full object-contain" />
+                <div
+                  className="absolute inset-0 w-full h-full"
+                  style={{
+                    backgroundColor: settings.jarColor || '#ffffff',
+                    mixBlendMode: 'color',
+                    WebkitMaskImage: `url(${jarImages.front})`,
+                    maskImage: `url(${jarImages.front})`,
+                    WebkitMaskSize: 'contain',
+                    maskSize: 'contain',
+                    WebkitMaskRepeat: 'no-repeat',
+                    maskRepeat: 'no-repeat',
+                    WebkitMaskPosition: 'center',
+                    maskPosition: 'center',
+                  }}
+                />
+              </div>
+            ) : (
+              <img
+                src={jarImages.front}
+                alt=""
+                className="absolute inset-0 w-full h-full object-contain z-3 pointer-events-none"
+                style={jarImages.scale && jarImages.scale !== 1.0 ? { transform: `scale(${jarImages.scale})`, transformOrigin: 'center center' } : undefined}
               />
-            </div>
+            )
           ) : (
             <img
-              src={jarImages.front}
+              src={jarImages.back}
               alt=""
-              className="absolute inset-0 w-full h-full object-contain z-3 select-none pointer-events-none"
+              className="absolute inset-0 w-full h-full object-contain z-3 pointer-events-none mix-blend-screen opacity-35"
+              style={jarImages.scale && jarImages.scale !== 1.0 ? { transform: `scale(${jarImages.scale})`, transformOrigin: 'center center' } : undefined}
+            />
+          )}
+
+          {/* Layer 4: Dance Mascot Decoration (positioned beside jar) */}
+          {settings.jarDanceEnabled !== false && (
+            <canvas
+              ref={danceCanvasRef}
+              className="absolute pointer-events-none z-4 transition-all duration-300"
+              style={{
+                bottom: '10px',
+                ...(settings.jarDancePosition === 'right'
+                  ? { left: `${320 + ((settings.jarDanceOffsetX !== undefined ? settings.jarDanceOffsetX : 185) - 185)}px` }
+                  : { left: `-${settings.jarDanceOffsetX !== undefined ? settings.jarDanceOffsetX : 185}px` }),
+                width: `${Math.round(190 * (settings.jarDanceScale || 1.0))}px`,
+                height: 'auto',
+                filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.45))',
+              }}
             />
           )}
         </div>

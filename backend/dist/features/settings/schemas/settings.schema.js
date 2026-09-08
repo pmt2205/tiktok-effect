@@ -68,6 +68,18 @@ __decorate([
     __metadata("design:type", String)
 ], Settings.prototype, "menuLayout", void 0);
 __decorate([
+    (0, mongoose_1.Prop)({ required: true, default: '' }),
+    __metadata("design:type", String)
+], Settings.prototype, "menuFrame", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 1.0 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "menuFrameScale", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 5 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "menuScrollThreshold", void 0);
+__decorate([
     (0, mongoose_1.Prop)({ required: true, default: false }),
     __metadata("design:type", Boolean)
 ], Settings.prototype, "jarEnabled", void 0);
@@ -106,15 +118,51 @@ __decorate([
 __decorate([
     (0, mongoose_1.Prop)({ required: true, default: true }),
     __metadata("design:type", Boolean)
+], Settings.prototype, "jarDanceEnabled", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 'left' }),
+    __metadata("design:type", String)
+], Settings.prototype, "jarDancePosition", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 1.0 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "jarDanceScale", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 185 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "jarDanceOffsetX", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: '/dance/capy_dance.mp4' }),
+    __metadata("design:type", String)
+], Settings.prototype, "jarDanceVideo", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: true }),
+    __metadata("design:type", Boolean)
 ], Settings.prototype, "singleEnabled", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true, default: true }),
     __metadata("design:type", Boolean)
 ], Settings.prototype, "npcEnabled", void 0);
 __decorate([
+    (0, mongoose_1.Prop)({ required: true, default: true }),
+    __metadata("design:type", Boolean)
+], Settings.prototype, "videoEnabled", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: true }),
+    __metadata("design:type", Boolean)
+], Settings.prototype, "soundEnabled", void 0);
+__decorate([
     (0, mongoose_1.Prop)({ required: true, default: false }),
     __metadata("design:type", Boolean)
 ], Settings.prototype, "treeEnabled", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 'standard' }),
+    __metadata("design:type", String)
+], Settings.prototype, "treeType", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 'tree.png' }),
+    __metadata("design:type", String)
+], Settings.prototype, "treeImage", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true, default: 20 }),
     __metadata("design:type", Number)
@@ -179,6 +227,50 @@ __decorate([
     (0, mongoose_1.Prop)({ required: true, default: 'all' }),
     __metadata("design:type", String)
 ], Settings.prototype, "ttsMode", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: true }),
+    __metadata("design:type", Boolean)
+], Settings.prototype, "topGifterEnabled", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 4 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "topGifterDuration", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 5 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "topGifterRankLimit", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 1 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "topGifterMinDiamonds", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: true }),
+    __metadata("design:type", Boolean)
+], Settings.prototype, "likeLeaderboardEnabled", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 'BXH TAP TAY ❤️' }),
+    __metadata("design:type", String)
+], Settings.prototype, "likeLeaderboardTitle", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 78 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "likeLeaderboardX", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 15 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "likeLeaderboardY", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 1.0 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "likeLeaderboardScale", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 3 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "likeLeaderboardTopCount", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, default: 0 }),
+    __metadata("design:type", Number)
+], Settings.prototype, "likeLeaderboardResetAt", void 0);
 exports.Settings = Settings = __decorate([
     (0, mongoose_1.Schema)()
 ], Settings);

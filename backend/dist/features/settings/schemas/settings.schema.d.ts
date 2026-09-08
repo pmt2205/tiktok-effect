@@ -13,6 +13,9 @@ export declare class Settings extends Document {
     menuScale: number;
     menuColumns: number;
     menuLayout: string;
+    menuFrame: string;
+    menuFrameScale: number;
+    menuScrollThreshold: number;
     jarEnabled: boolean;
     jarX: number;
     jarY: number;
@@ -22,9 +25,18 @@ export declare class Settings extends Document {
     jarFallSpeed: number;
     jarType: string;
     jarColor: string;
+    jarDanceEnabled: boolean;
+    jarDancePosition: string;
+    jarDanceScale: number;
+    jarDanceOffsetX: number;
+    jarDanceVideo: string;
     singleEnabled: boolean;
     npcEnabled: boolean;
+    videoEnabled: boolean;
+    soundEnabled: boolean;
     treeEnabled: boolean;
+    treeType: string;
+    treeImage: string;
     treeX: number;
     treeY: number;
     treeScale: number;
@@ -41,6 +53,17 @@ export declare class Settings extends Document {
     ttsFilterEmoji: boolean;
     ttsFilterBadWords: boolean;
     ttsMode: string;
+    topGifterEnabled: boolean;
+    topGifterDuration: number;
+    topGifterRankLimit: number;
+    topGifterMinDiamonds: number;
+    likeLeaderboardEnabled: boolean;
+    likeLeaderboardTitle: string;
+    likeLeaderboardX: number;
+    likeLeaderboardY: number;
+    likeLeaderboardScale: number;
+    likeLeaderboardTopCount: number;
+    likeLeaderboardResetAt: number;
 }
 export declare const SettingsSchema: import("mongoose").Schema<Settings, import("mongoose").Model<Settings, any, any, any, any, any, Settings>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Settings, Document<unknown, {}, Settings, {
     id: string;
@@ -177,6 +200,33 @@ export declare const SettingsSchema: import("mongoose").Schema<Settings, import(
     }, "id"> & import("mongoose").HydratedDocumentOverrides<{
         id: string;
     }>> | undefined;
+    menuFrame?: import("mongoose").SchemaDefinitionProperty<string, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    menuFrameScale?: import("mongoose").SchemaDefinitionProperty<number, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    menuScrollThreshold?: import("mongoose").SchemaDefinitionProperty<number, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
     jarEnabled?: import("mongoose").SchemaDefinitionProperty<boolean, Settings, Document<unknown, {}, Settings, {
         id: string;
     }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
@@ -258,6 +308,51 @@ export declare const SettingsSchema: import("mongoose").Schema<Settings, import(
     }, "id"> & import("mongoose").HydratedDocumentOverrides<{
         id: string;
     }>> | undefined;
+    jarDanceEnabled?: import("mongoose").SchemaDefinitionProperty<boolean, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    jarDancePosition?: import("mongoose").SchemaDefinitionProperty<string, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    jarDanceScale?: import("mongoose").SchemaDefinitionProperty<number, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    jarDanceOffsetX?: import("mongoose").SchemaDefinitionProperty<number, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    jarDanceVideo?: import("mongoose").SchemaDefinitionProperty<string, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
     singleEnabled?: import("mongoose").SchemaDefinitionProperty<boolean, Settings, Document<unknown, {}, Settings, {
         id: string;
     }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
@@ -276,7 +371,43 @@ export declare const SettingsSchema: import("mongoose").Schema<Settings, import(
     }, "id"> & import("mongoose").HydratedDocumentOverrides<{
         id: string;
     }>> | undefined;
+    videoEnabled?: import("mongoose").SchemaDefinitionProperty<boolean, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    soundEnabled?: import("mongoose").SchemaDefinitionProperty<boolean, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
     treeEnabled?: import("mongoose").SchemaDefinitionProperty<boolean, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    treeType?: import("mongoose").SchemaDefinitionProperty<string, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    treeImage?: import("mongoose").SchemaDefinitionProperty<string, Settings, Document<unknown, {}, Settings, {
         id: string;
     }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
         _id: import("mongoose").Types.ObjectId;
@@ -421,6 +552,105 @@ export declare const SettingsSchema: import("mongoose").Schema<Settings, import(
         id: string;
     }>> | undefined;
     ttsMode?: import("mongoose").SchemaDefinitionProperty<string, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    topGifterEnabled?: import("mongoose").SchemaDefinitionProperty<boolean, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    topGifterDuration?: import("mongoose").SchemaDefinitionProperty<number, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    topGifterRankLimit?: import("mongoose").SchemaDefinitionProperty<number, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    topGifterMinDiamonds?: import("mongoose").SchemaDefinitionProperty<number, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    likeLeaderboardEnabled?: import("mongoose").SchemaDefinitionProperty<boolean, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    likeLeaderboardTitle?: import("mongoose").SchemaDefinitionProperty<string, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    likeLeaderboardX?: import("mongoose").SchemaDefinitionProperty<number, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    likeLeaderboardY?: import("mongoose").SchemaDefinitionProperty<number, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    likeLeaderboardScale?: import("mongoose").SchemaDefinitionProperty<number, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    likeLeaderboardTopCount?: import("mongoose").SchemaDefinitionProperty<number, Settings, Document<unknown, {}, Settings, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
+        _id: import("mongoose").Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & import("mongoose").HydratedDocumentOverrides<{
+        id: string;
+    }>> | undefined;
+    likeLeaderboardResetAt?: import("mongoose").SchemaDefinitionProperty<number, Settings, Document<unknown, {}, Settings, {
         id: string;
     }, import("mongoose").DefaultSchemaOptions> & Omit<Settings & Required<{
         _id: import("mongoose").Types.ObjectId;

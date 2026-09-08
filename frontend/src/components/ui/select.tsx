@@ -44,7 +44,7 @@ export default function Select({ label, value, options, onChange, disabled, id, 
   const marginClass = hasMargin ? '' : 'mb-5';
 
   return (
-    <div className={`flex flex-col gap-2 relative ${marginClass} ${className}`} style={style} ref={containerRef}>
+    <div className={`flex flex-col gap-2 relative ${isOpen ? 'z-50' : ''} ${marginClass} ${className}`} style={style} ref={containerRef}>
       {label && <label className="text-[0.88rem] text-text-secondary font-medium tracking-[0.5px] select-none" id={`${id}-label`}>{label}</label>}
       
       <button
@@ -65,7 +65,7 @@ export default function Select({ label, value, options, onChange, disabled, id, 
 
       {isOpen && (
         <ul
-          className="absolute left-0 right-0 mt-2 z-50 bg-bg-surface/95 backdrop-blur-xl border border-border-color rounded-md p-1 shadow-[0_8px_32px_rgba(0,0,0,0.5)] flex flex-col gap-0.5 max-h-[220px] overflow-y-auto custom-scrollbar animate-[fade-in-up_0.15s_ease-out]"
+          className="absolute left-0 right-0 mt-2 z-[100] bg-bg-surface/95 backdrop-blur-xl border border-border-color rounded-md p-1 shadow-[0_8px_32px_rgba(0,0,0,0.5)] flex flex-col gap-0.5 max-h-[220px] overflow-y-auto custom-scrollbar animate-[fade-in-up_0.15s_ease-out]"
           role="listbox"
           tabIndex={-1}
           style={{ top: '100%' }}

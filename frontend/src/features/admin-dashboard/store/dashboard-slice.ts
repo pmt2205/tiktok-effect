@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { TiktokStatus, OverlaySettings, GiftMappings, GiftMapping, LogEntry, Gift, NpcCategory } from '@/types';
+import { TiktokStatus, OverlaySettings, GiftMappings, GiftMapping, LogEntry, Gift, NpcCategory, LikeLeaderboardItem } from '@/types';
 import { DEFAULT_SETTINGS, DEFAULT_MAPPINGS } from '@/lib/constants';
 
 interface DashboardState {
@@ -16,6 +16,7 @@ interface DashboardState {
   customGifts: Gift[];
   selectedStreamer: string;
   usersList: { _id: string; username: string; role: string; allowConnect: boolean; allowNpc?: boolean }[];
+  likeLeaderboard: LikeLeaderboardItem[];
 }
 
 const initialState: DashboardState = {
@@ -37,6 +38,7 @@ const initialState: DashboardState = {
   customGifts: [],
   selectedStreamer: '',
   usersList: [],
+  likeLeaderboard: [],
 };
 
 export const dashboardSlice = createSlice({
@@ -140,6 +142,9 @@ export const dashboardSlice = createSlice({
     deleteNpcGift: (state, action: PayloadAction<string>) => {
       state.npcGifts = state.npcGifts.filter((g) => g._id !== action.payload);
     },
+    setLikeLeaderboard: (state, action: PayloadAction<LikeLeaderboardItem[]>) => {
+      state.likeLeaderboard = action.payload;
+    },
   },
 });
 
@@ -165,6 +170,7 @@ export const {
   addNpcGift,
   updateNpcGift,
   deleteNpcGift,
+  setLikeLeaderboard,
   addLog,
   clearLogs,
   setLanguage,

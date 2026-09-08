@@ -32,6 +32,8 @@ let TiktokService = TiktokService_1 = class TiktokService {
     constructor() {
         this.logger = new common_1.Logger(TiktokService_1.name);
         this.userStates = new Map();
+        this.userTopGifters = new Map();
+        this.userLikeLeaderboard = new Map();
     }
     registerCallbacks(callbacks) {
         this.onStatusChange = callbacks.onStatusChange;
@@ -39,6 +41,56 @@ let TiktokService = TiktokService_1 = class TiktokService {
         this.onGift = callbacks.onGift;
         this.onRoomUser = callbacks.onRoomUser;
         this.onGiftsList = callbacks.onGiftsList;
+        this.onTopGifterJoin = callbacks.onTopGifterJoin;
+        this.onLike = callbacks.onLike;
+        this.onLikeLeaderboard = callbacks.onLikeLeaderboard;
+    }
+    getLikeLeaderboard(appUsername) {
+        const userMap = this.userLikeLeaderboard.get(appUsername);
+        if (!userMap)
+            return [];
+        return Array.from(userMap.values())
+            .sort((a, b) => b.totalLikes - a.totalLikes)
+            .map((item, idx) => ({ ...item, rank: idx + 1 }));
+    }
+    recordLike(appUsername, data) {
+        let userMap = this.userLikeLeaderboard.get(appUsername);
+        if (!userMap) {
+            userMap = new Map();
+            this.userLikeLeaderboard.set(appUsername, userMap);
+        }
+        const uniqueId = data.uniqueId || 'anonymous';
+        const addedLikes = data.likeCount || 1;
+        const existing = userMap.get(uniqueId);
+        if (existing) {
+            existing.totalLikes += addedLikes;
+            if (data.nickname)
+                existing.nickname = data.nickname;
+            if (data.profilePictureUrl)
+                existing.profilePictureUrl = data.profilePictureUrl;
+        }
+        else {
+            userMap.set(uniqueId, {
+                uniqueId,
+                nickname: data.nickname || uniqueId,
+                profilePictureUrl: data.profilePictureUrl || '',
+                totalLikes: addedLikes,
+                rank: 0,
+            });
+        }
+        const updatedList = this.getLikeLeaderboard(appUsername);
+        this.onLike?.(appUsername, data);
+        this.onLikeLeaderboard?.(appUsername, updatedList);
+    }
+    resetLikeLeaderboard(appUsername) {
+        this.userLikeLeaderboard.delete(appUsername);
+        this.onLikeLeaderboard?.(appUsername, []);
+    }
+    getTopGifters(appUsername) {
+        const appGifters = this.userTopGifters.get(appUsername);
+        if (!appGifters)
+            return [];
+        return Array.from(appGifters.values()).sort((a, b) => b.totalDiamonds - a.totalDiamonds);
     }
     getAvailableGifts(appUsername) {
         return this.userStates.get(appUsername)?.availableGifts || [];
@@ -144,7 +196,65 @@ let TiktokService = TiktokService_1 = class TiktokService {
                     giftType: data.gift?.gift_type || data.giftDetails?.giftType,
                     giftId: giftId,
                 };
+                const diamonds = (data.extendedGiftInfo?.diamond_count || data.diamondCount || 1) * (data.repeatCount || 1);
+                let appGifters = this.userTopGifters.get(appUsername);
+                if (!appGifters) {
+                    appGifters = new Map();
+                    this.userTopGifters.set(appUsername, appGifters);
+                }
+                const existingGifter = appGifters.get(giftData.uniqueId);
+                if (existingGifter) {
+                    existingGifter.totalDiamonds += diamonds;
+                    if (giftData.nickname)
+                        existingGifter.nickname = giftData.nickname;
+                    if (giftData.profilePictureUrl)
+                        existingGifter.profilePictureUrl = giftData.profilePictureUrl;
+                }
+                else {
+                    appGifters.set(giftData.uniqueId, {
+                        uniqueId: giftData.uniqueId,
+                        nickname: giftData.nickname,
+                        profilePictureUrl: giftData.profilePictureUrl,
+                        totalDiamonds: diamonds,
+                    });
+                }
                 this.onGift?.(appUsername, giftData);
+            });
+            state.connection.on('like', (data) => {
+                const likeData = {
+                    nickname: data.nickname || data.user?.nickname || data.uniqueId || 'Anonymous',
+                    uniqueId: data.uniqueId || data.user?.uniqueId || 'anonymous',
+                    profilePictureUrl: data.profilePictureUrl || data.user?.avatarMedium?.url_list?.[0] || '',
+                    likeCount: data.likeCount || 1,
+                    totalLikeCount: data.totalLikeCount || 0,
+                    isSimulated: false,
+                };
+                this.recordLike(appUsername, likeData);
+            });
+            state.connection.on('member', (data) => {
+                const uniqueId = data.uniqueId || data.user?.uniqueId;
+                if (!uniqueId)
+                    return;
+                const nickname = data.nickname || data.user?.nickname || uniqueId;
+                const profilePictureUrl = data.profilePictureUrl || data.user?.avatarMedium?.url_list?.[0] || '';
+                const appGifters = this.userTopGifters.get(appUsername);
+                if (!appGifters)
+                    return;
+                const topList = Array.from(appGifters.values()).sort((a, b) => b.totalDiamonds - a.totalDiamonds);
+                const rankIndex = topList.findIndex((g) => g.uniqueId === uniqueId);
+                if (rankIndex !== -1) {
+                    const topGifter = topList[rankIndex];
+                    const rank = rankIndex + 1;
+                    this.logger.log(`[${appUsername}] Top Gifter #${rank} (${nickname}) joined live room!`);
+                    this.onTopGifterJoin?.(appUsername, {
+                        uniqueId: topGifter.uniqueId,
+                        nickname: topGifter.nickname || nickname,
+                        profilePictureUrl: topGifter.profilePictureUrl || profilePictureUrl,
+                        totalDiamonds: topGifter.totalDiamonds,
+                        rank,
+                        isSimulated: false,
+                    });
+                }
             });
             state.connection.on('roomUser', (data) => {
                 if (data.viewerCount !== undefined) {
