@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable @next/next/no-img-element -- Live TikTok avatar URLs are dynamic and rendered directly in the OBS overlay. */
 
 import React, { useEffect, useState, useRef } from 'react';
 import { TopGifterJoinEvent, OverlaySettings } from '@/types';
@@ -22,8 +23,11 @@ export default function TopGifterOverlay({ eventsQueue, onEventFinished, setting
   useEffect(() => {
     if (!activeEvent && eventsQueue.length > 0) {
       const next = eventsQueue[0];
-      setActiveEvent(next);
-      setIsVisible(true);
+      const activation = setTimeout(() => {
+        setActiveEvent(next);
+        setIsVisible(true);
+      }, 0);
+      return () => clearTimeout(activation);
     }
   }, [eventsQueue, activeEvent]);
 

@@ -12,6 +12,9 @@ export class User extends Document {
   @Prop({ required: true, enum: ['admin', 'user'], default: 'user' })
   role: string;
 
+  @Prop({ required: true, enum: ['free', 'pro', 'promax'], default: 'free', index: true })
+  subscriptionTier: 'free' | 'pro' | 'promax';
+
   @Prop({ required: false, default: false })
   allowConnect: boolean;
 

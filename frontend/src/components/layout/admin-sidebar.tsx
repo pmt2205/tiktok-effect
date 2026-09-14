@@ -23,14 +23,18 @@ export default function AdminSidebar({ activeTab, setActiveTab }: AdminSidebarPr
   const [time, setTime] = useState('00:00:00');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isLightMode, setIsLightMode] = useState(false);
   
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Sync theme state with document class on mount
   useEffect(() => {
-    const hasLight = document.documentElement.classList.contains('light-mode');
-    setIsLightMode(hasLight);
+    let mounted = true;
+    queueMicrotask(() => {
+      if (mounted) setIsLightMode(document.documentElement.classList.contains('light-mode'));
+    });
+    return () => { mounted = false; };
   }, []);
 
   const toggleTheme = () => {
@@ -113,9 +117,9 @@ export default function AdminSidebar({ activeTab, setActiveTab }: AdminSidebarPr
 
   return (
     <>
-      <aside className="w-64 min-h-screen bg-bg-surface/90 border-r border-border-color flex flex-col justify-between p-5 py-6 shrink-0 relative z-45">
+      <aside className="w-full shrink-0 border-b border-border-color bg-bg-surface/95 p-3 backdrop-blur-xl relative z-45 lg:w-64 lg:min-h-screen lg:border-b-0 lg:border-r lg:p-5 lg:py-6 flex flex-col justify-between">
         {/* Top Section: Logo & Brand */}
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-3 lg:gap-6">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('effects')}>
             <div className="w-16 h-8 relative select-none">
               <Image src="/logo.png" alt="TikTok Live Effect Logo" fill className="object-contain" priority />
@@ -126,14 +130,14 @@ export default function AdminSidebar({ activeTab, setActiveTab }: AdminSidebarPr
             </div>
           </div>
 
-          <div className="h-[1px] bg-border-color/60 w-full" />
+          <div className="hidden h-[1px] bg-border-color/60 w-full lg:block" />
 
           {/* Navigation Links */}
-          <nav className="flex flex-col gap-1.5 font-header text-[0.88rem]">
+          <nav className={`${isMobileNavOpen ? 'grid' : 'hidden'} grid-cols-2 gap-1 border-t border-border-color pt-3 font-header text-[0.76rem] lg:flex lg:flex-col lg:gap-1.5 lg:border-t-0 lg:pt-0 lg:text-[0.88rem]`}>
 
             <button
-              onClick={() => setActiveTab('effects')}
-              className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-md transition-all duration-200 text-left outline-none ${
+              onClick={() => { setActiveTab('effects'); setIsMobileNavOpen(false); }}
+              className={`flex min-w-0 items-center gap-2 px-2.5 py-2 rounded-md transition-all duration-200 text-left outline-none lg:w-full lg:gap-3 lg:px-3.5 lg:py-3 ${
                 activeTab === 'effects'
                   ? 'bg-secondary/10 border-l-2 border-secondary text-white font-semibold'
                   : 'text-text-secondary hover:bg-white/4 hover:text-white border-l-2 border-transparent'
@@ -144,8 +148,8 @@ export default function AdminSidebar({ activeTab, setActiveTab }: AdminSidebarPr
             </button>
 
             <button
-              onClick={() => setActiveTab('npc')}
-              className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-md transition-all duration-200 text-left outline-none ${
+              onClick={() => { setActiveTab('npc'); setIsMobileNavOpen(false); }}
+              className={`flex min-w-0 items-center gap-2 px-2.5 py-2 rounded-md transition-all duration-200 text-left outline-none lg:w-full lg:gap-3 lg:px-3.5 lg:py-3 ${
                 activeTab === 'npc'
                   ? 'bg-secondary/10 border-l-2 border-secondary text-white font-semibold'
                   : 'text-text-secondary hover:bg-white/4 hover:text-white border-l-2 border-transparent'
@@ -156,8 +160,8 @@ export default function AdminSidebar({ activeTab, setActiveTab }: AdminSidebarPr
             </button>
 
             <button
-              onClick={() => setActiveTab('users')}
-              className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-md transition-all duration-200 text-left outline-none ${
+              onClick={() => { setActiveTab('users'); setIsMobileNavOpen(false); }}
+              className={`flex min-w-0 items-center gap-2 px-2.5 py-2 rounded-md transition-all duration-200 text-left outline-none lg:w-full lg:gap-3 lg:px-3.5 lg:py-3 ${
                 activeTab === 'users'
                   ? 'bg-secondary/10 border-l-2 border-secondary text-white font-semibold'
                   : 'text-text-secondary hover:bg-white/4 hover:text-white border-l-2 border-transparent'
@@ -168,8 +172,8 @@ export default function AdminSidebar({ activeTab, setActiveTab }: AdminSidebarPr
             </button>
 
             <button
-              onClick={() => setActiveTab('chat')}
-              className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-md transition-all duration-200 text-left outline-none ${
+              onClick={() => { setActiveTab('chat'); setIsMobileNavOpen(false); }}
+              className={`flex min-w-0 items-center gap-2 px-2.5 py-2 rounded-md transition-all duration-200 text-left outline-none lg:w-full lg:gap-3 lg:px-3.5 lg:py-3 ${
                 activeTab === 'chat'
                   ? 'bg-secondary/10 border-l-2 border-secondary text-white font-semibold'
                   : 'text-text-secondary hover:bg-white/4 hover:text-white border-l-2 border-transparent'
@@ -179,10 +183,15 @@ export default function AdminSidebar({ activeTab, setActiveTab }: AdminSidebarPr
               <span>{t.chat}</span>
             </button>
           </nav>
+          {isMobileNavOpen && <button type="button" onClick={handleLogout} className="flex h-9 w-full items-center justify-center gap-2 rounded-md border border-primary/25 bg-primary/10 text-xs font-bold text-primary lg:hidden"><i className="fa-solid fa-right-from-bracket" />{t.logout}</button>}
+          <div className="absolute right-3 top-3 flex items-center gap-2 lg:hidden">
+            <button type="button" onClick={toggleLanguage} className="flex h-8 w-8 items-center justify-center rounded-md border border-border-color bg-white/5 text-xs font-bold text-text-secondary" aria-label={language === 'vi' ? 'Đổi ngôn ngữ' : 'Change language'} title={language.toUpperCase()}><i className="fa-solid fa-globe" /></button>
+            <button type="button" onClick={() => setIsMobileNavOpen((open) => !open)} className="flex h-8 w-8 items-center justify-center rounded-md border border-secondary/25 bg-secondary/10 text-xs font-bold text-secondary" aria-label={isMobileNavOpen ? 'Đóng menu' : 'Mở menu'} aria-expanded={isMobileNavOpen}><i className={`fa-solid ${isMobileNavOpen ? 'fa-xmark' : 'fa-bars'}`} /></button>
+          </div>
         </div>
 
         {/* Bottom Section: Clock, Language, User Dropdown */}
-        <div className="flex flex-col gap-4 mt-auto">
+        <div className="hidden flex-col gap-4 mt-auto lg:flex">
           {/* Time Clock */}
           <div className="flex items-center gap-2 font-header text-[0.78rem] bg-white/4 px-3.5 py-2 rounded-md border border-border-color/60 text-text-muted select-none [font-variant-numeric:tabular-nums]">
             <i className="fa-regular fa-clock text-[0.8rem]" />

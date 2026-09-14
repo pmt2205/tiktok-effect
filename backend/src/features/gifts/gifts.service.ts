@@ -21,6 +21,10 @@ export class GiftsService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
+    await Promise.all([
+      this.giftModel.updateMany({ menuShow: true, $or: [{ menuText: '' }, { menuText: { $exists: false } }] }, { $set: { menuShow: false } }).exec(),
+      this.npcGiftModel.updateMany({ menuShow: true, $or: [{ menuText: '' }, { menuText: { $exists: false } }] }, { $set: { menuShow: false } }).exec(),
+    ]);
     try {
       await this.giftModel.collection.dropIndex('giftId_1');
       this.logger.log('Successfully dropped old unique index giftId_1');
@@ -90,6 +94,10 @@ export class GiftsService implements OnModuleInit {
     return this.giftModel.findOne({ _id: id, username }).exec();
   }
 
+  async countMenuGiftsForUser(username: string): Promise<number> {
+    return this.giftModel.countDocuments({ username, menuShow: true }).exec();
+  }
+
   async findByGiftIdForUser(giftId: number, username: string): Promise<Gift | null> {
     return this.giftModel.findOne({ giftId, username }).exec();
   }
@@ -147,6 +155,10 @@ export class GiftsService implements OnModuleInit {
 
   async findOneNpcGiftForUser(id: string, username: string, category: string): Promise<NpcGift | null> {
     return this.npcGiftModel.findOne({ _id: id, username, category }).exec();
+  }
+
+  async countNpcMenuGiftsForUser(username: string, category: string): Promise<number> {
+    return this.npcGiftModel.countDocuments({ username, category, menuShow: true }).exec();
   }
 
   async createNpcGiftForUser(username: string, category: string, giftData: Partial<NpcGift>): Promise<NpcGift> {

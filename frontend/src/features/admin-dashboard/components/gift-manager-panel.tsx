@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import GlassCard from '@/components/ui/glass-card';
 import Button from '@/components/ui/button';
 import Select from '@/components/ui/select';
@@ -148,7 +148,7 @@ export default function GiftManagerPanel() {
   }, [loggedInUser, selectedUsername, dispatch]);
 
   // Fetch gifts from backend for a specific user
-  const fetchGifts = async (usernameToFetch: string) => {
+  const fetchGifts = useCallback(async (usernameToFetch: string) => {
     if (!usernameToFetch) return;
     setLoading(true);
     try {
@@ -165,13 +165,13 @@ export default function GiftManagerPanel() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [dispatch]);
 
   useEffect(() => {
     if (selectedUsername) {
-      fetchGifts(selectedUsername);
+      void Promise.resolve().then(() => fetchGifts(selectedUsername));
     }
-  }, [selectedUsername]);
+  }, [selectedUsername, fetchGifts]);
 
   const handleStartCreate = () => {
     setEditingGift(null);
@@ -445,7 +445,7 @@ export default function GiftManagerPanel() {
 
   return (
     <div className="flex flex-col gap-6 w-full animate-[fade-in-up_0.6s_ease-out]">
-      <div className="sticky top-0 bg-[#07080d]/80 backdrop-blur-md z-30 flex flex-col gap-1.5 border-b border-border-color pb-4 pt-6 md:pt-8 -mt-6 md:-mt-8 select-none">
+      <div className="sticky top-0 bg-[#07080d]/80 backdrop-blur-md z-30 flex flex-col gap-1.5 border-b border-border-color pb-3 pt-1 md:pb-4 md:pt-8 md:-mt-8 select-none">
         <h2 className="font-header text-[1.4rem] font-bold text-white tracking-[0.5px] uppercase">{t.title}</h2>
         <p className="text-[0.88rem] text-text-muted">{t.subtitle}</p>
       </div>
@@ -567,8 +567,8 @@ export default function GiftManagerPanel() {
 
       {/* Form Modal backdrop */}
       {isFormOpen && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-5 bg-black/75 backdrop-blur-sm animate-[fade-in_0.2s_ease-out]">
-          <div className="relative w-full max-w-[500px] bg-bg-surface border border-border-color rounded-2xl shadow-[0_12px_48px_rgba(0,0,0,0.6)] p-6 animate-[fade-in-up_0.3s_cubic-bezier(0.175,0.885,0.32,1.275)] flex flex-col gap-4">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center overflow-y-auto p-2 sm:p-5 bg-black/75 backdrop-blur-sm animate-[fade-in_0.2s_ease-out]">
+          <div className="relative my-auto w-full max-w-[500px] bg-bg-surface border border-border-color rounded-lg sm:rounded-2xl shadow-[0_12px_48px_rgba(0,0,0,0.6)] p-3 sm:p-6 animate-[fade-in-up_0.3s_cubic-bezier(0.175,0.885,0.32,1.275)] flex flex-col gap-4">
 
             <h3 className="font-header text-[1.25rem] font-bold text-white capitalize mb-1 border-b border-border-color pb-3 select-none flex items-center gap-2">
               <i className={`fa-solid ${editingGift ? 'fa-pen-to-square text-secondary' : 'fa-circle-plus text-primary'}`} />

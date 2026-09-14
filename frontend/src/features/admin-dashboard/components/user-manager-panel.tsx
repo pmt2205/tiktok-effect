@@ -14,6 +14,7 @@ interface UserRecord {
   allowConnect: boolean;
   allowNpc?: boolean;
   allowedNpcCategories?: string[];
+  subscriptionTier?: 'free' | 'pro' | 'promax';
   createdAt?: string;
 }
 
@@ -33,6 +34,7 @@ export default function UserManagerPanel() {
       listTitle: 'Danh sách người dùng hệ thống',
       username: 'Tên người dùng',
       role: 'Vai trò',
+      plan: 'Gói dịch vụ',
       allowConnect: 'Quyền Connect',
       allowNpc: 'Quyền NPC',
       allowedCats: 'Thể loại NPC được phép',
@@ -51,6 +53,7 @@ export default function UserManagerPanel() {
       listTitle: 'Registered System Users',
       username: 'Username',
       role: 'System Role',
+      plan: 'Plan',
       allowConnect: 'Allow Connection',
       allowNpc: 'Allow NPC Mode',
       allowedCats: 'Allowed NPC Themes',
@@ -99,8 +102,8 @@ export default function UserManagerPanel() {
   };
 
   useEffect(() => {
-    fetchUsers();
-    fetchCategories();
+    void Promise.resolve().then(fetchUsers);
+    void Promise.resolve().then(fetchCategories);
   }, []);
 
   const handleTogglePermission = async (id: string, key: 'allowConnect' | 'allowNpc', val: boolean) => {
@@ -161,6 +164,19 @@ export default function UserManagerPanel() {
     }
   };
 
+  const handleUpdateTier = async (id: string, subscriptionTier: 'free' | 'pro' | 'promax') => {
+    const token = localStorage.getItem('auth_token');
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/users/${id}/permissions`, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ subscriptionTier }) });
+      if (!res.ok) throw new Error(`Update failed (${res.status})`);
+      setUsers((current) => current.map((user) => user._id === id ? { ...user, subscriptionTier } : user));
+      toast.success(language === 'vi' ? 'Đã cập nhật gói người dùng.' : 'User plan updated.');
+    } catch (error) {
+      console.error('Failed to update subscription tier:', error);
+      toast.error(language === 'vi' ? 'Không thể cập nhật gói.' : 'Could not update plan.');
+    }
+  };
+
   const handleDelete = async (user: UserRecord) => {
     if (user.username === 'admin') {
       toast.error('Cannot delete the root admin account.');
@@ -193,7 +209,7 @@ export default function UserManagerPanel() {
 
   return (
     <div className="flex flex-col gap-6 w-full animate-[fade-in-up_0.6s_ease-out]">
-      <div className="sticky top-0 bg-[#07080d]/80 backdrop-blur-md z-30 flex flex-col gap-1.5 border-b border-border-color pb-4 pt-6 md:pt-8 -mt-6 md:-mt-8 select-none">
+      <div className="sticky top-0 bg-[#07080d]/80 backdrop-blur-md z-30 flex flex-col gap-1.5 border-b border-border-color pb-3 pt-1 md:pb-4 md:pt-8 md:-mt-8 select-none">
         <h2 className="font-header text-[1.4rem] font-bold text-white tracking-[0.5px] uppercase">{t.title}</h2>
         <p className="text-[0.88rem] text-text-muted">{t.subtitle}</p>
       </div>
@@ -218,6 +234,7 @@ export default function UserManagerPanel() {
                 <tr className="border-b border-border-color/80 bg-black/35 text-text-muted font-header font-bold text-[0.78rem] tracking-[1px] uppercase select-none">
                   <th className="py-4 px-5">{t.username}</th>
                   <th className="py-4 px-5">{t.role}</th>
+                  <th className="py-4 px-5">{t.plan}</th>
                   <th className="py-4 px-5">{t.allowConnect}</th>
                   <th className="py-4 px-5">{t.allowNpc}</th>
                   <th className="py-4 px-5">{t.allowedCats}</th>
@@ -245,6 +262,9 @@ export default function UserManagerPanel() {
                         }`}>
                         {u.role === 'admin' ? t.adminRole : t.userRole}
                       </span>
+                    </td>
+                    <td className="py-4.5 px-5">
+                      {u.role === 'admin' ? <span className="text-xs font-bold text-primary">PRO MAX</span> : <select value={u.subscriptionTier || 'free'} onChange={(event) => handleUpdateTier(u._id, event.target.value as 'free' | 'pro' | 'promax')} className="rounded-md border border-border-color bg-bg-input px-2.5 py-2 text-xs font-bold text-white outline-none transition-all duration-200 focus:border-secondary focus:ring-3 focus:ring-secondary-glow/25"><option value="free">Thường · Free</option><option value="pro">Pro · 99K</option><option value="promax">Pro Max · 299K</option></select>}
                     </td>
                     <td className="py-4.5 px-5">
                       {u.role !== 'admin' ? (
@@ -281,6 +301,7 @@ export default function UserManagerPanel() {
                     <td className="py-4.5 px-5 relative">
                       {u.role !== 'admin' && (u.allowNpc || false) ? (
                         <NpcCategoriesSelector
+                          key={`${u._id}:${(u.allowedNpcCategories || []).join(',')}`}
                           user={u}
                           allCategories={categories}
                           onSave={(cats) => handleUpdateCategories(u._id, cats)}
@@ -331,10 +352,6 @@ function NpcCategoriesSelector({
   const [selected, setSelected] = useState<string[]>(user.allowedNpcCategories || []);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
-
-  useEffect(() => {
-    setSelected(user.allowedNpcCategories || []);
-  }, [user.allowedNpcCategories]);
 
   const updateCoords = () => {
     if (buttonRef.current) {

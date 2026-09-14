@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
@@ -11,31 +11,52 @@ export class AuthService {
   ) {}
 
   async register(username: string, password: string, role: string) {
-    const existing = await this.usersService.findByUsername(username);
+    const normalizedUsername = username?.trim().toLowerCase();
+    if (!normalizedUsername || normalizedUsername.length < 3 || normalizedUsername.length > 64 || /\s/.test(normalizedUsername)) {
+      throw new BadRequestException('Tài khoản phải có từ 3 đến 64 ký tự và không chứa khoảng trắng');
+    }
+    if (!password || password.length < 10 || password.length > 128 || !/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/\d/.test(password)) {
+      throw new BadRequestException('Mật khẩu phải có 10–128 ký tự, gồm chữ hoa, chữ thường và số');
+    }
+    const existing = await this.usersService.findByUsername(normalizedUsername);
     if (existing) {
-      throw new ConflictException('Username already exists');
+      throw new ConflictException('Tài khoản này đã tồn tại');
     }
 
     const salt = await bcrypt.genSalt(10);
     const hash = await bcrypt.hash(password, salt);
     
-    const user = await this.usersService.create(username, hash, role);
+    let user;
+    try {
+      user = await this.usersService.create(normalizedUsername, hash, role);
+    } catch (error: unknown) {
+      if (typeof error === 'object' && error !== null && 'code' in error && error.code === 11000) {
+        throw new ConflictException('Tài khoản này đã tồn tại');
+      }
+      throw error;
+    }
     return {
       userId: user._id,
       username: user.username,
       role: user.role,
+      subscriptionTier: user.subscriptionTier || 'free',
     };
   }
 
   async login(username: string, password: string) {
-    const user = await this.usersService.findByUsername(username);
+    const normalizedUsername = username?.trim();
+    if (!normalizedUsername || !password) {
+      throw new UnauthorizedException('Tài khoản hoặc mật khẩu không chính xác');
+    }
+
+    const user = await this.usersService.findByUsername(normalizedUsername);
     if (!user) {
-      throw new UnauthorizedException('Invalid username or password');
+      throw new UnauthorizedException('Tài khoản hoặc mật khẩu không chính xác');
     }
 
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
-      throw new UnauthorizedException('Invalid username or password');
+      throw new UnauthorizedException('Tài khoản hoặc mật khẩu không chính xác');
     }
 
     const payload = {
@@ -50,9 +71,20 @@ export class AuthService {
         userId: user._id,
         username: user.username,
         role: user.role,
+        subscriptionTier: user.subscriptionTier || 'free',
         allowConnect: user.allowConnect ?? false,
         allowNpc: user.allowNpc ?? false,
       },
+    };
+  }
+
+  createOverlayToken(username: string) {
+    return {
+      accessToken: this.jwtService.sign(
+        { sub: username, username, role: 'overlay', scope: 'overlay' },
+        { expiresIn: '24h' },
+      ),
+      expiresIn: 86400,
     };
   }
 
@@ -99,15 +131,17 @@ export class AuthService {
           userId: user._id,
           username: user.username,
           role: user.role,
+          subscriptionTier: user.subscriptionTier || 'free',
           allowConnect: user.allowConnect ?? false,
           allowNpc: user.allowNpc ?? false,
         },
       };
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (err instanceof UnauthorizedException) {
         throw err;
       }
-      throw new UnauthorizedException(`Google login failed: ${err.message}`);
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      throw new UnauthorizedException(`Google login failed: ${message}`);
     }
   }
 }

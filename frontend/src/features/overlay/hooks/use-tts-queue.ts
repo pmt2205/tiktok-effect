@@ -25,7 +25,7 @@ const VIETNAMESE_BAD_WORDS = [
 export function removeEmojis(text: string): string {
   try {
     return text.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').trim();
-  } catch (e) {
+  } catch {
     return text;
   }
 }
@@ -63,6 +63,14 @@ export function useTtsQueue(settingsState?: OverlaySettings) {
   const queueRef = useRef<{ id: string; text: string; nickname: string; rawComment: string }[]>([]);
   const isProcessingRef = useRef<boolean>(false);
   const settingsRef = useRef<OverlaySettings>(settingsState || DEFAULT_SETTINGS);
+  const processNextRef = useRef<() => void>(() => {});
+
+  const getGoogleTtsUrl = useCallback((text: string) => {
+    const token = typeof window === 'undefined' ? '' : new URLSearchParams(window.location.search).get('token') || '';
+    const parameters = new URLSearchParams({ text });
+    if (token) parameters.set('token', token);
+    return `${BACKEND_URL}/api/tts/google?${parameters.toString()}`;
+  }, []);
 
   useEffect(() => {
     if (settingsState) {
@@ -81,10 +89,16 @@ export function useTtsQueue(settingsState?: OverlaySettings) {
   useEffect(() => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
 
-    updateVoices();
+    const initialLoad = setTimeout(updateVoices, 0);
     if (window.speechSynthesis.onvoiceschanged !== undefined) {
       window.speechSynthesis.onvoiceschanged = updateVoices;
     }
+    return () => {
+      clearTimeout(initialLoad);
+      if (window.speechSynthesis.onvoiceschanged === updateVoices) {
+        window.speechSynthesis.onvoiceschanged = null;
+      }
+    };
   }, [updateVoices]);
 
   // Pick best matching voice
@@ -144,13 +158,13 @@ export function useTtsQueue(settingsState?: OverlaySettings) {
       ]);
 
       setTimeout(() => {
-        processNextInQueue();
+        processNextRef.current();
       }, 350);
     };
 
     // Support Google Translate official voice via backend proxy
     if (settings.ttsVoice === 'google_translate') {
-      const url = `${BACKEND_URL}/api/tts/google?text=${encodeURIComponent(item.text)}`;
+      const url = getGoogleTtsUrl(item.text);
       const audio = new Audio(url);
       audio.playbackRate = settings.ttsRate ?? 1.0;
       audio.volume = settings.ttsVolume ?? 1.0;
@@ -182,12 +196,16 @@ export function useTtsQueue(settingsState?: OverlaySettings) {
     utterance.onerror = (e) => {
       console.warn('TTS Speech error:', e);
       setTimeout(() => {
-        processNextInQueue();
+        processNextRef.current();
       }, 200);
     };
 
     window.speechSynthesis.speak(utterance);
-  }, [isMuted, getSelectedVoice]);
+  }, [isMuted, getGoogleTtsUrl, getSelectedVoice]);
+
+  useEffect(() => {
+    processNextRef.current = processNextInQueue;
+  }, [processNextInQueue]);
 
   // Enqueue chat comment for TTS reading
   const enqueueChat = useCallback(
@@ -255,11 +273,11 @@ export function useTtsQueue(settingsState?: OverlaySettings) {
 
   // Manual Speak (Test button)
   const speakText = useCallback(
-    (text: string, nickname: string = 'Chủ phòng') => {
+    (text: string) => {
       const settings = settingsRef.current;
 
       if (settings.ttsVoice === 'google_translate') {
-        const url = `${BACKEND_URL}/api/tts/google?text=${encodeURIComponent(text)}`;
+        const url = getGoogleTtsUrl(text);
         const audio = new Audio(url);
         audio.playbackRate = settings.ttsRate ?? 1.0;
         audio.volume = settings.ttsVolume ?? 1.0;
@@ -286,7 +304,7 @@ export function useTtsQueue(settingsState?: OverlaySettings) {
 
       window.speechSynthesis.speak(utterance);
     },
-    [getSelectedVoice]
+    [getGoogleTtsUrl, getSelectedVoice]
   );
 
   // Toggle Mute / Pause

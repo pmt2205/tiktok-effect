@@ -88,9 +88,9 @@ export default function ChatDashboard({ onSendMessage }: ChatDashboardProps) {
   }[language];
 
   return (
-    <div className="w-full h-[calc(100vh-140px)] min-h-[500px] flex gap-6 animate-[fade-in-up_0.5s_ease-out]">
+    <div className="flex h-auto min-h-[600px] w-full flex-col gap-4 animate-[fade-in-up_0.5s_ease-out] lg:h-[calc(100dvh-140px)] lg:min-h-[500px] lg:flex-row lg:gap-6">
       {/* Left Sidebar: Conversations list */}
-      <div className="w-80 flex flex-col gap-4 shrink-0">
+      <div className="flex h-60 w-full shrink-0 flex-col gap-4 lg:h-full lg:w-80">
         <GlassCard
           headerIcon={<i className="fa-solid fa-inbox text-secondary" />}
           headerTitle={t.activeConversations}
@@ -306,10 +306,10 @@ export function ChatWidget({ onSendMessage }: ChatWidgetProps) {
   }[language];
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+    <div className="fixed bottom-3 right-3 z-50 flex flex-col items-end sm:bottom-6 sm:right-6">
       {/* Floating Dialog Box */}
       {isOpen && (
-        <div className="w-[365px] h-[520px] rounded-2xl border border-border-color bg-bg-surface/95 backdrop-blur-xl shadow-[0_12px_48px_rgba(0,0,0,0.6)] flex flex-col overflow-hidden mb-4 animate-[fade-in-up_0.25s_cubic-bezier(0.175,0.885,0.32,1.275)]">
+        <div className="h-[calc(100dvh-96px)] max-h-[520px] w-[calc(100vw-24px)] max-w-[365px] rounded-lg sm:rounded-2xl border border-border-color bg-bg-surface/95 backdrop-blur-xl shadow-[0_12px_48px_rgba(0,0,0,0.6)] flex flex-col overflow-hidden mb-3 sm:mb-4 animate-[fade-in-up_0.25s_cubic-bezier(0.175,0.885,0.32,1.275)]">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3.5 border-b border-border-color bg-white/3 select-none">
             <div className="flex items-center gap-2.5">

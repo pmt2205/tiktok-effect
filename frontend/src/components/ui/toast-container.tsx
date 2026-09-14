@@ -8,7 +8,7 @@ export default function ToastContainer() {
   const toasts = useAppSelector((state) => state.toast.toasts);
 
   return (
-    <div className="fixed top-6 right-6 z-[9999] flex flex-col gap-3.5 w-full max-w-[380px] pointer-events-none">
+    <div className="fixed inset-x-3 top-3 z-[9999] flex flex-col gap-3.5 pointer-events-none sm:inset-x-auto sm:right-6 sm:top-6 sm:w-full sm:max-w-[380px]">
       {toasts.map((toast) => (
         <ToastItem key={toast.id} toast={toast} />
       ))}

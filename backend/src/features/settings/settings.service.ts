@@ -13,6 +13,7 @@ export class SettingsService implements OnModuleInit {
     duration: 5,
     density: 2,
     theme: 'neon-pulse',
+    singleGiftIds: [],
     menuEnabled: false,
     menuTitle: 'MENU QUÀ TẶNG',
     menuX: 15,
@@ -32,6 +33,11 @@ export class SettingsService implements OnModuleInit {
     jarFallSpeed: 1.0,
     jarType: 'standard',
     jarColor: 'silver',
+    jarNameEnabled: false,
+    jarNameImage: '',
+    jarNameScale: 0.55,
+    jarNameX: 0,
+    jarNameY: -54,
     jarDanceEnabled: true,
     jarDancePosition: 'left',
     jarDanceScale: 1.0,
@@ -118,11 +124,13 @@ export class SettingsService implements OnModuleInit {
       
       let allowNpc = false;
       let allowedNpcCategories: string[] = [];
+      let subscriptionTier: 'free' | 'pro' | 'promax' = 'free';
       try {
         const userDoc = await this.settingsModel.db.model('User').findOne({ username }).exec();
         if (userDoc) {
           allowNpc = (userDoc as any).allowNpc || false;
           allowedNpcCategories = (userDoc as any).allowedNpcCategories || [];
+          subscriptionTier = (userDoc as any).role === 'admin' ? 'promax' : (userDoc as any).subscriptionTier || 'free';
         }
       } catch (err) {
         this.logger.warn(`Failed to fetch allowNpc: ${err.message}`);
@@ -159,29 +167,35 @@ export class SettingsService implements OnModuleInit {
         jarClearedAt: settingsDoc.jarClearedAt !== undefined ? settingsDoc.jarClearedAt : this.defaultSettings.jarClearedAt,
         jarGiftSize: (settingsDoc as any).jarGiftSize !== undefined ? (settingsDoc as any).jarGiftSize : this.defaultSettings.jarGiftSize,
         jarFallSpeed: (settingsDoc as any).jarFallSpeed !== undefined ? (settingsDoc as any).jarFallSpeed : this.defaultSettings.jarFallSpeed,
-        jarType: (settingsDoc as any).jarType || this.defaultSettings.jarType,
+        jarType: subscriptionTier === 'promax' ? ((settingsDoc as any).jarType || this.defaultSettings.jarType) : 'standard',
         jarColor: (settingsDoc as any).jarColor || this.defaultSettings.jarColor,
-        jarDanceEnabled: (settingsDoc as any).jarDanceEnabled !== undefined ? (settingsDoc as any).jarDanceEnabled : true,
+        jarNameEnabled: subscriptionTier === 'promax' && Boolean((settingsDoc as any).jarNameEnabled),
+        jarNameImage: subscriptionTier === 'promax' ? ((settingsDoc as any).jarNameImage || '') : '',
+        jarNameScale: (settingsDoc as any).jarNameScale !== undefined ? (settingsDoc as any).jarNameScale : 0.55,
+        jarNameX: (settingsDoc as any).jarNameX !== undefined ? (settingsDoc as any).jarNameX : 0,
+        jarNameY: (settingsDoc as any).jarNameY !== undefined ? (settingsDoc as any).jarNameY : -54,
+        jarDanceEnabled: subscriptionTier === 'promax' && ((settingsDoc as any).jarDanceEnabled !== undefined ? (settingsDoc as any).jarDanceEnabled : true),
         jarDancePosition: (settingsDoc as any).jarDancePosition || 'left',
         jarDanceScale: (settingsDoc as any).jarDanceScale !== undefined ? (settingsDoc as any).jarDanceScale : 1.0,
         jarDanceOffsetX: (settingsDoc as any).jarDanceOffsetX !== undefined ? (settingsDoc as any).jarDanceOffsetX : 185,
         jarDanceVideo: (settingsDoc as any).jarDanceVideo || '/dance/capy_dance.mp4',
         liveMode: (settingsDoc as any).liveMode || 'single',
+        singleGiftIds: Array.isArray((settingsDoc as any).singleGiftIds) ? (settingsDoc as any).singleGiftIds.slice(0, subscriptionTier === 'promax' ? (settingsDoc as any).singleGiftIds.length : subscriptionTier === 'pro' ? 10 : 5) : [],
         activeNpcCategory: (settingsDoc as any).activeNpcCategory || fallbackCategory,
         singleEnabled: (settingsDoc as any).singleEnabled !== undefined ? (settingsDoc as any).singleEnabled : true,
         npcEnabled: (settingsDoc as any).npcEnabled !== undefined ? (settingsDoc as any).npcEnabled : true,
         videoEnabled: (settingsDoc as any).videoEnabled !== undefined ? (settingsDoc as any).videoEnabled : true,
         soundEnabled: (settingsDoc as any).soundEnabled !== undefined ? (settingsDoc as any).soundEnabled : true,
         treeEnabled: settingsDoc.treeEnabled !== undefined ? settingsDoc.treeEnabled : this.defaultSettings.treeEnabled,
-        treeType: (settingsDoc as any).treeType || 'standard',
-        treeImage: (settingsDoc as any).treeImage || 'tree.png',
+        treeType: subscriptionTier === 'promax' ? ((settingsDoc as any).treeType || 'standard') : 'standard',
+        treeImage: subscriptionTier === 'promax' ? ((settingsDoc as any).treeImage || 'tree.png') : 'tree.png',
         treeX: settingsDoc.treeX !== undefined ? settingsDoc.treeX : this.defaultSettings.treeX,
         treeY: settingsDoc.treeY !== undefined ? settingsDoc.treeY : this.defaultSettings.treeY,
         treeScale: settingsDoc.treeScale !== undefined ? settingsDoc.treeScale : this.defaultSettings.treeScale,
         treeGiftSize: settingsDoc.treeGiftSize !== undefined ? settingsDoc.treeGiftSize : this.defaultSettings.treeGiftSize,
         treeClearedAt: settingsDoc.treeClearedAt !== undefined ? settingsDoc.treeClearedAt : this.defaultSettings.treeClearedAt,
         treeDebug: settingsDoc.treeDebug !== undefined ? settingsDoc.treeDebug : this.defaultSettings.treeDebug,
-        ttsEnabled: (settingsDoc as any).ttsEnabled !== undefined ? (settingsDoc as any).ttsEnabled : true,
+        ttsEnabled: subscriptionTier === 'promax' && ((settingsDoc as any).ttsEnabled !== undefined ? (settingsDoc as any).ttsEnabled : true),
         ttsVoice: (settingsDoc as any).ttsVoice || 'auto',
         ttsRate: (settingsDoc as any).ttsRate !== undefined ? (settingsDoc as any).ttsRate : 1.0,
         ttsPitch: (settingsDoc as any).ttsPitch !== undefined ? (settingsDoc as any).ttsPitch : 1.0,
@@ -191,11 +205,11 @@ export class SettingsService implements OnModuleInit {
         ttsFilterEmoji: (settingsDoc as any).ttsFilterEmoji !== undefined ? (settingsDoc as any).ttsFilterEmoji : true,
         ttsFilterBadWords: (settingsDoc as any).ttsFilterBadWords !== undefined ? (settingsDoc as any).ttsFilterBadWords : true,
         ttsMode: (settingsDoc as any).ttsMode || 'all',
-        topGifterEnabled: (settingsDoc as any).topGifterEnabled !== undefined ? (settingsDoc as any).topGifterEnabled : true,
+        topGifterEnabled: subscriptionTier === 'promax' && ((settingsDoc as any).topGifterEnabled !== undefined ? (settingsDoc as any).topGifterEnabled : true),
         topGifterDuration: (settingsDoc as any).topGifterDuration !== undefined ? (settingsDoc as any).topGifterDuration : 4,
         topGifterRankLimit: (settingsDoc as any).topGifterRankLimit !== undefined ? (settingsDoc as any).topGifterRankLimit : 5,
         topGifterMinDiamonds: (settingsDoc as any).topGifterMinDiamonds !== undefined ? (settingsDoc as any).topGifterMinDiamonds : 1,
-        likeLeaderboardEnabled: (settingsDoc as any).likeLeaderboardEnabled !== undefined ? (settingsDoc as any).likeLeaderboardEnabled : true,
+        likeLeaderboardEnabled: subscriptionTier === 'promax' && ((settingsDoc as any).likeLeaderboardEnabled !== undefined ? (settingsDoc as any).likeLeaderboardEnabled : true),
         likeLeaderboardTitle: (settingsDoc as any).likeLeaderboardTitle || 'BXH TAP TAY ❤️',
         likeLeaderboardX: (settingsDoc as any).likeLeaderboardX !== undefined ? (settingsDoc as any).likeLeaderboardX : 78,
         likeLeaderboardY: (settingsDoc as any).likeLeaderboardY !== undefined ? (settingsDoc as any).likeLeaderboardY : 15,
@@ -204,6 +218,7 @@ export class SettingsService implements OnModuleInit {
         likeLeaderboardResetAt: (settingsDoc as any).likeLeaderboardResetAt !== undefined ? (settingsDoc as any).likeLeaderboardResetAt : 0,
         allowNpc,
         allowedNpcCategories,
+        subscriptionTier,
       };
     } catch (err) {
       this.logger.error(`Failed to get settings for user ${username}:`, err);
@@ -211,11 +226,54 @@ export class SettingsService implements OnModuleInit {
     }
   }
 
-  async updateSettingsForUser(username: string, newSettings: Partial<any>): Promise<any> {
+  async updateSettingsForUser(username: string, newSettings: Record<string, unknown>): Promise<any> {
     try {
+      const userDoc = await this.settingsModel.db.model('User').findOne({ username }).exec();
+      const tier = ((userDoc as any)?.role === 'admin' ? 'promax' : (userDoc as any)?.subscriptionTier || 'free') as 'free' | 'pro' | 'promax';
+      const giftLimit = tier === 'promax' ? Infinity : tier === 'pro' ? 10 : 5;
+      const allowedKeys = new Set(Object.keys(this.settingsModel.schema.paths).filter((key) => !['_id', '__v', 'username'].includes(key)));
+      const safeSettings = Object.fromEntries(
+        Object.entries(newSettings).filter(([key, value]) => {
+          if (!allowedKeys.has(key) || value === undefined) return false;
+          if (key === 'singleGiftIds') return Array.isArray(value);
+          return typeof value !== 'object';
+        }),
+      );
+      if (Array.isArray(safeSettings.singleGiftIds)) {
+        safeSettings.singleGiftIds = [...new Set(safeSettings.singleGiftIds
+          .filter((giftId): giftId is number => Number.isInteger(giftId)))]
+          .slice(0, giftLimit);
+      }
+      const jarNameImages = new Set([
+        '/jar/name_jar/ChatGPT%20Image%2011_05_36%2011%20thg%209,%202026.png',
+        '/jar/name_jar/ChatGPT%20Image%2011_29_53%2011%20thg%209,%202026.png',
+      ]);
+      if (typeof safeSettings.jarNameImage === 'string' && !jarNameImages.has(safeSettings.jarNameImage)) delete safeSettings.jarNameImage;
+      if (typeof safeSettings.jarNameScale === 'number') safeSettings.jarNameScale = Math.min(1.5, Math.max(0.2, safeSettings.jarNameScale));
+      if (typeof safeSettings.jarNameX === 'number') safeSettings.jarNameX = Math.min(220, Math.max(-220, safeSettings.jarNameX));
+      if (typeof safeSettings.jarNameY === 'number') safeSettings.jarNameY = Math.min(160, Math.max(-180, safeSettings.jarNameY));
+      if (tier !== 'promax') {
+        const proMaxOnlyKeys = ['ttsEnabled', 'ttsVoice', 'ttsRate', 'ttsPitch', 'ttsVolume', 'ttsTemplate', 'ttsMaxChars', 'ttsFilterEmoji', 'ttsFilterBadWords', 'ttsMode', 'topGifterEnabled', 'topGifterDuration', 'topGifterRankLimit', 'topGifterMinDiamonds', 'likeLeaderboardEnabled', 'likeLeaderboardTitle', 'likeLeaderboardX', 'likeLeaderboardY', 'likeLeaderboardScale', 'likeLeaderboardTopCount', 'likeLeaderboardResetAt'];
+        proMaxOnlyKeys.forEach((key) => delete safeSettings[key]);
+        if (safeSettings.jarType && safeSettings.jarType !== 'standard') delete safeSettings.jarType;
+        if (safeSettings.treeType && safeSettings.treeType !== 'standard') {
+          delete safeSettings.treeType;
+          delete safeSettings.treeImage;
+        }
+        delete safeSettings.jarDanceEnabled;
+        delete safeSettings.jarDancePosition;
+        delete safeSettings.jarDanceScale;
+        delete safeSettings.jarDanceOffsetX;
+        delete safeSettings.jarDanceVideo;
+        delete safeSettings.jarNameEnabled;
+        delete safeSettings.jarNameImage;
+        delete safeSettings.jarNameScale;
+        delete safeSettings.jarNameX;
+        delete safeSettings.jarNameY;
+      }
       const updated = await this.settingsModel.findOneAndUpdate(
         { username },
-        { $set: newSettings },
+        { $set: safeSettings },
         { new: true, upsert: true }
       ).exec();
       this.logger.log(`Settings updated and persisted for user: ${username}`);
@@ -263,29 +321,35 @@ export class SettingsService implements OnModuleInit {
         jarClearedAt: updated.jarClearedAt,
         jarGiftSize: (updated as any).jarGiftSize !== undefined ? (updated as any).jarGiftSize : this.defaultSettings.jarGiftSize,
         jarFallSpeed: (updated as any).jarFallSpeed !== undefined ? (updated as any).jarFallSpeed : this.defaultSettings.jarFallSpeed,
-        jarType: (updated as any).jarType || this.defaultSettings.jarType,
+        jarType: tier === 'promax' ? ((updated as any).jarType || this.defaultSettings.jarType) : 'standard',
         jarColor: (updated as any).jarColor || this.defaultSettings.jarColor,
-        jarDanceEnabled: (updated as any).jarDanceEnabled !== undefined ? (updated as any).jarDanceEnabled : true,
+        jarNameEnabled: tier === 'promax' && Boolean((updated as any).jarNameEnabled),
+        jarNameImage: tier === 'promax' ? ((updated as any).jarNameImage || '') : '',
+        jarNameScale: (updated as any).jarNameScale !== undefined ? (updated as any).jarNameScale : 0.55,
+        jarNameX: (updated as any).jarNameX !== undefined ? (updated as any).jarNameX : 0,
+        jarNameY: (updated as any).jarNameY !== undefined ? (updated as any).jarNameY : -54,
+        jarDanceEnabled: tier === 'promax' && ((updated as any).jarDanceEnabled !== undefined ? (updated as any).jarDanceEnabled : true),
         jarDancePosition: (updated as any).jarDancePosition || 'left',
         jarDanceScale: (updated as any).jarDanceScale !== undefined ? (updated as any).jarDanceScale : 1.0,
         jarDanceOffsetX: (updated as any).jarDanceOffsetX !== undefined ? (updated as any).jarDanceOffsetX : 185,
         jarDanceVideo: (updated as any).jarDanceVideo || '/dance/capy_dance.mp4',
         liveMode: (updated as any).liveMode || 'single',
+        singleGiftIds: Array.isArray((updated as any).singleGiftIds) ? (updated as any).singleGiftIds.slice(0, giftLimit) : [],
         activeNpcCategory: (updated as any).activeNpcCategory || fallbackCategory,
         singleEnabled: (updated as any).singleEnabled !== undefined ? (updated as any).singleEnabled : true,
         npcEnabled: (updated as any).npcEnabled !== undefined ? (updated as any).npcEnabled : true,
         videoEnabled: (updated as any).videoEnabled !== undefined ? (updated as any).videoEnabled : true,
         soundEnabled: (updated as any).soundEnabled !== undefined ? (updated as any).soundEnabled : true,
         treeEnabled: updated.treeEnabled !== undefined ? updated.treeEnabled : this.defaultSettings.treeEnabled,
-        treeType: (updated as any).treeType || 'standard',
-        treeImage: (updated as any).treeImage || 'tree.png',
+        treeType: tier === 'promax' ? ((updated as any).treeType || 'standard') : 'standard',
+        treeImage: tier === 'promax' ? ((updated as any).treeImage || 'tree.png') : 'tree.png',
         treeX: updated.treeX !== undefined ? updated.treeX : this.defaultSettings.treeX,
         treeY: updated.treeY !== undefined ? updated.treeY : this.defaultSettings.treeY,
         treeScale: updated.treeScale !== undefined ? updated.treeScale : this.defaultSettings.treeScale,
         treeGiftSize: updated.treeGiftSize !== undefined ? updated.treeGiftSize : this.defaultSettings.treeGiftSize,
         treeClearedAt: updated.treeClearedAt !== undefined ? updated.treeClearedAt : this.defaultSettings.treeClearedAt,
         treeDebug: updated.treeDebug !== undefined ? updated.treeDebug : this.defaultSettings.treeDebug,
-        ttsEnabled: (updated as any).ttsEnabled !== undefined ? (updated as any).ttsEnabled : true,
+        ttsEnabled: tier === 'promax' && ((updated as any).ttsEnabled !== undefined ? (updated as any).ttsEnabled : true),
         ttsVoice: (updated as any).ttsVoice || 'auto',
         ttsRate: (updated as any).ttsRate !== undefined ? (updated as any).ttsRate : 1.0,
         ttsPitch: (updated as any).ttsPitch !== undefined ? (updated as any).ttsPitch : 1.0,
@@ -295,11 +359,11 @@ export class SettingsService implements OnModuleInit {
         ttsFilterEmoji: (updated as any).ttsFilterEmoji !== undefined ? (updated as any).ttsFilterEmoji : true,
         ttsFilterBadWords: (updated as any).ttsFilterBadWords !== undefined ? (updated as any).ttsFilterBadWords : true,
         ttsMode: (updated as any).ttsMode || 'all',
-        topGifterEnabled: (updated as any).topGifterEnabled !== undefined ? (updated as any).topGifterEnabled : true,
+        topGifterEnabled: tier === 'promax' && ((updated as any).topGifterEnabled !== undefined ? (updated as any).topGifterEnabled : true),
         topGifterDuration: (updated as any).topGifterDuration !== undefined ? (updated as any).topGifterDuration : 4,
         topGifterRankLimit: (updated as any).topGifterRankLimit !== undefined ? (updated as any).topGifterRankLimit : 5,
         topGifterMinDiamonds: (updated as any).topGifterMinDiamonds !== undefined ? (updated as any).topGifterMinDiamonds : 1,
-        likeLeaderboardEnabled: (updated as any).likeLeaderboardEnabled !== undefined ? (updated as any).likeLeaderboardEnabled : true,
+        likeLeaderboardEnabled: tier === 'promax' && ((updated as any).likeLeaderboardEnabled !== undefined ? (updated as any).likeLeaderboardEnabled : true),
         likeLeaderboardTitle: (updated as any).likeLeaderboardTitle || 'BXH TAP TAY ❤️',
         likeLeaderboardX: (updated as any).likeLeaderboardX !== undefined ? (updated as any).likeLeaderboardX : 78,
         likeLeaderboardY: (updated as any).likeLeaderboardY !== undefined ? (updated as any).likeLeaderboardY : 15,
@@ -308,6 +372,7 @@ export class SettingsService implements OnModuleInit {
         likeLeaderboardResetAt: (updated as any).likeLeaderboardResetAt !== undefined ? (updated as any).likeLeaderboardResetAt : 0,
         allowNpc,
         allowedNpcCategories,
+        subscriptionTier: tier,
       };
       
       this.onSettingsUpdateCb?.(username, result);

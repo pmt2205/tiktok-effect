@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable @next/next/no-img-element -- Live TikTok avatar URLs are dynamic and rendered directly in the OBS overlay. */
 
 import React from 'react';
 import { OverlaySettings, LikeLeaderboardItem } from '@/types';
@@ -170,4 +171,3 @@ export default function LikeLeaderboardOverlay({ settings, items }: LikeLeaderbo
     </div>
   );
 }
-

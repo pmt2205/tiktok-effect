@@ -1,0 +1,4 @@
+interface:
+  display_name: "Feature-First UI Builder"
+  short_description: "Build consistent feature-first UI"
+  default_prompt: "Use $feature-first-ui-builder to add a feature with this project's UI and architecture rules."

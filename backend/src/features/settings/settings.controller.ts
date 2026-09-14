@@ -24,7 +24,7 @@ export class SettingsController {
   @Put()
   async updateSettings(
     @Req() req: any,
-    @Body() settings: Partial<any> & { username?: string },
+    @Body() settings: Record<string, unknown> & { username?: string },
     @Query('username') queryUsername?: string,
   ): Promise<any> {
     const targetUsername = (req.user.role === 'admin' && (queryUsername || settings.username))

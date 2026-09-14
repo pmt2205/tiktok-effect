@@ -1,26 +1,32 @@
+import './env';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { Logger } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
+  if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+    throw new Error('JWT_SECRET must be set to a strong value of at least 32 characters');
+  }
   const app = await NestFactory.create(AppModule);
   const logger = new Logger('Bootstrap');
+  app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }));
 
-  // Enable CORS for frontend
+  // Thêm domain thật vào origin
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+    origin: [
+      'http://localhost:3000',
+      'http://127.0.0.1:3000',
+      'https://tiktokeffect.io.vn',
+      'https://www.tiktokeffect.io.vn',
+    ],
     credentials: true,
   });
 
   const port = process.env.PORT || 3001;
-  await app.listen(port);
+  // Cho phép lắng nghe trên tất cả interface mạng
+  await app.listen(port, '0.0.0.0');
 
-  logger.log(`\n======================================================`);
-  logger.log(`  TikTok Live Overlay Backend running on port ${port}`);
-  logger.log(`  API: http://localhost:${port}/api`);
-  logger.log(`  WebSocket: ws://localhost:${port}`);
-  logger.log(`  Media: http://localhost:${port}/media/`);
-  logger.log(`======================================================\n`);
+  logger.log(`Server running on port ${port}`);
 }
 
 bootstrap();

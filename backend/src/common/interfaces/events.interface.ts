@@ -62,6 +62,7 @@ export interface OverlaySettings {
   duration: number;
   density: number;
   theme: string;
+  singleGiftIds?: number[];
   menuEnabled: boolean;
   menuTitle: string;
   menuX: number;
@@ -81,6 +82,11 @@ export interface OverlaySettings {
   jarFallSpeed?: number;
   jarType?: string;
   jarColor?: string;
+  jarNameEnabled?: boolean;
+  jarNameImage?: string;
+  jarNameScale?: number;
+  jarNameX?: number;
+  jarNameY?: number;
   jarDanceEnabled?: boolean;
   jarDancePosition?: string;
   jarDanceScale?: number;

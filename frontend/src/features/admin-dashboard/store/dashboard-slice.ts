@@ -15,7 +15,7 @@ interface DashboardState {
   language: 'vi' | 'en';
   customGifts: Gift[];
   selectedStreamer: string;
-  usersList: { _id: string; username: string; role: string; allowConnect: boolean; allowNpc?: boolean }[];
+  usersList: { _id: string; username: string; role: string; allowConnect: boolean; allowNpc?: boolean; subscriptionTier?: 'free' | 'pro' | 'promax' }[];
   likeLeaderboard: LikeLeaderboardItem[];
 }
 
@@ -74,7 +74,7 @@ export const dashboardSlice = createSlice({
     setSelectedStreamer: (state, action: PayloadAction<string>) => {
       state.selectedStreamer = action.payload;
     },
-    setUsersList: (state, action: PayloadAction<any[]>) => {
+    setUsersList: (state, action: PayloadAction<DashboardState['usersList']>) => {
       state.usersList = action.payload;
     },
     addMapping: (state, action: PayloadAction<{ giftName: string; mapping: GiftMapping }>) => {

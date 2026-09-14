@@ -1,6 +1,8 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, UseInterceptors, UploadedFile, Req, Query } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { GiftsService } from './gifts.service';
+import { UsersService } from '../users/users.service';
+import { ForbiddenException } from '@nestjs/common';
 import { Gift } from './schemas/gift.schema';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -9,30 +11,16 @@ import { diskStorage } from 'multer';
 import { extname, join } from 'path';
 
 @Controller('api/gifts')
+@UseGuards(JwtAuthGuard)
 export class GiftsController {
-  constructor(private readonly giftsService: GiftsService) {}
+  constructor(private readonly giftsService: GiftsService, private readonly usersService: UsersService) {}
 
   @Get()
   async findAll(
     @Query('username') queryUsername?: string,
     @Req() req?: any,
   ): Promise<Gift[]> {
-    let username = queryUsername;
-
-    // Fallback: decode JWT from Authorization header if not provided in query
-    if (!username && req && req.headers && req.headers.authorization) {
-      const authHeader = req.headers.authorization;
-      if (authHeader.startsWith('Bearer ')) {
-        const token = authHeader.substring(7);
-        try {
-          const payloadPart = token.split('.')[1];
-          const payload = JSON.parse(Buffer.from(payloadPart, 'base64').toString('utf8'));
-          username = payload.username;
-        } catch (e) {
-          // ignore
-        }
-      }
-    }
+    const username = req.user.role === 'admin' && queryUsername ? queryUsername : req.user.username;
 
     if (!username) {
       return [];
@@ -46,6 +34,7 @@ export class GiftsController {
   @Roles('admin', 'user')
   @UseInterceptors(
     FileInterceptor('video', {
+      limits: { fileSize: 50 * 1024 * 1024, files: 1 },
       storage: diskStorage({
         destination: join(process.cwd(), 'public', 'media'),
         filename: (req: any, file: any, callback: any) => {
@@ -59,7 +48,7 @@ export class GiftsController {
         },
       }),
       fileFilter: (req: any, file: any, callback: any) => {
-        if (!file.originalname.match(/\.(mp4)$/)) {
+        if (file.mimetype !== 'video/mp4') {
           return callback(new Error('Only MP4 video files are allowed!'), false);
         }
         callback(null, true);
@@ -82,6 +71,7 @@ export class GiftsController {
   @Roles('admin', 'user')
   @UseInterceptors(
     FileInterceptor('sound', {
+      limits: { fileSize: 15 * 1024 * 1024, files: 1 },
       storage: diskStorage({
         destination: join(process.cwd(), 'public', 'media'),
         filename: (req: any, file: any, callback: any) => {
@@ -95,7 +85,7 @@ export class GiftsController {
         },
       }),
       fileFilter: (req: any, file: any, callback: any) => {
-        if (!file.originalname.match(/\.(mp3|wav|ogg|m4a|aac)$/i)) {
+        if (!file.mimetype.match(/^audio\/(mpeg|wav|ogg|mp4|aac)$/)) {
           return callback(new Error('Only audio files (MP3, WAV, OGG, M4A, AAC) are allowed!'), false);
         }
         callback(null, true);
@@ -133,6 +123,18 @@ export class GiftsController {
   ): Promise<Gift | null> {
     const user = req.user;
     if (user && user.role !== 'admin') {
+      const userDoc = await this.usersService.findByUsername(user.username);
+      const tier = userDoc?.subscriptionTier || 'free';
+      if (tier === 'free' && (giftData.activeVideo !== undefined || giftData.activeSound !== undefined)) {
+        throw new ForbiddenException('Custom gift effects require Pro or Pro Max');
+      }
+      if (giftData.menuShow === true && tier !== 'promax') {
+        const currentGift = await this.giftsService.findOneForUser(id, user.username);
+        const limit = tier === 'pro' ? 10 : 5;
+        if (!currentGift?.menuShow && await this.giftsService.countMenuGiftsForUser(user.username) >= limit) {
+          throw new ForbiddenException(`Gift menu is limited to ${limit} items for this plan`);
+        }
+      }
       const allowedUpdate: Partial<Gift> = {};
       if (giftData.activeVideo !== undefined) {
         allowedUpdate.activeVideo = giftData.activeVideo;
@@ -173,22 +175,7 @@ export class GiftsController {
     @Query('category') category: string,
     @Req() req?: any,
   ): Promise<any[]> {
-    let username = queryUsername;
-
-    // Fallback: decode JWT from Authorization header
-    if (!username && req && req.headers && req.headers.authorization) {
-      const authHeader = req.headers.authorization;
-      if (authHeader.startsWith('Bearer ')) {
-        const token = authHeader.substring(7);
-        try {
-          const payloadPart = token.split('.')[1];
-          const payload = JSON.parse(Buffer.from(payloadPart, 'base64').toString('utf8'));
-          username = payload.username;
-        } catch (e) {
-          // ignore
-        }
-      }
-    }
+    const username = req.user.role === 'admin' && queryUsername ? queryUsername : req.user.username;
 
     if (!username || !category) {
       return [];
@@ -217,6 +204,16 @@ export class GiftsController {
   ): Promise<any> {
     const user = req.user;
     if (user && user.role !== 'admin') {
+      const userDoc = await this.usersService.findByUsername(user.username);
+      const tier = userDoc?.subscriptionTier || 'free';
+      if (body.menuShow === true && tier !== 'promax') {
+        const category = body.category || 'anime';
+        const currentGift = await this.giftsService.findOneNpcGiftForUser(id, user.username, category);
+        const limit = tier === 'pro' ? 10 : 5;
+        if (!currentGift?.menuShow && await this.giftsService.countNpcMenuGiftsForUser(user.username, category) >= limit) {
+          throw new ForbiddenException(`Gift menu is limited to ${limit} items for this plan`);
+        }
+      }
       const allowedUpdate: any = {};
       if (body.activeVideo !== undefined) {
         allowedUpdate.activeVideo = body.activeVideo;

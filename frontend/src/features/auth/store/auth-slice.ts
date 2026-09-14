@@ -4,6 +4,7 @@ interface User {
   username: string;
   role: 'admin' | 'user';
   allowConnect?: boolean;
+  subscriptionTier?: 'free' | 'pro' | 'promax';
 }
 
 interface AuthState {

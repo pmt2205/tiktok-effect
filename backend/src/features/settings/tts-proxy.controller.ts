@@ -1,14 +1,16 @@
-import { Controller, Get, Query, Res } from '@nestjs/common';
+import { Controller, Get, Query, Res, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('api/tts')
+@UseGuards(JwtAuthGuard)
 export class TtsProxyController {
   @Get('google')
   async getGoogleTts(
     @Query('text') text: string,
     @Res() res: Response,
   ) {
-    if (!text || !text.trim()) {
+    if (!text || !text.trim() || text.trim().length > 300) {
       return res.status(400).send('Text parameter is required');
     }
     try {

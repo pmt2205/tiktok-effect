@@ -36,6 +36,11 @@ export default function OverlayCanvas() {
   const treeClearedAtRef = useRef<number>(0);
 
   const { enqueueChat } = useTtsQueue(settingsState);
+  const enqueueChatRef = useRef(enqueueChat);
+
+  useEffect(() => {
+    enqueueChatRef.current = enqueueChat;
+  }, [enqueueChat]);
 
   const removeBanner = (key: string) => {
     const bannerInfo = bannersRef.current.get(key);
@@ -53,9 +58,6 @@ export default function OverlayCanvas() {
 
   const handleGift = useCallback((giftData: GiftEvent) => {
     const settings = settingsRef.current;
-    const isSingleMode = settings.liveMode === 'single' || !settings.liveMode;
-    const isNpcMode = settings.liveMode === 'npc';
-
     // 1. Add to Gift Jar if enabled (always drop gifts to jar if enabled, independent of mode/video toggles)
     if (settings.jarEnabled) {
       jarRef.current?.spawnGift(giftData);
@@ -201,24 +203,42 @@ export default function OverlayCanvas() {
         if (oldestKey) removeBanner(oldestKey);
       }
 
-      const avatarSrc = profilePictureUrl || 'https://www.tiktok.com/favicon.ico';
-      const giftIconSrc = giftPictureUrl || 'https://sf16-website-nos.sofproxy.com/obj/tiktok-web-tx/tiktok/web/gift/rose.png';
+      const safeImageUrl = (value: string | undefined, fallback: string) => {
+        try {
+          const url = new URL(value || fallback);
+          return ['https:', 'http:'].includes(url.protocol) ? url.href : fallback;
+        } catch {
+          return fallback;
+        }
+      };
+      const avatarSrc = safeImageUrl(profilePictureUrl, 'https://www.tiktok.com/favicon.ico');
+      const giftIconSrc = safeImageUrl(giftPictureUrl, 'https://sf16-website-nos.sofproxy.com/obj/tiktok-web-tx/tiktok/web/gift/rose.png');
 
       const bannerEl = document.createElement('div');
       bannerEl.className = `gift-card theme-${settings.theme}`;
-      bannerEl.innerHTML = `
-        <div class="avatar-container">
-          <img src="${avatarSrc}" class="avatar-image" onerror="this.src='https://i.pravatar.cc/100'" />
-        </div>
-        <div class="user-info">
-          <span class="nickname">${nickname}</span>
-          <span class="gift-action">Sent <strong>${giftName}</strong></span>
-        </div>
-        <div class="gift-icon-container">
-          <img src="${giftIconSrc}" class="gift-icon" onerror="this.src='https://cdn4.dps.vc/iblock/f59/f5902abbd13178017285a308606fd0dd/cf6a40558018965a8171cf5a575dd9de.png'" />
-        </div>
-        <div class="combo-badge pulse">x${repeatCount}</div>
-      `;
+      const makeElement = (tag: string, className: string, text?: string) => {
+        const element = document.createElement(tag);
+        element.className = className;
+        if (text) element.textContent = text;
+        return element;
+      };
+      const avatarContainer = makeElement('div', 'avatar-container');
+      const avatar = document.createElement('img');
+      avatar.src = avatarSrc;
+      avatar.className = 'avatar-image';
+      avatar.alt = '';
+      avatar.onerror = () => { avatar.src = 'https://i.pravatar.cc/100'; };
+      avatarContainer.appendChild(avatar);
+      const userInfo = makeElement('div', 'user-info');
+      userInfo.append(makeElement('span', 'nickname', nickname), makeElement('span', 'gift-action', `Sent ${giftName}`));
+      const giftIconContainer = makeElement('div', 'gift-icon-container');
+      const giftIcon = document.createElement('img');
+      giftIcon.src = giftIconSrc;
+      giftIcon.className = 'gift-icon';
+      giftIcon.alt = '';
+      giftIcon.onerror = () => { giftIcon.src = 'https://cdn4.dps.vc/iblock/f59/f5902abbd13178017285a308606fd0dd/cf6a40558018965a8171cf5a575dd9de.png'; };
+      giftIconContainer.appendChild(giftIcon);
+      bannerEl.append(avatarContainer, userInfo, giftIconContainer, makeElement('div', 'combo-badge pulse', `x${repeatCount}`));
 
       container.appendChild(bannerEl);
 
@@ -249,16 +269,11 @@ export default function OverlayCanvas() {
     }
 
     const searchParams = new URLSearchParams(window.location.search);
-    const username = searchParams.get('user') || searchParams.get('username') || '';
-
-    // Fetch initial custom database gifts
-    fetch(`${BACKEND_URL}/api/gifts?username=${username}`)
-      .then((res) => res.json())
-      .then((data) => {
-        giftsRef.current = data;
-        setGiftsList(data);
-      })
-      .catch((e) => console.error('Failed to load custom gifts from database in overlay:', e));
+    const token = searchParams.get('token') || '';
+    if (!token) {
+      console.error('Overlay token is required');
+      return;
+    }
 
     // Initialize engines
     if (canvasRef.current) {
@@ -269,7 +284,7 @@ export default function OverlayCanvas() {
     // Connect to WebSocket
     const socket = io(WS_URL, {
       transports: ['websocket', 'polling'],
-      query: { username },
+      query: { token },
       reconnection: true,
       reconnectionDelay: 3000,
     });
@@ -278,7 +293,7 @@ export default function OverlayCanvas() {
       if (packet.type === 'gift') {
         handleGift(packet.data as GiftEvent);
       } else if (packet.type === 'chat') {
-        enqueueChat(packet.data as ChatEvent, settingsRef.current);
+        enqueueChatRef.current(packet.data as ChatEvent, settingsRef.current);
       } else if (packet.type === 'settings-update') {
         const newSettings = { ...settingsRef.current, ...(packet.data as Partial<OverlaySettings>) };
         settingsRef.current = newSettings;

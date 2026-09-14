@@ -21,8 +21,8 @@ export default function NpcPreviewModal({
   const hasVideo = gift.videos && gift.videos.length > 0 && activeVid;
 
   return (
-    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-5 bg-black/75 backdrop-blur-sm animate-[fade-in_0.2s_ease-out]">
-      <div className="relative w-full max-w-[680px] bg-bg-surface/95 border border-border-color rounded-2xl shadow-[0_12px_48px_rgba(0,0,0,0.6)] p-6 md:p-8 animate-[fade-in-up_0.3s_cubic-bezier(0.175,0.885,0.32,1.275)] flex flex-col md:flex-row gap-6 backdrop-blur-[24px]">
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center overflow-y-auto p-2 sm:p-5 bg-black/75 backdrop-blur-sm animate-[fade-in_0.2s_ease-out]">
+      <div className="relative my-auto w-full max-w-[680px] bg-bg-surface/95 border border-border-color rounded-lg sm:rounded-2xl shadow-[0_12px_48px_rgba(0,0,0,0.6)] p-3 sm:p-6 md:p-8 animate-[fade-in-up_0.3s_cubic-bezier(0.175,0.885,0.32,1.275)] flex flex-col md:flex-row gap-4 sm:gap-6 backdrop-blur-[24px]">
 
         {/* Left Side: Video Preview Player */}
         {hasVideo ? (
@@ -31,7 +31,7 @@ export default function NpcPreviewModal({
               <i className="fa-solid fa-play text-primary" />
               {language === 'vi' ? 'Trình phát xem trước' : 'Preview Player'}
             </span>
-            <div className="relative w-[240px] h-[320px] rounded-2xl overflow-hidden border border-border-color shadow-[0_8px_32px_rgba(0,0,0,0.5)] bg-black/90 flex items-center justify-center">
+            <div className="relative aspect-[3/4] w-full max-w-[240px] rounded-lg sm:rounded-2xl overflow-hidden border border-border-color shadow-[0_8px_32px_rgba(0,0,0,0.5)] bg-black/90 flex items-center justify-center">
               <video
                 src={`${BACKEND_URL}/media/${activeVid}`}
                 autoPlay

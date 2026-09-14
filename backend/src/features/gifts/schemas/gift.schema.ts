@@ -33,7 +33,7 @@ export class Gift extends Document {
   @Prop({ type: String, required: false, default: '' })
   menuText?: string;
 
-  @Prop({ type: Boolean, required: true, default: true })
+  @Prop({ type: Boolean, required: true, default: false })
   menuShow: boolean;
 }
 

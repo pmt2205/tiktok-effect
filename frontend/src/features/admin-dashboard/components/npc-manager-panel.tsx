@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import GlassCard from '@/components/ui/glass-card';
 import Button from '@/components/ui/button';
 import Select from '@/components/ui/select';
@@ -19,8 +19,8 @@ export default function NpcManagerPanel() {
   const language = useAppSelector((state) => state.dashboard.language) || 'vi';
   const isAdmin = useAppSelector((state) => state.auth.user?.role === 'admin');
 
-  const npcCategories = useAppSelector((state) => state.dashboard.npcCategories) || [];
-  const users = useAppSelector((state) => state.dashboard.usersList) || [];
+  const npcCategories = useAppSelector((state) => state.dashboard.npcCategories);
+  const users = useAppSelector((state) => state.dashboard.usersList);
 
   // Current selections
   const [selectedUser, setSelectedUser] = useState('');
@@ -142,26 +142,17 @@ export default function NpcManagerPanel() {
     }
   }[language];
 
-  // Set default selected streamer and category
-  useEffect(() => {
-    if (users.length > 0 && !selectedUser) {
-      const firstStreamer = users.find((u) => u.role !== 'admin');
-      if (firstStreamer) {
-        setSelectedUser(firstStreamer.username);
-      }
-    }
-    if (npcCategories.length > 0 && !selectedCategory) {
-      setSelectedCategory(npcCategories[0].name);
-    }
-  }, [users, npcCategories, selectedUser, selectedCategory]);
+  // The first available options are derived until the administrator chooses one.
+  const activeUser = selectedUser || users.find((user) => user.role !== 'admin')?.username || '';
+  const activeCategory = selectedCategory || npcCategories[0]?.name || '';
 
   // Load NPC custom gifts
-  const fetchNpcGifts = async () => {
-    if (!selectedUser || !selectedCategory) return;
+  const fetchNpcGifts = useCallback(async () => {
+    if (!activeUser || !activeCategory) return;
     setGiftsLoading(true);
     try {
       const token = localStorage.getItem('auth_token');
-      const res = await fetch(`${BACKEND_URL}/api/gifts/npc?username=${selectedUser}&category=${selectedCategory}`, {
+      const res = await fetch(`${BACKEND_URL}/api/gifts/npc?username=${activeUser}&category=${activeCategory}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -174,11 +165,11 @@ export default function NpcManagerPanel() {
     } finally {
       setGiftsLoading(false);
     }
-  };
+  }, [activeUser, activeCategory, toast]);
 
   useEffect(() => {
-    fetchNpcGifts();
-  }, [selectedUser, selectedCategory]);
+    void Promise.resolve().then(fetchNpcGifts);
+  }, [fetchNpcGifts]);
 
   // Category CRUD
   const handleAddCategory = async (e: React.FormEvent) => {
@@ -230,7 +221,7 @@ export default function NpcManagerPanel() {
       if (res.ok) {
         dispatch(deleteNpcCategory(cat._id));
         toast.info(t.successDelCat);
-        if (selectedCategory === cat.name) {
+        if (activeCategory === cat.name) {
           setSelectedCategory('');
         }
       } else {
@@ -404,8 +395,8 @@ export default function NpcManagerPanel() {
       activeVideo: activeVideo || undefined,
       sounds,
       activeSound: activeSound || undefined,
-      username: selectedUser,
-      category: selectedCategory,
+      username: activeUser,
+      category: activeCategory,
     };
 
     try {
@@ -446,8 +437,8 @@ export default function NpcManagerPanel() {
       activeVideo: activeVideo || undefined,
       sounds,
       activeSound: activeSound || undefined,
-      username: selectedUser,
-      category: selectedCategory,
+      username: activeUser,
+      category: activeCategory,
     };
 
     try {
@@ -481,7 +472,7 @@ export default function NpcManagerPanel() {
 
     try {
       const token = localStorage.getItem('auth_token');
-      const res = await fetch(`${BACKEND_URL}/api/gifts/npc/${gift._id}?username=${selectedUser}&category=${selectedCategory}`, {
+      const res = await fetch(`${BACKEND_URL}/api/gifts/npc/${gift._id}?username=${activeUser}&category=${activeCategory}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -500,7 +491,7 @@ export default function NpcManagerPanel() {
 
   return (
     <div className="w-full flex flex-col gap-6 animate-[fade-in-up_0.6s_ease-out]">
-      <div className="sticky top-0 bg-[#07080d]/80 backdrop-blur-md z-30 flex flex-col gap-1.5 border-b border-border-color pb-4 pt-6 md:pt-8 -mt-6 md:-mt-8 select-none">
+      <div className="sticky top-0 bg-[#07080d]/80 backdrop-blur-md z-30 flex flex-col gap-1.5 border-b border-border-color pb-3 pt-1 md:pb-4 md:pt-8 md:-mt-8 select-none">
         <h2 className="font-header text-[1.4rem] font-bold text-white tracking-[0.5px] uppercase">{t.title}</h2>
         <p className="text-[0.88rem] text-text-muted">{language === 'vi' ? 'Quản lý toàn bộ thể loại và thiết lập quà tặng NPC động.' : 'Manage all categories and configurations of dynamic NPC gifts.'}</p>
       </div>
@@ -581,7 +572,7 @@ export default function NpcManagerPanel() {
             headerIcon={<i className="fa-solid fa-gift text-secondary" />}
             headerTitle={t.giftsTitle}
             headerActions={
-              isAdmin && selectedUser && selectedCategory && (
+              isAdmin && activeUser && activeCategory && (
                 <Button onClick={handleStartCreate} variant="gradient" className="rounded-xl">
                   <i className="fa-solid fa-plus-circle" /> {t.createBtn}
                 </Button>
@@ -592,7 +583,7 @@ export default function NpcManagerPanel() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4.5 mb-5 border-b border-border-color/60 pb-5">
               <Select
                 label={t.selectStreamer}
-                value={selectedUser}
+                value={activeUser}
                 options={users.filter(u => u.role !== 'admin').map((u) => ({
                   value: u.username,
                   label: u.username,
@@ -603,7 +594,7 @@ export default function NpcManagerPanel() {
 
               <Select
                 label={t.selectCategory}
-                value={selectedCategory}
+                value={activeCategory}
                 options={npcCategories.map((c) => ({
                   value: c.name,
                   label: c.displayName,
@@ -687,8 +678,8 @@ export default function NpcManagerPanel() {
 
       {/* Gift Creation / Editing Modal */}
       {isFormOpen && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-5 bg-black/75 backdrop-blur-sm animate-[fade-in_0.2s_ease-out]">
-          <div className="relative w-full max-w-[500px] bg-bg-surface border border-border-color rounded-2xl shadow-[0_12px_48px_rgba(0,0,0,0.6)] p-6 md:p-7 animate-[fade-in-up_0.3s_cubic-bezier(0.175,0.885,0.32,1.275)] flex flex-col gap-4.5">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center overflow-y-auto p-2 sm:p-5 bg-black/75 backdrop-blur-sm animate-[fade-in_0.2s_ease-out]">
+          <div className="relative my-auto w-full max-w-[500px] bg-bg-surface border border-border-color rounded-lg sm:rounded-2xl shadow-[0_12px_48px_rgba(0,0,0,0.6)] p-3 sm:p-6 md:p-7 animate-[fade-in-up_0.3s_cubic-bezier(0.175,0.885,0.32,1.275)] flex flex-col gap-4.5">
 
             <h3 className="font-header text-[1.25rem] font-bold text-white capitalize mb-1 border-b border-border-color pb-3 select-none flex items-center gap-2.5">
               <i className={`fa-solid ${editingGift ? 'fa-pen-to-square text-secondary' : 'fa-circle-plus text-primary animate-pulse'}`} />

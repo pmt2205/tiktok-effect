@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import BackgroundGlows from '@/components/layout/background-glows';
@@ -11,6 +11,30 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { initializeAuth, clearMessages } from '@/features/auth/store/auth-slice';
 import { BACKEND_URL } from '@/lib/constants';
 import { useToast } from '@/hooks/use-toast';
+
+interface GoogleCredentialResponse {
+  credential: string;
+}
+
+interface AuthResponse {
+  accessToken: string;
+  user: { username: string; role: 'admin' | 'user'; allowConnect?: boolean };
+}
+
+interface GoogleIdentityApi {
+  accounts: {
+    id: {
+      initialize: (options: { client_id: string; callback: (response: GoogleCredentialResponse) => void }) => void;
+      renderButton: (element: HTMLElement, options: Record<string, string | number>) => void;
+    };
+  };
+}
+
+declare global {
+  interface Window {
+    google?: GoogleIdentityApi;
+  }
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -31,7 +55,7 @@ export default function LoginPage() {
           token: savedToken, 
           user: JSON.parse(savedUser) 
         }));
-        router.push('/');
+        router.push('/dashboard');
       } catch {
         // Clear corrupt storage
         localStorage.removeItem('auth_token');
@@ -46,11 +70,11 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (token) {
-      router.push('/');
+      router.push('/dashboard');
     }
   }, [token, router]);
 
-  const handleGoogleCallback = async (response: any) => {
+  const handleGoogleCallback = useCallback(async (response: GoogleCredentialResponse) => {
     try {
       const tokenRes = await fetch(`${BACKEND_URL}/api/auth/google`, {
         method: 'POST',
@@ -59,13 +83,13 @@ export default function LoginPage() {
       });
       
       if (tokenRes.ok) {
-        const data = await tokenRes.json();
+        const data = await tokenRes.json() as AuthResponse;
         localStorage.setItem('auth_token', data.accessToken);
         localStorage.setItem('auth_user', JSON.stringify(data.user));
         
         dispatch(initializeAuth({ token: data.accessToken, user: data.user }));
         toast.success(language === 'vi' ? 'Đăng nhập thành công!' : 'Sign in successful!');
-        router.push('/');
+        router.push('/dashboard');
       } else {
         const errorText = await tokenRes.text();
         console.error('Google login failed:', errorText);
@@ -75,7 +99,7 @@ export default function LoginPage() {
       console.error('Network error during Google login:', err);
       toast.error(language === 'vi' ? 'Lỗi kết nối mạng!' : 'Network error!');
     }
-  };
+  }, [dispatch, language, router, toast]);
 
   useEffect(() => {
     if (token || !isLogin) return;
@@ -88,14 +112,16 @@ export default function LoginPage() {
     
     script.onload = () => {
       const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '142345860269-placeholder.apps.googleusercontent.com';
-      if ((window as any).google) {
-        (window as any).google.accounts.id.initialize({
+      if (window.google) {
+        window.google.accounts.id.initialize({
           client_id: clientId,
           callback: handleGoogleCallback,
         });
         
-        (window as any).google.accounts.id.renderButton(
-          document.getElementById('google-signin-button'),
+        const buttonHost = document.getElementById('google-signin-button');
+        if (!buttonHost) return;
+        window.google.accounts.id.renderButton(
+          buttonHost,
           { 
             theme: 'filled_black', 
             size: 'large', 
@@ -112,7 +138,7 @@ export default function LoginPage() {
         document.body.removeChild(script);
       }
     };
-  }, [token, isLogin]);
+  }, [token, isLogin, handleGoogleCallback]);
 
   const handleToggleAuth = () => {
     setIsLogin(!isLogin);
@@ -120,7 +146,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center p-5 bg-gradient-to-b from-[#020205] via-[#07080d] to-[#0c081a] overflow-hidden">
+    <div className="relative min-h-[100dvh] flex items-center justify-center p-3 sm:p-5 bg-gradient-to-b from-[#020205] via-[#07080d] to-[#0c081a] overflow-hidden">
       {/* 3D Twinkling Cosmic Starfield Layers */}
       <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.8)_1px,_transparent_1px)] bg-[size:180px_180px] bg-[position:0_0] pointer-events-none z-0 animate-twinkle" style={{ animationDuration: '5s' }} />
       <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.6)_1.5px,_transparent_1.5px)] bg-[size:280px_280px] bg-[position:40px_70px] pointer-events-none z-0 animate-twinkle" style={{ animationDuration: '8s', animationDelay: '1.5s' } as React.CSSProperties} />
@@ -129,9 +155,9 @@ export default function LoginPage() {
       <BackgroundGlows variant="login" />
       <ShootingStars />
 
-      <div className="relative z-10 w-full max-w-[420px] bg-bg-surface rounded-xl border border-transparent shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] p-8 md:p-10 transition-all duration-300 hover:shadow-[0_8px_40px_0_rgba(0,242,254,0.15)] hover:-translate-y-0.5 border-glow-animated">
+      <div className="relative z-10 w-full max-w-[420px] bg-bg-surface rounded-lg sm:rounded-xl border border-transparent shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] p-5 min-[380px]:p-6 sm:p-8 md:p-10 transition-all duration-300 hover:shadow-[0_8px_40px_0_rgba(0,242,254,0.15)] hover:-translate-y-0.5 border-glow-animated">
         <div className="text-center mb-8">
-          <div className="w-64 h-32 mb-2 mx-auto transition-all duration-300 hover:scale-105 select-none relative">
+          <div className="w-48 h-24 sm:w-64 sm:h-32 mb-2 mx-auto transition-all duration-300 hover:scale-105 select-none relative">
             <Image src="/logo.png" alt="TikTok Effect Auto Logo" fill className="object-contain" priority />
           </div>
           <h2 className="font-header text-[1.5rem] font-bold text-center text-white leading-tight tracking-[0.5px]">TIKTOK LIVE</h2>
@@ -140,7 +166,7 @@ export default function LoginPage() {
 
         {isLogin ? (
           <>
-            <LoginForm onSuccess={() => router.push('/')} />
+            <LoginForm onSuccess={() => router.push('/dashboard')} />
             
             <div className="flex items-center gap-3 my-4.5 select-none">
               <div className="h-[1px] bg-border-color flex-1 opacity-60" />

@@ -6,12 +6,10 @@ import Image from 'next/image';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { logout } from '@/features/auth/store/auth-slice';
 import { setLanguage } from '@/features/admin-dashboard/store/dashboard-slice';
-import { useToast } from '@/hooks/use-toast';
 
 export default function Header() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const toast = useToast();
   const user = useAppSelector((state) => state.auth.user);
   const language = useAppSelector((state) => state.dashboard.language) || 'vi';
   
@@ -24,8 +22,11 @@ export default function Header() {
 
   // Sync isLightMode state with document class on mount
   useEffect(() => {
-    const hasLightClass = document.documentElement.classList.contains('light-mode');
-    setIsLightMode(hasLightClass);
+    let mounted = true;
+    queueMicrotask(() => {
+      if (mounted) setIsLightMode(document.documentElement.classList.contains('light-mode'));
+    });
+    return () => { mounted = false; };
   }, []);
 
   const toggleTheme = () => {

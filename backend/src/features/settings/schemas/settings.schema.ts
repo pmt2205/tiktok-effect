@@ -20,6 +20,9 @@ export class Settings extends Document {
   @Prop({ required: true, default: 'single' })
   liveMode: string;
 
+  @Prop({ type: [Number], required: true, default: [] })
+  singleGiftIds: number[];
+
   @Prop({ required: true, default: 'anime' })
   activeNpcCategory: string;
 
@@ -79,6 +82,21 @@ export class Settings extends Document {
 
   @Prop({ required: true, default: 'silver' })
   jarColor: string;
+
+  @Prop({ required: true, default: false })
+  jarNameEnabled: boolean;
+
+  @Prop({ required: true, default: '' })
+  jarNameImage: string;
+
+  @Prop({ required: true, default: 0.55 })
+  jarNameScale: number;
+
+  @Prop({ required: true, default: 0 })
+  jarNameX: number;
+
+  @Prop({ required: true, default: -54 })
+  jarNameY: number;
 
   @Prop({ required: true, default: true })
   jarDanceEnabled: boolean;

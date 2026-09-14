@@ -1,48 +1,57 @@
 'use client';
+/* eslint-disable @next/next/no-img-element -- Gift icons are dynamic remote media selected by the streamer. */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState } from 'react';
+import dynamic from 'next/dynamic';
 import ConnectionPanel from '@/features/admin-dashboard/components/connection-panel';
 import { useUserEffects } from '@/features/user-dashboard/hooks/use-user-effects';
-import { Gift, NpcCategory } from '@/types';
+import { useNpcCatalog } from '@/features/user-dashboard/hooks/use-npc-catalog';
+import { GiftCatalogCard, GiftCatalogToolbar, SingleGiftPickerModal, useGiftCatalogFilter } from '@/features/gift-catalog';
+import { Gift, OverlaySettings } from '@/types';
 import { BACKEND_URL } from '@/lib/constants';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setSettings, setCustomGifts, setLikeLeaderboard } from '@/features/admin-dashboard/store/dashboard-slice';
 import { useToast } from '@/hooks/use-toast';
-import Button from '@/components/ui/button';
 import Select from '@/components/ui/select';
-import VideoPresetsModal from './video-presets-modal';
-import NpcPreviewModal from './npc-preview-modal';
-import GiftMenuDesignerPanel from './gift-menu-designer-panel';
-import GiftJarDesignerPanel from './gift-jar-designer-panel';
-import GiftTreeDesignerPanel from './gift-tree-designer-panel';
-import TtsDesignerPanel from './tts-designer-panel';
-import TopGifterDesignerPanel from './top-gifter-designer-panel';
-import LikeLeaderboardDesignerPanel from './like-leaderboard-designer-panel';
+import SettingsDraftBoundary from './settings-draft-boundary';
+import { QuickFeatureShortcuts, StreamSetupPanel } from '@/features/dashboard';
 import { UserSubTab } from '@/components/layout/user-sidebar';
+import { getSubscriptionPlan } from '@/lib/subscription-plans';
+
+const VideoPresetsModal = dynamic(() => import('./video-presets-modal'));
+const NpcPreviewModal = dynamic(() => import('./npc-preview-modal'));
+const GiftMenuDesignerPanel = dynamic(() => import('@/features/overlay-designers/menu/components/gift-menu-designer-panel'));
+const GiftJarDesignerPanel = dynamic(() => import('@/features/overlay-designers/jar/components/gift-jar-designer-panel'));
+const GiftTreeDesignerPanel = dynamic(() => import('@/features/overlay-designers/tree/components/gift-tree-designer-panel'));
+const TtsDesignerPanel = dynamic(() => import('@/features/overlay-designers/tts/components/tts-designer-panel'));
+const TopGifterDesignerPanel = dynamic(() => import('@/features/overlay-designers/top-gifter/components/top-gifter-designer-panel'));
+const LikeLeaderboardDesignerPanel = dynamic(() => import('@/features/overlay-designers/like-leaderboard/components/like-leaderboard-designer-panel'));
 
 export default function UserHomepage({
   activeSubTab = 'overview',
   onSelectSubTab,
   onConnect,
   onDisconnect,
-  onSendMessage,
   onSimulateEvent,
+  socketConnected,
 }: {
   activeSubTab?: UserSubTab;
   onSelectSubTab?: (tab: UserSubTab) => void;
   onConnect: (username: string) => void;
   onDisconnect: () => void;
-  onSendMessage: (receiver: string, message: string) => void;
-  onSimulateEvent?: (eventType: string, payload: any) => void;
+  onSimulateEvent?: (eventType: string, payload: unknown) => void;
+  socketConnected: boolean;
 }) {
   const dispatch = useAppDispatch();
   const settings = useAppSelector((state) => state.dashboard.settings);
+  const authUser = useAppSelector((state) => state.auth.user);
+  const subscriptionTier = authUser?.role === 'admin' ? 'promax' : authUser?.subscriptionTier || settings.subscriptionTier || 'free';
+  const subscriptionPlan = getSubscriptionPlan(subscriptionTier);
   const likeLeaderboard = useAppSelector((state) => state.dashboard.likeLeaderboard);
   const allowNpc = settings.allowNpc || false;
   const toast = useToast();
 
-  const [activeTab, setActiveTab] = useState<'single' | 'npc'>('single');
-  const [subTab, setSubTab] = useState<'catalog' | 'menu' | 'jar' | 'tree' | 'tts' | 'topgifter' | 'likeleaderboard'>('catalog');
+  const activeTab = settings.liveMode === 'npc' ? 'npc' : 'single';
 
   const handleSimulateTopGifter = () => {
     if (!onSimulateEvent) return;
@@ -106,97 +115,21 @@ export default function UserHomepage({
     dispatch(setLikeLeaderboard([]));
     toast.info(language === 'vi' ? 'Đã đặt lại Bảng Xếp Hạng Tap Tay!' : 'Reset Like Leaderboard!');
   };
-  const [npcCategory, setNpcCategory] = useState('anime');
-  const [npcGifts, setNpcGifts] = useState<Gift[]>([]);
-  const [npcLoading, setNpcLoading] = useState(false);
+  const npcCategory = settings.activeNpcCategory || 'anime';
   const [selectedNpcGift, setSelectedNpcGift] = useState<Gift | null>(null);
+  const [giftPickerOpen, setGiftPickerOpen] = useState(false);
+  const [savingGiftSelection, setSavingGiftSelection] = useState(false);
 
-  // Pending settings selection state
-  const [pendingMode, setPendingMode] = useState<'single' | 'npc'>('single');
-  const [pendingCategory, setPendingCategory] = useState('anime');
-  const [categories, setCategories] = useState<NpcCategory[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [coinRange, setCoinRange] = useState<string>('all');
+  // Keep an optimistic selection only while its save request is in flight.
+  const configuredMode = settings.liveMode === 'npc' ? 'npc' : 'single';
+  const configuredCategory = settings.activeNpcCategory || 'anime';
+  const [pendingMode, setPendingMode] = useState<'single' | 'npc'>(configuredMode);
+  const [pendingCategory, setPendingCategory] = useState(configuredCategory);
   const [savingSettings, setSavingSettings] = useState(false);
 
-  // Reset search query & coin range when tabs change
-  useEffect(() => {
-    setSearchQuery('');
-    setCoinRange('all');
-  }, [subTab, activeTab]);
-
-  // Sync tab with settings.liveMode
-  useEffect(() => {
-    if (settings.liveMode === 'npc') {
-      setActiveTab('npc');
-    } else {
-      setActiveTab('single');
-    }
-  }, [settings.liveMode]);
-
-  // Sync category with settings.activeNpcCategory
-  useEffect(() => {
-    if (settings.activeNpcCategory) {
-      setNpcCategory(settings.activeNpcCategory);
-    }
-  }, [settings.activeNpcCategory]);
-
-  // Sync pending local form states
-  useEffect(() => {
-    if (settings.liveMode) {
-      setPendingMode(settings.liveMode as 'single' | 'npc');
-    }
-    if (settings.activeNpcCategory) {
-      setPendingCategory(settings.activeNpcCategory);
-    }
-  }, [settings.liveMode, settings.activeNpcCategory]);
-
-  // Fetch available NPC categories
-  useEffect(() => {
-    if (allowNpc) {
-      const fetchCategories = async () => {
-        try {
-          const token = localStorage.getItem('auth_token');
-          const res = await fetch(`${BACKEND_URL}/api/settings/npc-categories`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          if (res.ok) {
-            const data = await res.json();
-            const allowedCats = settings.allowedNpcCategories || [];
-            const filtered = data.filter((c: any) => allowedCats.includes(c.name));
-            setCategories(filtered);
-          }
-        } catch (e) {
-          console.error('Failed to load categories:', e);
-        }
-      };
-      fetchCategories();
-    }
-  }, [allowNpc, settings.allowedNpcCategories]);
-
-  const fetchNpcGifts = async (cat: string) => {
-    setNpcLoading(true);
-    try {
-      const token = localStorage.getItem('auth_token');
-      const res = await fetch(`${BACKEND_URL}/api/gifts/npc?category=${cat}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setNpcGifts(data);
-      }
-    } catch (err) {
-      console.error('Failed to load NPC gifts:', err);
-    } finally {
-      setNpcLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (allowNpc) {
-      fetchNpcGifts(npcCategory);
-    }
-  }, [allowNpc, npcCategory]);
+  const displayedMode = savingSettings ? pendingMode : configuredMode;
+  const displayedCategory = savingSettings ? pendingCategory : configuredCategory;
+  const { categories, gifts: npcGifts, isLoading: npcLoading, saveMenuText: handleSaveNpcGiftMenuText } = useNpcCatalog({ enabled: allowNpc, category: npcCategory, allowedCategories: settings.allowedNpcCategories });
 
   const handleSaveSettings = async (mode: 'single' | 'npc', cat: string) => {
     setSavingSettings(true);
@@ -226,16 +159,16 @@ export default function UserHomepage({
   const handleModeChange = (mode: 'single' | 'npc') => {
     if (savingSettings) return;
     setPendingMode(mode);
-    handleSaveSettings(mode, pendingCategory);
+    handleSaveSettings(mode, displayedCategory);
   };
 
   const handleCategoryChange = (cat: string) => {
     if (savingSettings) return;
     setPendingCategory(cat);
-    handleSaveSettings(pendingMode, cat);
+    handleSaveSettings(displayedMode, cat);
   };
 
-  const handleSaveMenuSettings = async (updates: Partial<any>) => {
+  const handleSaveMenuSettings = async (updates: Partial<OverlaySettings>) => {
     try {
       const token = localStorage.getItem('auth_token');
       const res = await fetch(`${BACKEND_URL}/api/settings`, {
@@ -256,20 +189,33 @@ export default function UserHomepage({
     }
   };
 
-  const handleToggleSingle = (enabled: boolean) => {
-    handleSaveMenuSettings({ singleEnabled: enabled });
-  };
-
-  const handleToggleNpc = (enabled: boolean) => {
-    handleSaveMenuSettings({ npcEnabled: enabled });
-  };
-
   const handleToggleVideo = (enabled: boolean) => {
     handleSaveMenuSettings({ videoEnabled: enabled });
   };
 
   const handleToggleSound = (enabled: boolean) => {
     handleSaveMenuSettings({ soundEnabled: enabled });
+  };
+
+  const handleSaveSingleGiftSelection = async (singleGiftIds: number[]) => {
+    setSavingGiftSelection(true);
+    try {
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch(`${BACKEND_URL}/api/settings`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ singleGiftIds }),
+      });
+      if (!res.ok) throw new Error(`Failed to save gift selection (${res.status})`);
+      dispatch(setSettings(await res.json()));
+      setGiftPickerOpen(false);
+      toast.success(language === 'vi' ? 'Đã lưu danh sách quà Live Đơn.' : 'Single Live gifts saved.');
+    } catch (error) {
+      console.error('Failed to save Single Live gifts:', error);
+      toast.error(language === 'vi' ? 'Không thể lưu danh sách quà.' : 'Could not save gift selection.');
+    } finally {
+      setSavingGiftSelection(false);
+    }
   };
 
   const handleTriggerSimulation = (gift: Gift) => {
@@ -306,27 +252,6 @@ export default function UserHomepage({
     }
   };
 
-  const handleSaveNpcGiftMenuText = async (giftId: string, text: string, show: boolean) => {
-    try {
-      const token = localStorage.getItem('auth_token');
-      const res = await fetch(`${BACKEND_URL}/api/gifts/npc/${giftId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ menuText: text, menuShow: show, category: npcCategory })
-      });
-      if (res.ok) {
-        const updatedGifts = npcGifts.map(g => g._id === giftId ? { ...g, menuText: text, menuShow: show } : g);
-        setNpcGifts(updatedGifts);
-      }
-    } catch (err) {
-      console.error('Failed to save NPC gift menu text:', err);
-      toast.error('Failed to save NPC gift settings.');
-    }
-  };
-
   const {
     language,
     customGifts,
@@ -338,58 +263,16 @@ export default function UserHomepage({
     t,
   } = useUserEffects();
 
-  const COIN_RANGES = useMemo(() => [
-    { id: 'all', labelVi: 'Tất cả Xu', labelEn: 'All Coins', min: 0, max: Infinity },
-    { id: '1-9', labelVi: '1 - 9 Xu', labelEn: '1 - 9 Coins', min: 1, max: 9 },
-    { id: '10-99', labelVi: '10 - 99 Xu', labelEn: '10 - 99 Coins', min: 10, max: 99 },
-    { id: '100-999', labelVi: '100 - 999 Xu', labelEn: '100 - 999 Coins', min: 100, max: 999 },
-    { id: '1000-9999', labelVi: '1,000 - 9,999 Xu', labelEn: '1k - 9.9k Coins', min: 1000, max: 9999 },
-    { id: '10000+', labelVi: '≥ 10,000 Xu', labelEn: '10k+ Coins', min: 10000, max: Infinity },
-  ], []);
-
-  const filteredNpcGifts = useMemo(() => {
-    return npcGifts.filter((gift) => {
-      const q = searchQuery.toLowerCase().trim();
-      if (q) {
-        const matchName = gift.name.toLowerCase().includes(q);
-        const matchCoins = gift.coins.toString().includes(q);
-        const matchId = gift.giftId ? gift.giftId.toString().includes(q) : false;
-        if (!matchName && !matchCoins && !matchId) return false;
-      }
-      if (coinRange !== 'all') {
-        const range = COIN_RANGES.find((r) => r.id === coinRange);
-        if (range && (gift.coins < range.min || gift.coins > range.max)) {
-          return false;
-        }
-      }
-      return true;
-    });
-  }, [npcGifts, searchQuery, coinRange, COIN_RANGES]);
-
-  const filteredCustomGifts = useMemo(() => {
-    return customGifts.filter((gift) => {
-      const q = searchQuery.toLowerCase().trim();
-      if (q) {
-        const matchName = gift.name.toLowerCase().includes(q);
-        const matchCoins = gift.coins.toString().includes(q);
-        const matchId = gift.giftId ? gift.giftId.toString().includes(q) : false;
-        if (!matchName && !matchCoins && !matchId) return false;
-      }
-      if (coinRange !== 'all') {
-        const range = COIN_RANGES.find((r) => r.id === coinRange);
-        if (range && (gift.coins < range.min || gift.coins > range.max)) {
-          return false;
-        }
-      }
-      return true;
-    });
-  }, [customGifts, searchQuery, coinRange, COIN_RANGES]);
+  const { coinRanges: COIN_RANGES, searchQuery, setSearchQuery, coinRange, setCoinRange, filteredCustomGifts, filteredNpcGifts } = useGiftCatalogFilter(customGifts, npcGifts);
+  const singleGiftIds = settings.singleGiftIds || [];
+  const selectedSingleGifts = filteredCustomGifts.filter((gift) => singleGiftIds.includes(gift.giftId));
 
   return (
-    <div className="flex flex-col gap-6 p-5 md:p-8 w-full animate-[fade-in-up_0.6s_ease-out] relative z-10">
+    <div className="flex flex-col gap-5 p-3 min-[380px]:p-4 sm:gap-6 sm:p-5 md:p-8 w-full animate-[fade-in-up_0.6s_ease-out] relative z-10">
       {/* 1. OVERVIEW TAB: CONNECTION & LIVE MODE SETTINGS */}
       {activeSubTab === 'overview' && (
         <div className="flex flex-col gap-8 w-full">
+          <StreamSetupPanel socketConnected={socketConnected} />
           {/* Top Section: Connection & Livestream Settings */}
           {allowNpc ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
@@ -426,7 +309,7 @@ export default function UserHomepage({
                         onClick={() => handleModeChange('single')}
                         disabled={savingSettings}
                         className={`py-2 px-3 rounded-lg text-[0.8rem] font-bold transition-all duration-200 cursor-pointer outline-none flex items-center justify-center gap-1.5 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none ${
-                          pendingMode === 'single'
+                          displayedMode === 'single'
                             ? 'bg-secondary text-black shadow-[0_4px_12px_var(--secondary-glow)]'
                             : 'tab-btn-inactive'
                         }`}
@@ -439,7 +322,7 @@ export default function UserHomepage({
                         onClick={() => handleModeChange('npc')}
                         disabled={savingSettings}
                         className={`py-2 px-3 rounded-lg text-[0.8rem] font-bold transition-all duration-200 cursor-pointer outline-none flex items-center justify-center gap-1.5 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none ${
-                          pendingMode === 'npc'
+                          displayedMode === 'npc'
                             ? 'bg-primary text-white shadow-[0_4px_12px_var(--primary-glow)]'
                             : 'tab-btn-inactive'
                         }`}
@@ -451,10 +334,10 @@ export default function UserHomepage({
                   </div>
 
                   {/* Category Dropdown Selector */}
-                  {pendingMode === 'npc' && categories.length > 0 && (
+                  {displayedMode === 'npc' && categories.length > 0 && (
                     <Select
                       label={language === 'vi' ? 'Chủ đề NPC được chỉ định:' : 'Active NPC Theme:'}
-                      value={pendingCategory}
+                      value={displayedCategory}
                       options={categories.map((c) => ({
                         value: c.name,
                         label: c.displayName,
@@ -526,134 +409,7 @@ export default function UserHomepage({
             </div>
           )}
 
-          {/* Quick Feature Shortcuts Grid */}
-          <div className="flex flex-col gap-4">
-            <h3 className="font-header text-lg font-extrabold text-white flex items-center gap-2">
-              <i className="fa-solid fa-[#00f2fe] fa-wand-magic-sparkles text-secondary" />
-              <span>{language === 'vi' ? 'Lối Tắt Chức Năng Nổi Bật' : 'Feature Shortcuts'}</span>
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div
-                onClick={() => onSelectSubTab?.('catalog')}
-                className="glass-card p-5 rounded-2xl border border-white/10 hover:border-secondary/50 bg-[#0d0f18]/80 cursor-pointer transition-all duration-300 hover:scale-[1.02] flex flex-col gap-2"
-              >
-                <div className="w-10 h-10 rounded-xl bg-secondary/15 flex items-center justify-center text-secondary text-lg">
-                  <i className="fa-solid fa-gift" />
-                </div>
-                <span className="font-header font-bold text-white text-base">
-                  {language === 'vi' ? 'Danh Mục Quà & Hiệu Ứng' : 'Gift Catalog'}
-                </span>
-                <span className="text-xs text-text-muted">
-                  {language === 'vi'
-                    ? 'Xem danh sách quà tặng và gán hiệu ứng video MP4/âm thanh'
-                    : 'Map MP4 video & sound effects to TikTok gifts'}
-                </span>
-              </div>
-
-              <div
-                onClick={() => onSelectSubTab?.('menu')}
-                className="glass-card p-5 rounded-2xl border border-white/10 hover:border-primary/50 bg-[#0d0f18]/80 cursor-pointer transition-all duration-300 hover:scale-[1.02] flex flex-col gap-2"
-              >
-                <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center text-primary text-lg">
-                  <i className="fa-solid fa-layer-group" />
-                </div>
-                <span className="font-header font-bold text-white text-base">
-                  {language === 'vi' ? 'Menu Quà Tặng' : 'Gift Menu'}
-                </span>
-                <span className="text-xs text-text-muted">
-                  {language === 'vi'
-                    ? 'Cấu hình khung quà mẫu (KPop, Mây, Vàng, Vương Miện)'
-                    : 'Customize gift menu overlays & frames'}
-                </span>
-              </div>
-
-              <div
-                onClick={() => onSelectSubTab?.('jar')}
-                className="glass-card p-5 rounded-2xl border border-white/10 hover:border-secondary/50 bg-[#0d0f18]/80 cursor-pointer transition-all duration-300 hover:scale-[1.02] flex flex-col gap-2"
-              >
-                <div className="w-10 h-10 rounded-xl bg-secondary/15 flex items-center justify-center text-secondary text-lg">
-                  <i className="fa-solid fa-box-archive" />
-                </div>
-                <span className="font-header font-bold text-white text-base">
-                  {language === 'vi' ? 'Hũ Quà TikTok' : 'Gift Jar Physics'}
-                </span>
-                <span className="text-xs text-text-muted">
-                  {language === 'vi'
-                    ? 'Mô phỏng vật lý hũ rơi quà độc đáo trên livestream'
-                    : 'Interactive gift jar with physics simulation'}
-                </span>
-              </div>
-
-              <div
-                onClick={() => onSelectSubTab?.('tree')}
-                className="glass-card p-5 rounded-2xl border border-white/10 hover:border-primary/50 bg-[#0d0f18]/80 cursor-pointer transition-all duration-300 hover:scale-[1.02] flex flex-col gap-2"
-              >
-                <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center text-primary text-lg">
-                  <i className="fa-solid fa-tree" />
-                </div>
-                <span className="font-header font-bold text-white text-base">
-                  {language === 'vi' ? 'Cây Quà TikTok' : 'Gift Tree'}
-                </span>
-                <span className="text-xs text-text-muted">
-                  {language === 'vi'
-                    ? 'Hiệu ứng cây đung đưa nảy quả trái tim/quà tặng'
-                    : 'Swaying tree overlay blooming gifts'}
-                </span>
-              </div>
-
-              <div
-                onClick={() => onSelectSubTab?.('tts')}
-                className="glass-card p-5 rounded-2xl border border-white/10 hover:border-secondary/50 bg-[#0d0f18]/80 cursor-pointer transition-all duration-300 hover:scale-[1.02] flex flex-col gap-2"
-              >
-                <div className="w-10 h-10 rounded-xl bg-secondary/15 flex items-center justify-center text-secondary text-lg">
-                  <i className="fa-solid fa-volume-high" />
-                </div>
-                <span className="font-header font-bold text-white text-base">
-                  {language === 'vi' ? 'Giọng Nói TTS' : 'Text-To-Speech'}
-                </span>
-                <span className="text-xs text-text-muted">
-                  {language === 'vi'
-                    ? 'Tự động đọc bình luận comment người xem khi live'
-                    : 'Auto read viewer live comments aloud'}
-                </span>
-              </div>
-
-              <div
-                onClick={() => onSelectSubTab?.('topgifter')}
-                className="glass-card p-5 rounded-2xl border border-white/10 hover:border-yellow-500/50 bg-[#0d0f18]/80 cursor-pointer transition-all duration-300 hover:scale-[1.02] flex flex-col gap-2"
-              >
-                <div className="w-10 h-10 rounded-xl bg-yellow-500/15 flex items-center justify-center text-yellow-400 text-lg">
-                  <i className="fa-solid fa-crown" />
-                </div>
-                <span className="font-header font-bold text-white text-base">
-                  {language === 'vi' ? 'Top Gifter Vào Phòng' : 'Top Gifter Alert'}
-                </span>
-                <span className="text-xs text-text-muted">
-                  {language === 'vi'
-                    ? 'Hiện thông báo 4s khi đại gia tặng quà tham gia live'
-                    : 'Display 4s popup when VIP gifter enters live'}
-                </span>
-              </div>
-
-              <div
-                onClick={() => onSelectSubTab?.('likeleaderboard')}
-                className="glass-card p-5 rounded-2xl border border-white/10 hover:border-primary/50 bg-[#0d0f18]/80 cursor-pointer transition-all duration-300 hover:scale-[1.02] flex flex-col gap-2"
-              >
-                <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center text-primary text-lg">
-                  <i className="fa-solid fa-heart" />
-                </div>
-                <span className="font-header font-bold text-white text-base">
-                  {language === 'vi' ? 'BXH Tap Tay (Tym Live)' : 'Like Leaderboard'}
-                </span>
-                <span className="text-xs text-text-muted">
-                  {language === 'vi'
-                    ? 'Bảng xếp hạng Bục 3 Cột (Top 1, 2, 3) người thả tim nhiều nhất'
-                    : 'Real-time 3-Podium leaderboard for top likers'}
-                </span>
-              </div>
-
-            </div>
-          </div>
+          <QuickFeatureShortcuts language={language} onSelect={onSelectSubTab} />
         </div>
       )}
 
@@ -672,85 +428,16 @@ export default function UserHomepage({
                   : 'Search TikTok gifts and assign MP4 video or sound effects triggered when received.'}
               </p>
             </div>
+            {activeTab === 'single' && (
+              <button type="button" onClick={() => setGiftPickerOpen(true)} className="shrink-0 rounded-md bg-gradient-to-r from-primary to-secondary px-4 py-2.5 text-sm font-bold text-white shadow-[0_0_15px_var(--color-primary-glow)] transition-all duration-200 hover:-translate-y-0.5">
+                <i className="fa-solid fa-list-check mr-2" />
+                {language === 'vi' ? `Chọn quà (${singleGiftIds.length}/${Number.isFinite(subscriptionPlan.giftLimit) ? subscriptionPlan.giftLimit : '∞'})` : `Choose gifts (${singleGiftIds.length}/${Number.isFinite(subscriptionPlan.giftLimit) ? subscriptionPlan.giftLimit : '∞'})`}
+              </button>
+            )}
           </div>
 
           <div className="flex flex-col gap-5 w-full animate-[fade-in-up_0.4s_ease-out]">
-            {/* Search & Coin Range Filter Bar + Video & Sound Quick Controls */}
-            <div className="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4 w-full bg-black/20 p-3 rounded-2xl border border-border-color/40 backdrop-blur-md relative z-30">
-              {/* Text Search Input */}
-              <div className="relative w-full lg:max-w-xs shrink-0">
-                <input
-                  type="text"
-                  placeholder={language === 'vi' ? 'Tìm theo tên, ID hoặc số xu...' : 'Search name, ID or coins...'}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-bg-input border border-border-color rounded-xl pl-9 pr-8 py-2 text-white font-body text-[0.82rem] outline-none transition-all duration-200 placeholder:text-white/25 focus:border-secondary focus:ring-3 focus:ring-secondary-glow/25"
-                />
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[0.8rem]">
-                  <i className="fa-solid fa-magnifying-glass" />
-                </div>
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-white text-[0.8rem] cursor-pointer outline-none"
-                  >
-                    <i className="fa-solid fa-xmark" />
-                  </button>
-                )}
-              </div>
-
-              {/* Quick Video & Sound Toggles */}
-              <div className="flex items-center gap-3 shrink-0 select-none">
-                {/* Video toggle pill */}
-                <label className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-[0.78rem] font-bold cursor-pointer transition-all duration-200 ${
-                  (settings.videoEnabled !== false)
-                    ? 'bg-secondary/15 border-secondary text-white shadow-[0_0_8px_var(--color-secondary-glow)]'
-                    : 'bg-black/30 border-white/10 text-text-muted opacity-60'
-                }`}>
-                  <input
-                    type="checkbox"
-                    checked={settings.videoEnabled !== undefined ? settings.videoEnabled : true}
-                    onChange={(e) => handleToggleVideo(e.target.checked)}
-                    className="sr-only"
-                    disabled={savingSettings}
-                  />
-                  <i className={`fa-solid fa-video ${settings.videoEnabled !== false ? 'text-secondary animate-pulse' : 'text-text-muted'}`} />
-                  <span>{language === 'vi' ? 'Video Quà' : 'Gift Video'}</span>
-                  <span className={`w-2 h-2 rounded-full ${settings.videoEnabled !== false ? 'bg-secondary' : 'bg-white/20'}`} />
-                </label>
-
-                {/* Sound toggle pill */}
-                <label className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-[0.78rem] font-bold cursor-pointer transition-all duration-200 ${
-                  (settings.soundEnabled !== false)
-                    ? 'bg-primary/15 border-primary text-white shadow-[0_0_8px_var(--color-primary-glow)]'
-                    : 'bg-black/30 border-white/10 text-text-muted opacity-60'
-                }`}>
-                  <input
-                    type="checkbox"
-                    checked={settings.soundEnabled !== undefined ? settings.soundEnabled : true}
-                    onChange={(e) => handleToggleSound(e.target.checked)}
-                    className="sr-only"
-                    disabled={savingSettings}
-                  />
-                  <i className={`fa-solid fa-volume-high ${settings.soundEnabled !== false ? 'text-primary animate-pulse' : 'text-text-muted'}`} />
-                  <span>{language === 'vi' ? 'Âm Thanh Quà' : 'Gift Sound'}</span>
-                  <span className={`w-2 h-2 rounded-full ${settings.soundEnabled !== false ? 'bg-primary' : 'bg-white/20'}`} />
-                </label>
-              </div>
-
-              {/* Coin Range Dropdown Filter using Select component */}
-              <div className="w-full sm:w-52 shrink-0">
-                <Select
-                  value={coinRange}
-                  options={COIN_RANGES.map((r) => ({
-                    value: r.id,
-                    label: language === 'vi' ? `🪙 ${r.labelVi}` : `🪙 ${r.labelEn}`,
-                  }))}
-                  onChange={setCoinRange}
-                  className="mb-0"
-                />
-              </div>
-            </div>
+            <GiftCatalogToolbar language={language} searchQuery={searchQuery} onSearchChange={setSearchQuery} coinRange={coinRange} coinRanges={COIN_RANGES} onCoinRangeChange={setCoinRange} videoEnabled={settings.videoEnabled !== false} soundEnabled={settings.soundEnabled !== false} disabled={savingSettings} onVideoChange={handleToggleVideo} onSoundChange={handleToggleSound} />
 
             {activeTab === 'npc' ? (
               npcLoading ? (
@@ -763,54 +450,19 @@ export default function UserHomepage({
                   {language === 'vi' ? 'Không tìm thấy quà tặng phù hợp.' : 'No matching gifts found.'}
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
-                  {filteredNpcGifts.map((gift) => {
-                    const hasVideos = gift.videos && gift.videos.length > 0;
-                    const activeVid = gift.activeVideo || (gift.videos && gift.videos[0]) || '';
-
-                    return (
-                      <div
-                        key={gift._id}
-                        onClick={() => hasVideos && setSelectedNpcGift(gift)}
-                        className="aspect-[9/16] w-full max-w-[210px] mx-auto rounded-2xl overflow-hidden relative group cursor-pointer border border-border-color bg-bg-card backdrop-blur-md glass-shadow transition-all duration-300 hover:border-primary hover:shadow-[0_0_15px_rgba(255,0,80,0.25)] hover:-translate-y-1"
-                      >
-                        <div className="absolute top-3.5 right-3.5 z-10 px-2.5 py-0.5 rounded-full coin-badge backdrop-blur-md text-[0.7rem] font-semibold flex items-center gap-1 select-none">
-                          <span>⚡</span>
-                          <span>{gift.coins} {t.coins}</span>
-                        </div>
-                        <div className="absolute inset-0 flex flex-col items-center justify-center p-4 z-10">
-                          <div className="relative w-18 h-18 mb-4 transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6 flex items-center justify-center select-none filter drop-shadow-[0_0_8px_rgba(255,0,80,0.15)]">
-                            <img src={gift.icon} alt={gift.name} className="w-full h-full object-contain animate-gift-bob" />
-                          </div>
-                        </div>
-                        <div className="absolute bottom-0 left-0 right-0 p-3.5 gift-card-gradient z-10 flex flex-col items-center">
-                          <span className="font-header text-[0.9rem] font-bold text-text-main tracking-[0.5px] uppercase select-none text-center truncate w-full group-hover:text-primary transition-colors duration-150">
-                            {gift.name}
-                          </span>
-                          <span className="text-[0.62rem] text-text-muted mt-1 px-1.5 py-0.5 rounded-md bg-white/5 border border-white/10 truncate max-w-full select-none font-mono">
-                            {hasVideos ? `${activeVid}` : t.noMapping}
-                          </span>
-                        </div>
-                        {hasVideos && (
-                          <div className="absolute inset-0 card-hover-overlay backdrop-blur-xs flex flex-col items-center justify-center gap-2.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
-                            <div className="w-10.5 h-10.5 rounded-full bg-primary flex items-center justify-center text-white shadow-[0_0_15px_rgba(255,0,80,0.4)] transform scale-90 group-hover:scale-100 transition-transform duration-300">
-                              <i className="fa-solid fa-play text-[0.95rem] ml-0.5" />
-                            </div>
-                            <span className="text-[0.68rem] font-bold tracking-[1.5px] text-current uppercase select-none">XEM DEMO</span>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+                  {filteredNpcGifts.map((gift) => <GiftCatalogCard key={gift._id} gift={gift} accent="primary" mappedLabel={t.noMapping} previewLabel={language === 'vi' ? 'Xem demo' : 'Preview'} onPreview={() => setSelectedNpcGift(gift)} />)}
                 </div>
               )
-            ) : filteredCustomGifts.length === 0 ? (
+            ) : selectedSingleGifts.length === 0 ? (
               <div className="text-center py-16 text-[0.85rem] text-text-muted select-none">
-                {language === 'vi' ? 'Không tìm thấy quà tặng phù hợp.' : 'No matching gifts found.'}
+                <i className="fa-solid fa-gift mb-3 block text-3xl text-secondary" />
+                <p>{singleGiftIds.length === 0 ? (language === 'vi' ? 'Bạn chưa chọn quà cho Live Đơn.' : 'No gifts selected for Single Live.') : (language === 'vi' ? 'Không tìm thấy quà phù hợp với bộ lọc.' : 'No selected gifts match the filters.')}</p>
+                {singleGiftIds.length === 0 && <button type="button" onClick={() => setGiftPickerOpen(true)} className="mt-4 rounded-md border border-secondary bg-secondary/10 px-4 py-2 font-bold text-secondary transition-all duration-200 hover:bg-secondary hover:text-black">{language === 'vi' ? `Chọn ${Number.isFinite(subscriptionPlan.giftLimit) ? `tối đa ${subscriptionPlan.giftLimit}` : 'không giới hạn'} quà` : `Choose ${Number.isFinite(subscriptionPlan.giftLimit) ? `up to ${subscriptionPlan.giftLimit}` : 'unlimited'} gifts`}</button>}
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
-                {filteredCustomGifts.map((gift) => {
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+                {selectedSingleGifts.map((gift) => {
                   const hasVideos = gift.videos && gift.videos.length > 0;
 
                   return (
@@ -877,46 +529,56 @@ export default function UserHomepage({
 
       {/* 4. OTHER OVERLAY SETTINGS TABS */}
       {activeSubTab === 'menu' && (
-        <GiftMenuDesignerPanel
+        <SettingsDraftBoundary revision={[activeTab, settings.menuTitle, settings.menuX, settings.menuY, settings.menuScale, settings.menuColumns, settings.menuScrollThreshold, settings.menuFrameScale].join('|')}>
+          <GiftMenuDesignerPanel
           language={language}
           settings={settings}
           customGifts={customGifts}
           npcGifts={npcGifts}
           activeTab={activeTab}
-          savingSettings={savingSettings}
           onSaveSettings={handleSaveMenuSettings}
           onSaveGiftText={handleSaveGiftMenuText}
           onSaveNpcGiftText={handleSaveNpcGiftMenuText}
-        />
+          maxMenuGifts={subscriptionPlan.menuGiftLimit}
+          />
+        </SettingsDraftBoundary>
       )}
       {activeSubTab === 'jar' && (
-        <GiftJarDesignerPanel
+        <SettingsDraftBoundary revision={[settings.jarX, settings.jarY, settings.jarScale, settings.jarGiftSize, settings.jarFallSpeed, settings.jarDanceScale, settings.jarDanceOffsetX, settings.jarColor, settings.jarNameEnabled, settings.jarNameImage, settings.jarNameScale, settings.jarNameX, settings.jarNameY].join('|')}>
+          <GiftJarDesignerPanel
           language={language}
           settings={settings}
           savingSettings={savingSettings}
           onSaveSettings={handleSaveMenuSettings}
           onSimulateEvent={onSimulateEvent}
-        />
+          fullOptions={subscriptionPlan.fullJar}
+          />
+        </SettingsDraftBoundary>
       )}
       {activeSubTab === 'tree' && (
-        <GiftTreeDesignerPanel
+        <SettingsDraftBoundary revision={[settings.treeX, settings.treeY, settings.treeScale, settings.treeGiftSize].join('|')}>
+          <GiftTreeDesignerPanel
           language={language}
           settings={settings}
           savingSettings={savingSettings}
           onSaveSettings={handleSaveMenuSettings}
           onSimulateEvent={onSimulateEvent}
-        />
+          fullOptions={subscriptionPlan.fullTree}
+          />
+        </SettingsDraftBoundary>
       )}
-      {activeSubTab === 'tts' && (
-        <TtsDesignerPanel
+      {activeSubTab === 'tts' && subscriptionPlan.premiumFeatures && (
+        <SettingsDraftBoundary revision={[settings.ttsEnabled, settings.ttsVoice, settings.ttsRate, settings.ttsPitch, settings.ttsVolume, settings.ttsTemplate, settings.ttsMaxChars, settings.ttsFilterEmoji, settings.ttsFilterBadWords].join('|')}>
+          <TtsDesignerPanel
           language={language}
           settings={settings}
           savingSettings={savingSettings}
           onSaveSettings={handleSaveMenuSettings}
           onSimulateEvent={onSimulateEvent}
-        />
+          />
+        </SettingsDraftBoundary>
       )}
-      {activeSubTab === 'topgifter' && (
+      {activeSubTab === 'topgifter' && subscriptionPlan.premiumFeatures && (
         <TopGifterDesignerPanel
           language={language}
           settings={settings}
@@ -924,7 +586,7 @@ export default function UserHomepage({
           onSimulateTopGifter={handleSimulateTopGifter}
         />
       )}
-      {activeSubTab === 'likeleaderboard' && (
+      {activeSubTab === 'likeleaderboard' && subscriptionPlan.premiumFeatures && (
         <LikeLeaderboardDesignerPanel
           language={language}
           settings={settings}
@@ -932,6 +594,22 @@ export default function UserHomepage({
           onSaveSettings={handleSaveMenuSettings}
           onSimulateLike={handleSimulateLike}
           onResetLikeLeaderboard={handleResetLikeLeaderboard}
+        />
+      )}
+
+      {(['tts', 'topgifter', 'likeleaderboard'] as UserSubTab[]).includes(activeSubTab) && !subscriptionPlan.premiumFeatures && (
+        <div className="glass-card mx-auto flex max-w-xl flex-col items-center gap-3 rounded-lg p-8 text-center"><i className="fa-solid fa-lock text-3xl text-primary" /><h2 className="font-header text-xl font-bold text-white">{language === 'vi' ? 'Tính năng dành cho Pro Max' : 'Pro Max feature'}</h2><p className="text-sm text-text-muted">{language === 'vi' ? 'Nâng cấp Pro Max 299.000đ để dùng TTS, BXH Tap Tay và Top Gifter vào live.' : 'Upgrade to Pro Max for TTS, Like Leaderboard and Top Gifter alerts.'}</p></div>
+      )}
+
+      {giftPickerOpen && (
+        <SingleGiftPickerModal
+          gifts={customGifts}
+          selectedIds={singleGiftIds}
+          language={language}
+          maxGifts={subscriptionPlan.giftLimit}
+          saving={savingGiftSelection}
+          onClose={() => !savingGiftSelection && setGiftPickerOpen(false)}
+          onSave={handleSaveSingleGiftSelection}
         />
       )}
 

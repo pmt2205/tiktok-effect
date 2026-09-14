@@ -1,7 +1,10 @@
 'use client';
+/* eslint-disable @next/next/no-img-element -- OBS overlay renders dynamic TikTok and local media URLs that cannot use Next image optimization. */
 
 import React, { useEffect, useRef, useMemo, useImperativeHandle, forwardRef } from 'react';
 import { GiftEvent, OverlaySettings } from '@/types';
+import { getJarImage } from '@/features/overlay/lib/jar-assets';
+import { getJarBottomY } from '@/features/overlay/lib/jar-geometry';
 
 interface JarGift {
   id: string;
@@ -28,23 +31,6 @@ export interface GiftJarOverlayRef {
 interface GiftJarOverlayProps {
   settings: OverlaySettings;
 }
-
-const getJarBottomY = (x: number, jarType?: string): number => {
-  if (jarType === 'promax') {
-    const a = 80, b = 35, cy = 231;
-    const dx = Math.min(1, Math.max(-1, (x - 160) / a));
-    return cy + b * Math.sqrt(1 - dx * dx);
-  }
-  if (jarType === 'pro') {
-    const a = x < 160 ? 137 : 100;
-    const dx = Math.min(1, Math.max(-1, (x - 160) / a));
-    return 305 + 63 * Math.sqrt(1 - dx * dx);
-  }
-  // Standard Jar (Symmetric jar.png)
-  const a = 90, b = 46, cy = 286;
-  const dx = Math.min(1, Math.max(-1, (x - 161) / a));
-  return cy + b * Math.sqrt(1 - dx * dx);
-};
 
 export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>(
   ({ settings }, ref) => {
@@ -224,7 +210,6 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
       if (!ctx) return;
 
       let animationFrameId: number;
-      const loadedImages: Record<string, HTMLImageElement> = {};
 
       const updatePhysics = () => {
         const gifts = jarGiftsRef.current;
@@ -801,13 +786,7 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
             sCtx.shadowColor = 'rgba(0, 0, 0, 0.3)';
             sCtx.shadowBlur = 4;
 
-            let img = loadedImages[p.iconUrl];
-            if (!img) {
-              img = new Image();
-              img.referrerPolicy = 'no-referrer';
-              img.src = p.iconUrl;
-              img.onload = () => { loadedImages[p.iconUrl] = img; };
-            }
+            const img = getJarImage(p.iconUrl);
 
             if (img && img.complete && img.naturalWidth > 0) {
               sCtx.drawImage(img, -p.radius, -p.radius, p.radius * 2, p.radius * 2);
@@ -834,13 +813,7 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
           ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
           ctx.shadowBlur = 4;
 
-          let img = loadedImages[p.iconUrl];
-          if (!img) {
-            img = new Image();
-            img.referrerPolicy = 'no-referrer';
-            img.src = p.iconUrl;
-            img.onload = () => { loadedImages[p.iconUrl] = img; };
-          }
+          const img = getJarImage(p.iconUrl);
 
           if (img && img.complete && img.naturalWidth > 0) {
             ctx.drawImage(img, -DRAW_R, -DRAW_R, DRAW_R * 2, DRAW_R * 2);
@@ -862,7 +835,7 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
       return () => {
         cancelAnimationFrame(animationFrameId);
       };
-    }, [settings.jarEnabled, settings.jarClearedAt]);
+    }, [settings.jarEnabled, settings.jarClearedAt, settings.jarFallSpeed, settings.jarGiftSize, settings.jarScale, settings.jarType, settings.jarX, settings.jarY]);
 
     const jarImages = useMemo(() => {
       const jarType = settings.jarType || 'standard';
@@ -1001,7 +974,23 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
             />
           )}
 
-          {/* Layer 4: Dance Mascot Decoration (positioned beside jar) */}
+          {/* Layer 4: Pro Max name plate anchored to the upper jar rim. */}
+          {settings.jarNameEnabled && settings.jarNameImage && (
+            <img
+              src={settings.jarNameImage}
+              alt=""
+              className="absolute z-4 w-[360px] max-w-none object-contain pointer-events-none select-none transition-all duration-300"
+              style={{
+                left: `${160 + (settings.jarNameX || 0)}px`,
+                top: `${settings.jarNameY !== undefined ? settings.jarNameY : -54}px`,
+                transform: `translateX(-50%) scale(${settings.jarNameScale !== undefined ? settings.jarNameScale : 0.55})`,
+                transformOrigin: 'top center',
+                filter: 'drop-shadow(0 5px 10px rgba(0,0,0,0.45))',
+              }}
+            />
+          )}
+
+          {/* Layer 5: Dance Mascot Decoration (positioned beside jar) */}
           {settings.jarDanceEnabled !== false && (
             <canvas
               ref={danceCanvasRef}

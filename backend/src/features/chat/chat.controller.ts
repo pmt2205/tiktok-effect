@@ -31,6 +31,7 @@ export class ChatController {
   @Post('upload')
   @UseInterceptors(
     FileInterceptor('file', {
+      limits: { fileSize: 10 * 1024 * 1024, files: 1 },
       storage: diskStorage({
         destination: join(process.cwd(), 'public', 'media'),
         filename: (req: any, file: any, callback: any) => {
@@ -44,7 +45,7 @@ export class ChatController {
         },
       }),
       fileFilter: (req: any, file: any, callback: any) => {
-        if (!file.originalname.match(/\.(jpg|jpeg|png|gif|webp|mp4)$/i)) {
+        if (!file.mimetype.match(/^(image\/(jpeg|png|gif|webp)|video\/mp4)$/)) {
           return callback(new Error('Only image and video files are allowed!'), false);
         }
         callback(null, true);

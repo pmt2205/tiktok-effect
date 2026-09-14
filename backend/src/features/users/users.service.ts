@@ -8,7 +8,9 @@ export class UsersService {
   constructor(@InjectModel(User.name) private readonly userModel: Model<User>) {}
 
   async findByUsername(username: string): Promise<User | null> {
-    return this.userModel.findOne({ username }).exec();
+    const normalizedUsername = username.trim();
+    const escapedUsername = normalizedUsername.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return this.userModel.findOne({ username: new RegExp(`^${escapedUsername}$`, 'i') }).exec();
   }
 
   async create(username: string, passwordHash: string, role: string): Promise<User> {
@@ -28,7 +30,7 @@ export class UsersService {
     return this.userModel.findByIdAndDelete(id).exec();
   }
 
-  async updatePermissions(id: string, permissions: { allowConnect?: boolean; allowNpc?: boolean; allowedNpcCategories?: string[] }): Promise<User | null> {
+  async updatePermissions(id: string, permissions: { allowConnect?: boolean; allowNpc?: boolean; allowedNpcCategories?: string[]; subscriptionTier?: 'free' | 'pro' | 'promax' }): Promise<User | null> {
     return this.userModel.findByIdAndUpdate(id, { $set: permissions }, { new: true }).select('-passwordHash').exec();
   }
 }

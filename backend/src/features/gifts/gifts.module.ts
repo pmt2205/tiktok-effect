@@ -4,6 +4,7 @@ import { GiftsController } from './gifts.controller';
 import { GiftsService } from './gifts.service';
 import { Gift, GiftSchema } from './schemas/gift.schema';
 import { NpcGift, NpcGiftSchema } from './schemas/npc-gift.schema';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import { NpcGift, NpcGiftSchema } from './schemas/npc-gift.schema';
       { name: Gift.name, schema: GiftSchema },
       { name: NpcGift.name, schema: NpcGiftSchema },
     ]),
+    UsersModule,
   ],
   controllers: [GiftsController],
   providers: [GiftsService],

@@ -17,9 +17,14 @@ import { UsersService } from '../users/users.service';
 import { ChatService } from '../chat/chat.service';
 import { TiktokStatus, ChatEvent, GiftEvent, TopGifterJoinEvent } from '../../common/interfaces/events.interface';
 
-@WebSocketGateway({
+  @WebSocketGateway({
   cors: {
-    origin: '*',
+    origin: [
+      'http://localhost:3000',
+      'http://127.0.0.1:3000',
+      'https://tiktokeffect.io.vn',
+      'https://www.tiktokeffect.io.vn',
+    ],
   },
 })
 export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit {
@@ -111,11 +116,6 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
       } catch (err: any) {
         this.logger.warn(`Failed to verify handshake token: ${err.message}`);
       }
-    }
-
-    // 2. Try to get explicit username (for public overlays)
-    if (!username && query.username) {
-      username = query.username as string;
     }
 
     if (!username) {
@@ -219,12 +219,17 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
     const targetUsername = (isAdmin && packet.targetUsername) ? packet.targetUsername : username;
  
     const adminCommands = ['connect-stream', 'disconnect-stream', 'simulate-event', 'subscribe-streamer'];
+    if (packet.type && !['get-status'].includes(packet.type) && !packet.token) {
+      client.emit('event', { type: 'error', data: 'Unauthorized: token required' });
+      return;
+    }
     if (adminCommands.includes(packet.type)) {
       try {
         if (!packet.token) {
           throw new Error('No authentication token provided');
         }
         const decoded = this.jwtService.verify(packet.token);
+        if (decoded.scope === 'overlay') throw new Error('Overlay tokens cannot issue commands');
         
         if (packet.type === 'connect-stream' || packet.type === 'disconnect-stream') {
           const dbUser = await this.usersService.findByUsername(decoded.username);
