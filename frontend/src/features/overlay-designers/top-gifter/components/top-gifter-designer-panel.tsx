@@ -31,7 +31,7 @@ export default function TopGifterDesignerPanel({
   const isEnabled = settings.topGifterEnabled !== false;
 
   return (
-    <div className="flex flex-col gap-6 w-full animate-[fade-in-up_0.4s_ease-out] glass-card p-6 rounded-2xl border border-border-color bg-[#0d0f18]/70 backdrop-blur-2xl">
+    <div className="flex flex-col gap-6 w-full animate-[fade-in-up_0.4s_ease-out] glass-card p-6 rounded-2xl border border-border-color bg-bg-card backdrop-blur-2xl">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-border-color/30 pb-4">
         <div>
           <h3 className="font-header text-xl font-extrabold text-white flex items-center gap-2">
@@ -54,7 +54,7 @@ export default function TopGifterDesignerPanel({
         {/* Left Column: Form Controls */}
         <div className="lg:col-span-6 flex flex-col gap-4">
           {/* Toggle Switch */}
-          <div className="flex flex-col gap-2 p-4 rounded-xl bg-white/5 border border-white/10">
+          <div className="flex flex-col gap-2 p-4 rounded-xl bg-bg-input border border-border-color">
             <div className="flex justify-between items-center">
               <span className="text-sm font-bold text-white">
                 {language === 'vi' ? 'Bật thông báo Top Gifter' : 'Enable Top Gifter Alert'}
@@ -80,7 +80,7 @@ export default function TopGifterDesignerPanel({
           {isEnabled && (
             <div className="flex flex-col gap-4 animate-[fade-in-up_0.25s_ease-out]">
               {/* Display Duration */}
-              <div className="flex flex-col gap-2 p-4 rounded-xl bg-white/5 border border-white/10">
+              <div className="flex flex-col gap-2 p-4 rounded-xl bg-bg-input border border-border-color">
                 <label className="text-sm font-bold text-white">
                   {language === 'vi' ? 'Thời gian hiển thị (Giây):' : 'Display Duration (Sec):'}
                 </label>
@@ -94,7 +94,7 @@ export default function TopGifterDesignerPanel({
                     onChange={(e) => onSaveSettings({ topGifterDuration: Number(e.target.value) })}
                     className="w-full accent-primary cursor-pointer"
                   />
-                  <span className="text-sm font-extrabold text-secondary font-mono w-10 text-center">
+                  <span className="text-sm font-extrabold text-primary font-mono w-10 text-center">
                     {settings.topGifterDuration !== undefined ? settings.topGifterDuration : 4}s
                   </span>
                 </div>
@@ -104,7 +104,7 @@ export default function TopGifterDesignerPanel({
               </div>
 
               {/* Rank Limit */}
-              <div className="flex flex-col gap-2 p-4 rounded-xl bg-white/5 border border-white/10">
+              <div className="flex flex-col gap-2 p-4 rounded-xl bg-bg-input border border-border-color">
                 <label className="text-sm font-bold text-white">
                   {language === 'vi' ? 'Giới hạn Xếp Hạng Top:' : 'Top Rank Limit:'}
                 </label>
@@ -122,13 +122,13 @@ export default function TopGifterDesignerPanel({
               </div>
 
               {/* Quick Action Test Button */}
-              <div className="flex flex-col gap-2 p-4 rounded-xl bg-white/5 border border-white/10">
+              <div className="flex flex-col gap-2 p-4 rounded-xl bg-bg-input border border-border-color">
                 <span className="text-sm font-bold text-white">
                   {language === 'vi' ? 'Hành động thử nghiệm:' : 'Test Action:'}
                 </span>
                 <Button
                   onClick={onSimulateTopGifter}
-                  className="w-full bg-gradient-to-r from-[#ff0050] to-[#d0003c] text-white shadow-[0_4px_16px_var(--primary-glow)] hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 py-2.5"
+                  className="w-full bg-gradient-to-r from-primary to-accent text-white shadow-[0_4px_16px_var(--primary-glow)] hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 py-2.5"
                 >
                   <i className="fa-solid fa-play" />
                   <span>

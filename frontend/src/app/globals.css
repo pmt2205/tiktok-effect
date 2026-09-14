@@ -348,22 +348,22 @@ body {
 
 /* White-Pink Theme Light Mode Variable Overrides */
 .light-mode {
-  --color-bg-dark: #fff5f7;
+  --color-bg-dark: #fff5f8;
   --color-bg-surface: #ffffff;
-  --color-bg-card: rgba(255, 255, 255, 0.7);
-  --color-bg-card-hover: rgba(255, 255, 255, 0.9);
-  --color-bg-input: rgba(255, 255, 255, 0.95);
-  --color-border-color: rgba(255, 0, 80, 0.08);
-  --color-border-glow: rgba(255, 0, 80, 0.15);
+  --color-bg-card: rgba(255, 255, 255, 0.88);
+  --color-bg-card-hover: rgba(255, 255, 255, 0.98);
+  --color-bg-input: rgba(255, 240, 245, 0.9);
+  --color-border-color: rgba(255, 0, 80, 0.12);
+  --color-border-glow: rgba(255, 0, 80, 0.25);
 
   --color-primary: #ff0050;
-  --color-primary-glow: rgba(255, 0, 80, 0.2);
-  --color-secondary: #ff3366;
-  --color-secondary-glow: rgba(255, 51, 102, 0.15);
+  --color-primary-glow: rgba(255, 0, 80, 0.25);
+  --color-secondary: #0088ff;
+  --color-secondary-glow: rgba(0, 136, 255, 0.2);
 
-  --color-text-main: #2d0e15;
-  --color-text-secondary: #5e3b43;
-  --color-text-muted: #9c7c83;
+  --color-text-main: #1c1018;
+  --color-text-secondary: #4a3443;
+  --color-text-muted: #826b7b;
 }
 
 /* Modern Card Shadows and Hover elevations in Light Mode */
@@ -375,99 +375,83 @@ body {
 }
 
 .light-mode section.border-glow-animated::before {
-  background: conic-gradient(from var(--border-angle), #ff0050 0deg, transparent 180deg, #ff3366 360deg) !important;
-  opacity: 0.15 !important;
+  background: conic-gradient(from var(--border-angle), #ff0050 0deg, transparent 180deg, #ff0050 360deg) !important;
+  opacity: 0.25 !important;
 }
 
 .light-mode section:hover {
   transform: translateY(-2px) !important;
   background-color: var(--color-bg-card-hover) !important;
   border-color: var(--color-border-glow) !important;
-  /* Ultra-feathered pink shadow on hover */
-  box-shadow: 0 20px 40px -15px rgba(255, 0, 80, 0.06), 0 0 0 1px rgba(255, 0, 80, 0.02) !important;
+  box-shadow: 0 20px 40px -15px rgba(255, 0, 80, 0.08), 0 0 0 1px rgba(255, 0, 80, 0.03) !important;
 }
 
-/* Light mode adjustments for active/hover list items */
-.light-mode .bg-\[\#101220\]\/40 {
-  background-color: rgba(255, 0, 80, 0.012) !important;
+/* Light Mode Overrides for Glass Cards & Containers */
+.light-mode .glass-card {
+  background-color: rgba(255, 255, 255, 0.88) !important;
+  border-color: rgba(255, 0, 80, 0.12) !important;
+  box-shadow: 0 10px 30px rgba(255, 0, 80, 0.06) !important;
 }
 
-.light-mode .bg-\[\#101220\]\/60 {
-  background-color: rgba(255, 0, 80, 0.022) !important;
+.light-mode .glass-card:hover {
+  background-color: rgba(255, 255, 255, 0.98) !important;
+  border-color: rgba(255, 0, 80, 0.3) !important;
+  box-shadow: 0 15px 35px rgba(255, 0, 80, 0.14) !important;
 }
 
-.light-mode .bg-\[\#0c0f18\]\/80 {
-  background-color: rgba(255, 0, 80, 0.012) !important;
+.light-mode .bg-bg-surface {
+  background-color: #ffffff !important;
 }
 
-.light-mode .bg-\[\#07080d\]\/60 {
-  background-color: rgba(255, 0, 80, 0.018) !important;
+.light-mode .bg-bg-dark\/80 {
+  background-color: rgba(255, 245, 248, 0.92) !important;
 }
 
-.light-mode .bg-\[\#07080d\]\/80 {
-  background-color: rgba(255, 245, 247, 0.9) !important;
-  border-color: rgba(255, 0, 80, 0.04) !important;
+.light-mode .bg-black\/30,
+.light-mode .bg-black\/40,
+.light-mode .bg-black\/50,
+.light-mode .bg-black\/60 {
+  background-color: rgba(255, 240, 245, 0.85) !important;
 }
 
-/* General interactive button hover polish */
-.light-mode button:not(.bg-gradient-to-r):not(.bg-secondary):hover {
-  background-color: rgba(255, 0, 80, 0.04) !important;
-  color: #ff0050 !important;
-}
-
-.light-mode button.bg-gradient-to-r:hover {
-  opacity: 0.95;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(255, 0, 80, 0.22) !important;
-}
-
-.light-mode .text-secondary {
-  color: #ff3366 !important;
-}
-
-/* Global Light Mode overrides for hardcoded Tailwind shadow classes */
-.light-mode [class*="shadow-[0_8px_32px"],
-.light-mode [class*="shadow-[0_12px_48px"],
-.light-mode [class*="shadow-2xl"] {
-  box-shadow: 0 8px 32px 0 rgba(255, 0, 80, 0.05) !important;
-}
-
-/* Global Light Mode overrides for hardcoded text-white */
+/* Global Light Mode overrides for text elements */
 .light-mode h1,
 .light-mode h2,
 .light-mode h3,
 .light-mode h4,
 .light-mode th,
+.light-mode .landing-heading,
 .light-mode .text-white {
   color: var(--color-text-main) !important;
 }
 
-/* Keep text white in buttons, colored badges, and overlays */
+/* Preserve white text for primary & gradient buttons, badges & active overlays */
 .light-mode button.bg-gradient-to-r,
 .light-mode button.bg-primary,
 .light-mode button.bg-secondary,
 .light-mode button.bg-gradient-to-r *,
 .light-mode button.bg-primary *,
 .light-mode button.bg-secondary *,
+.light-mode a.bg-gradient-to-r,
+.light-mode a.bg-primary,
+.light-mode a.bg-secondary,
+.light-mode a.bg-gradient-to-r *,
+.light-mode a.bg-primary *,
+.light-mode a.bg-secondary *,
 .light-mode .bg-primary,
 .light-mode .bg-secondary,
 .light-mode .bg-primary *,
-.light-mode .bg-secondary * {
+.light-mode .bg-secondary *,
+.light-mode .keep-white,
+.light-mode .keep-white * {
   color: #ffffff !important;
 }
 
-/* Let secondary elements take secondary color where appropriate */
-.light-mode .text-secondary {
-  color: var(--color-secondary) !important;
+.light-mode .text-text-secondary {
+  color: var(--color-text-secondary) !important;
 }
 
-/* Convert dark backdrops to light pink-white translucencies */
-.light-mode .bg-black\/15,
-.light-mode .bg-black\/20,
-.light-mode .bg-black\/25,
-.light-mode .bg-black\/35,
-.light-mode .bg-black\/40,
-.light-mode .bg-black\/45 {
-  background-color: rgba(255, 0, 80, 0.03) !important;
+.light-mode .text-text-muted {
+  color: var(--color-text-muted) !important;
 }
 

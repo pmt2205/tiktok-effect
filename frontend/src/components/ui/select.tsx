@@ -52,20 +52,20 @@ export default function Select({ label, value, options, onChange, disabled, id, 
         type="button"
         disabled={disabled}
         onClick={() => !disabled && setIsOpen(!isOpen)}
-        className={`w-full bg-bg-input border ${isOpen ? 'border-secondary ring-3 ring-secondary-glow/25' : 'border-border-color'} rounded-md px-4 py-3 text-text-main font-body text-[0.88rem] flex justify-between items-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 outline-none select-none text-left`}
+        className={`w-full bg-bg-input border ${isOpen ? 'border-primary ring-3 ring-primary-glow/25' : 'border-border-color'} rounded-xl px-4 py-3 text-text-main font-body text-[0.88rem] flex justify-between items-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 outline-none select-none text-left`}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-labelledby={`${id}-label`}
       >
         <span className="truncate">{selectedOption?.label}</span>
-        <span className={`transition-transform duration-200 text-text-muted ${isOpen ? 'rotate-180 text-secondary' : ''}`}>
+        <span className={`transition-transform duration-200 text-text-muted ${isOpen ? 'rotate-180 text-primary' : ''}`}>
           <i className="fa-solid fa-chevron-down text-[0.78rem]" />
         </span>
       </button>
 
       {isOpen && (
         <ul
-          className="absolute left-0 right-0 mt-2 z-[100] bg-bg-surface/95 backdrop-blur-xl border border-border-color rounded-md p-1 shadow-[0_8px_32px_rgba(0,0,0,0.5)] flex flex-col gap-0.5 max-h-[220px] overflow-y-auto custom-scrollbar animate-[fade-in-up_0.15s_ease-out]"
+          className="absolute left-0 right-0 mt-2 z-[100] bg-bg-surface/95 backdrop-blur-xl border border-border-color rounded-2xl p-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.5)] flex flex-col gap-0.5 max-h-[240px] overflow-y-auto custom-scrollbar animate-[fade-in-up_0.15s_ease-out]"
           role="listbox"
           tabIndex={-1}
           style={{ top: '100%' }}
@@ -78,15 +78,15 @@ export default function Select({ label, value, options, onChange, disabled, id, 
                 role="option"
                 aria-selected={isSelected}
                 onClick={() => handleSelect(opt.value)}
-                className={`px-4 py-2.5 rounded-sm text-[0.88rem] flex justify-between items-center cursor-pointer select-none transition-all duration-150 ${
+                className={`px-4 py-2.5 rounded-xl text-[0.88rem] flex justify-between items-center cursor-pointer select-none transition-all duration-150 ${
                   isSelected
-                    ? 'bg-secondary/8 text-secondary font-semibold'
-                    : 'text-text-secondary hover:bg-secondary/10 hover:text-text-main'
+                    ? 'bg-primary/10 text-primary font-bold shadow-sm'
+                    : 'text-text-secondary hover:bg-primary/10 hover:text-primary'
                 }`}
               >
                 <span className="truncate">{opt.label}</span>
                 {isSelected && (
-                  <i className="fa-solid fa-check text-[0.78rem] text-secondary" />
+                  <i className="fa-solid fa-check text-[0.78rem] text-primary" />
                 )}
               </li>
             );

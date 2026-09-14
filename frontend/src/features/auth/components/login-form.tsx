@@ -103,7 +103,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
           aria-invalid={Boolean(fieldError('username'))}
           aria-describedby={fieldError('username') ? 'login-username-error' : undefined}
           required
-          className={`bg-bg-input border rounded-md px-4 py-3 text-white font-body text-[0.95rem] outline-none transition-all duration-200 placeholder:text-white/20 disabled:opacity-50 focus:ring-3 ${fieldError('username') ? 'border-primary focus:border-primary focus:ring-primary-glow/25' : 'border-border-color focus:border-secondary focus:ring-secondary-glow/25'}`}
+          className={`bg-bg-input border rounded-md px-4 py-3 text-text-main font-body text-[0.95rem] outline-none transition-all duration-200 placeholder:text-text-muted disabled:opacity-50 focus:ring-3 ${fieldError('username') ? 'border-primary focus:border-primary focus:ring-primary-glow/25' : 'border-border-color focus:border-secondary focus:ring-secondary-glow/25'}`}
           disabled={loading}
         />
         {fieldError('username') && <p id="login-username-error" className="text-primary text-xs" role="alert">{fieldError('username')}</p>}
@@ -123,13 +123,13 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
             aria-invalid={Boolean(fieldError('password'))}
             aria-describedby={fieldError('password') ? 'login-password-error' : undefined}
             required
-            className={`w-full bg-bg-input border rounded-md pl-4 pr-12 py-3 text-white font-body text-[0.95rem] outline-none transition-all duration-200 placeholder:text-white/20 disabled:opacity-50 focus:border-primary focus:ring-3 focus:ring-primary-glow/25 ${fieldError('password') ? 'border-primary' : 'border-border-color'}`}
+            className={`w-full bg-bg-input border rounded-md pl-4 pr-12 py-3 text-text-main font-body text-[0.95rem] outline-none transition-all duration-200 placeholder:text-text-muted disabled:opacity-50 focus:border-primary focus:ring-3 focus:ring-primary-glow/25 ${fieldError('password') ? 'border-primary' : 'border-border-color'}`}
             disabled={loading}
           />
           <button 
             type="button"
             aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
-            className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer select-none text-[1.05rem] text-text-muted hover:text-white transition-colors duration-150 outline-none bg-transparent border-none" 
+            className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer select-none text-[1.05rem] text-text-muted hover:text-text-main transition-colors duration-150 outline-none bg-transparent border-none" 
             onClick={() => setShowPassword(!showPassword)}
           >
             {showPassword ? (

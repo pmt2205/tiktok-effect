@@ -158,6 +158,7 @@ export default function GiftJarDesignerPanel({
       <div className="lg:col-span-6 bg-bg-card border border-border-color rounded-2xl p-5 md:p-6 backdrop-blur-[24px] flex flex-col gap-5 glass-shadow w-full">
         <div className="flex flex-col gap-1 border-b border-border-color/30 pb-3">
           <h4 className="font-header text-[0.98rem] font-bold text-white uppercase tracking-[0.5px] flex items-center gap-2">
+            <i className="fa-solid fa-jar text-primary animate-pulse" />
             <span>{language === 'vi' ? 'Thiết lập Hũ Quà' : 'Gift Jar Settings'}</span>
           </h4>
           <p className="text-[0.7rem] text-text-muted">
@@ -181,7 +182,7 @@ export default function GiftJarDesignerPanel({
               className="peer sr-only"
               disabled={savingSettings}
             />
-            <span className="w-10 h-[20px] bg-white/8 rounded-full relative transition-all duration-300 border border-border-color after:absolute after:w-[14px] after:h-[14px] after:rounded-full after:bg-white after:top-[2px] after:left-[2px] after:transition-all after:duration-300 after:ease-out peer-checked:bg-secondary peer-checked:border-transparent peer-checked:shadow-[0_0_8px_var(--color-secondary-glow)] peer-checked:after:translate-x-[20px] peer-disabled:opacity-40" />
+            <span className="w-10 h-[20px] bg-white/10 rounded-full relative transition-all duration-300 border border-border-color after:absolute after:w-[14px] after:h-[14px] after:rounded-full after:bg-white after:top-[2px] after:left-[2px] after:transition-all after:duration-300 after:ease-out peer-checked:bg-primary peer-checked:border-transparent peer-checked:shadow-[0_0_8px_var(--color-primary-glow)] peer-checked:after:translate-x-[20px] peer-disabled:opacity-40" />
           </label>
         </div>
 
@@ -192,7 +193,7 @@ export default function GiftJarDesignerPanel({
             <div className="flex flex-col gap-2">
               <div className="flex justify-between items-center text-[0.8rem] text-text-secondary font-bold select-none">
                 <span>{language === 'vi' ? 'Tọa độ X (Ngang):' : 'Position X:'}</span>
-                <span className="text-secondary font-mono">{localX}%</span>
+                <span className="text-primary font-mono font-bold">{localX}%</span>
               </div>
               <input
                 type="range"
@@ -203,7 +204,7 @@ export default function GiftJarDesignerPanel({
                 onMouseUp={(e) => handleSliderRelease('x', Number((e.target as HTMLInputElement).value))}
                 onTouchEnd={(e) => handleSliderRelease('x', Number((e.target as HTMLInputElement).value))}
                 disabled={savingSettings}
-                className="w-full accent-secondary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-full accent-primary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -211,7 +212,7 @@ export default function GiftJarDesignerPanel({
             <div className="flex flex-col gap-2">
               <div className="flex justify-between items-center text-[0.8rem] text-text-secondary font-bold select-none">
                 <span>{language === 'vi' ? 'Tọa độ Y (Dọc):' : 'Position Y:'}</span>
-                <span className="text-secondary font-mono">{localY}%</span>
+                <span className="text-primary font-mono font-bold">{localY}%</span>
               </div>
               <input
                 type="range"
@@ -222,7 +223,7 @@ export default function GiftJarDesignerPanel({
                 onMouseUp={(e) => handleSliderRelease('y', Number((e.target as HTMLInputElement).value))}
                 onTouchEnd={(e) => handleSliderRelease('y', Number((e.target as HTMLInputElement).value))}
                 disabled={savingSettings}
-                className="w-full accent-secondary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-full accent-primary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -230,7 +231,7 @@ export default function GiftJarDesignerPanel({
             <div className="flex flex-col gap-2">
               <div className="flex justify-between items-center text-[0.8rem] text-text-secondary font-bold select-none">
                 <span>{language === 'vi' ? 'Kích thước hũ:' : 'Jar Scale:'}</span>
-                <span className="text-secondary font-mono">{localScale.toFixed(1)}x</span>
+                <span className="text-primary font-mono font-bold">{localScale.toFixed(1)}x</span>
               </div>
               <input
                 type="range"
@@ -242,7 +243,7 @@ export default function GiftJarDesignerPanel({
                 onMouseUp={(e) => handleSliderRelease('scale', Number((e.target as HTMLInputElement).value))}
                 onTouchEnd={(e) => handleSliderRelease('scale', Number((e.target as HTMLInputElement).value))}
                 disabled={savingSettings}
-                className="w-full accent-secondary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-full accent-primary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -250,7 +251,7 @@ export default function GiftJarDesignerPanel({
             <div className="flex flex-col gap-2">
               <div className="flex justify-between items-center text-[0.8rem] text-text-secondary font-bold select-none">
                 <span>{language === 'vi' ? 'Kích thước quà:' : 'Gift Icon Size:'}</span>
-                <span className="text-secondary font-mono">{localGiftSize.toFixed(1)}x</span>
+                <span className="text-primary font-mono font-bold">{localGiftSize.toFixed(1)}x</span>
               </div>
               <input
                 type="range"
@@ -262,7 +263,7 @@ export default function GiftJarDesignerPanel({
                 onMouseUp={(e) => handleSliderRelease('giftSize', Number((e.target as HTMLInputElement).value))}
                 onTouchEnd={(e) => handleSliderRelease('giftSize', Number((e.target as HTMLInputElement).value))}
                 disabled={savingSettings}
-                className="w-full accent-secondary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-full accent-primary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -270,7 +271,7 @@ export default function GiftJarDesignerPanel({
             <div className="flex flex-col gap-2">
               <div className="flex justify-between items-center text-[0.8rem] text-text-secondary font-bold select-none">
                 <span>{language === 'vi' ? 'Tốc độ rơi:' : 'Fall Speed:'}</span>
-                <span className="text-secondary font-mono">{localFallSpeed.toFixed(1)}x</span>
+                <span className="text-primary font-mono font-bold">{localFallSpeed.toFixed(1)}x</span>
               </div>
               <input
                 type="range"
@@ -282,7 +283,7 @@ export default function GiftJarDesignerPanel({
                 onMouseUp={(e) => handleSliderRelease('fallSpeed', Number((e.target as HTMLInputElement).value))}
                 onTouchEnd={(e) => handleSliderRelease('fallSpeed', Number((e.target as HTMLInputElement).value))}
                 disabled={savingSettings}
-                className="w-full accent-secondary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-full accent-primary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -312,8 +313,8 @@ export default function GiftJarDesignerPanel({
                       disabled={savingSettings || (!fullOptions && jarOpt.id !== 'standard')}
                       className={`flex flex-col items-center p-1.5 rounded-xl border transition-all duration-200 cursor-pointer outline-none disabled:opacity-40 disabled:cursor-not-allowed ${
                         isSelected
-                          ? 'bg-secondary/20 border-secondary text-white shadow-[0_0_12px_var(--color-secondary-glow)] scale-[1.03]'
-                          : 'bg-white/5 border-border-color text-text-muted hover:text-white hover:bg-white/10'
+                          ? 'bg-primary/15 border-primary text-white shadow-[0_0_12px_var(--color-primary-glow)] scale-[1.03]'
+                          : 'bg-bg-surface border-border-color text-text-muted hover:text-white hover:bg-bg-input'
                       }`}
                     >
                       <div className="w-10 h-12 relative flex items-center justify-center">
@@ -334,8 +335,8 @@ export default function GiftJarDesignerPanel({
 
             {/* Colors Selection & Opacity (RGBA) */}
             {((settings.jarType || 'standard') !== 'standard') ? (
-              <div className="p-3 bg-black/30 border border-white/10 rounded-xl text-[0.74rem] text-text-muted select-none flex items-center gap-2">
-                <i className="fa-solid fa-palette text-secondary" />
+              <div className="p-3 bg-bg-input border border-border-color rounded-xl text-[0.74rem] text-text-muted select-none flex items-center gap-2">
+                <i className="fa-solid fa-palette text-primary" />
                 <span>
                   {language === 'vi'
                     ? 'Hũ Pro giữ nguyên bản sắc nét màu sắc gốc (Không hỗ trợ đổi màu).'
@@ -346,12 +347,12 @@ export default function GiftJarDesignerPanel({
               <div className="flex flex-col gap-3 pt-2 border-t border-border-color/20 animate-[fade-in-up_0.2s_ease-out]">
                 <div className="flex justify-between items-center text-[0.82rem] text-text-secondary font-bold select-none">
                   <span>{language === 'vi' ? 'Màu sắc & Độ trong suốt (RGBA):' : 'Jar Color & Transparency (RGBA):'}</span>
-                  <span className="text-secondary font-mono text-[0.76rem]">{localColorInput}</span>
+                  <span className="text-primary font-mono text-[0.76rem] font-bold">{localColorInput}</span>
                 </div>
 
                 <div className="flex items-center gap-3">
                   {/* Color Picker square */}
-                  <div className="relative w-11 h-10 border border-border-color rounded-xl overflow-hidden cursor-pointer bg-white/5 flex items-center justify-center transition-all duration-200 focus-within:border-secondary shrink-0">
+                  <div className="relative w-11 h-10 border border-border-color rounded-xl overflow-hidden cursor-pointer bg-bg-surface flex items-center justify-center transition-all duration-200 focus-within:border-primary shrink-0">
                     <input
                       type="color"
                       value={parsedHex}
@@ -368,7 +369,7 @@ export default function GiftJarDesignerPanel({
                     onChange={(e) => handleDirectColorInput(e.target.value)}
                     placeholder="rgba(255, 0, 80, 0.8) or #ff0050"
                     disabled={savingSettings || !fullOptions}
-                    className="px-3 py-2 bg-black/30 border border-border-color rounded-xl text-[0.75rem] font-mono text-white placeholder:text-text-muted/50 focus:border-secondary focus:shadow-[0_0_0_3px_var(--color-secondary-glow)] outline-none transition-all duration-200 grow disabled:opacity-40"
+                    className="px-3 py-2 bg-bg-input border border-border-color rounded-xl text-[0.75rem] font-mono text-white placeholder:text-text-muted/50 focus:border-primary focus:ring-3 focus:ring-primary-glow/25 outline-none transition-all duration-200 grow disabled:opacity-40"
                   />
                 </div>
 
@@ -376,7 +377,7 @@ export default function GiftJarDesignerPanel({
                 <div className="flex flex-col gap-1.5 pt-1">
                   <div className="flex justify-between items-center text-[0.78rem] text-text-muted select-none">
                     <span>{language === 'vi' ? 'Độ đậm màu (Opacity):' : 'Color Opacity:'}</span>
-                    <span className="text-secondary font-mono text-[0.74rem]">{Math.round(localAlpha * 100)}%</span>
+                    <span className="text-primary font-mono text-[0.74rem] font-bold">{Math.round(localAlpha * 100)}%</span>
                   </div>
                   <input
                     type="range"
@@ -388,7 +389,7 @@ export default function GiftJarDesignerPanel({
                     onMouseUp={(e) => handleAlphaRelease(Number((e.target as HTMLInputElement).value) / 100)}
                     onTouchEnd={(e) => handleAlphaRelease(Number((e.target as HTMLInputElement).value) / 100)}
                     disabled={savingSettings || !fullOptions}
-                    className="w-full accent-secondary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-full accent-primary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -411,9 +412,9 @@ export default function GiftJarDesignerPanel({
                         onSaveSettings({ jarColor: preset.value });
                       }}
                       disabled={savingSettings}
-                      className={`px-2 py-1.5 bg-white/5 hover:bg-white/10 text-white/80 rounded-lg text-[0.62rem] font-bold border transition-all duration-150 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
+                      className={`px-2 py-1.5 bg-bg-surface hover:bg-bg-input text-text-main rounded-lg text-[0.62rem] font-bold border transition-all duration-150 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
                         settings.jarColor === preset.value
-                          ? 'border-secondary text-secondary shadow-[0_0_8px_var(--color-secondary-glow)]'
+                          ? 'border-primary text-primary shadow-[0_0_8px_var(--color-primary-glow)]'
                           : 'border-border-color'
                       }`}
                     >
@@ -428,15 +429,15 @@ export default function GiftJarDesignerPanel({
             <div className="flex flex-col gap-3 border-t border-border-color/20 pt-3">
               <div className="flex items-center justify-between gap-3">
                 <div><span className="flex items-center gap-2 text-[0.85rem] font-bold text-text-secondary"><i className="fa-solid fa-signature text-primary" />{language === 'vi' ? 'Bảng tên trên miệng hũ' : 'Upper rim name plate'}<span className="rounded-sm bg-primary/15 px-1.5 py-0.5 text-[0.58rem] font-extrabold text-primary">PRO MAX</span></span><p className="mt-1 text-[0.68rem] text-text-muted">{language === 'vi' ? 'Gắn bảng tên trang trí vào viền trên của hũ.' : 'Attach a decorative name plate to the upper jar rim.'}</p></div>
-                <label className="relative inline-flex shrink-0 items-center cursor-pointer"><input type="checkbox" className="peer sr-only" disabled={savingSettings || !fullOptions} checked={fullOptions && Boolean(settings.jarNameEnabled)} onChange={(event) => onSaveSettings({ jarNameEnabled: event.target.checked, jarNameImage: settings.jarNameImage || JAR_NAME_OPTIONS[0].src })} /><span className="relative h-[20px] w-10 rounded-full border border-border-color bg-white/8 transition-all duration-300 after:absolute after:left-[2px] after:top-[2px] after:h-[14px] after:w-[14px] after:rounded-full after:bg-white after:transition-all peer-checked:border-transparent peer-checked:bg-primary peer-checked:shadow-[0_0_8px_var(--color-primary-glow)] peer-checked:after:translate-x-[20px] peer-disabled:opacity-40" /></label>
+                <label className="relative inline-flex shrink-0 items-center cursor-pointer"><input type="checkbox" className="peer sr-only" disabled={savingSettings || !fullOptions} checked={fullOptions && Boolean(settings.jarNameEnabled)} onChange={(event) => onSaveSettings({ jarNameEnabled: event.target.checked, jarNameImage: settings.jarNameImage || JAR_NAME_OPTIONS[0].src })} /><span className="relative h-[20px] w-10 rounded-full border border-border-color bg-white/10 transition-all duration-300 after:absolute after:left-[2px] after:top-[2px] after:h-[14px] after:w-[14px] after:rounded-full after:bg-white after:transition-all peer-checked:border-transparent peer-checked:bg-primary peer-checked:shadow-[0_0_8px_var(--color-primary-glow)] peer-checked:after:translate-x-[20px] peer-disabled:opacity-40" /></label>
               </div>
 
-              {fullOptions && settings.jarNameEnabled && <div className="flex flex-col gap-3 rounded-md border border-border-color bg-black/20 p-3">
-                <div className="grid grid-cols-2 gap-2">{JAR_NAME_OPTIONS.map((option) => <button key={option.id} type="button" disabled={savingSettings} onClick={() => onSaveSettings({ jarNameImage: option.src })} className={`relative overflow-hidden rounded-md border p-2 transition-all duration-200 ${settings.jarNameImage === option.src ? 'border-secondary bg-secondary/10' : 'border-border-color bg-white/[0.02] hover:border-border-glow'}`}><img src={option.src} alt={option.label} className="h-16 w-full object-contain" /><span className="mt-1 block truncate text-[0.68rem] font-bold text-white">{option.label}</span></button>)}</div>
-                <label className="flex flex-col gap-1.5"><span className="flex justify-between text-[0.76rem] font-bold text-text-secondary"><span>{language === 'vi' ? 'Kích thước' : 'Scale'}</span><span className="font-mono text-secondary">{localNameScale.toFixed(2)}x</span></span><input type="range" min="0.2" max="1.5" step="0.05" value={localNameScale} disabled={savingSettings} onChange={(event) => setLocalNameScale(Number(event.target.value))} onMouseUp={(event) => onSaveSettings({ jarNameScale: Number((event.target as HTMLInputElement).value) })} onTouchEnd={(event) => onSaveSettings({ jarNameScale: Number((event.target as HTMLInputElement).value) })} className="h-1.5 w-full cursor-pointer accent-secondary" /></label>
+              {fullOptions && settings.jarNameEnabled && <div className="flex flex-col gap-3 rounded-xl border border-border-color bg-bg-input p-3">
+                <div className="grid grid-cols-2 gap-2">{JAR_NAME_OPTIONS.map((option) => <button key={option.id} type="button" disabled={savingSettings} onClick={() => onSaveSettings({ jarNameImage: option.src })} className={`relative overflow-hidden rounded-md border p-2 transition-all duration-200 ${settings.jarNameImage === option.src ? 'border-primary bg-primary/10 text-primary' : 'border-border-color bg-bg-surface hover:border-primary/40'}`}><img src={option.src} alt={option.label} className="h-16 w-full object-contain" /><span className="mt-1 block truncate text-[0.68rem] font-bold text-white">{option.label}</span></button>)}</div>
+                <label className="flex flex-col gap-1.5"><span className="flex justify-between text-[0.76rem] font-bold text-text-secondary"><span>{language === 'vi' ? 'Kích thước' : 'Scale'}</span><span className="font-mono text-primary font-bold">{localNameScale.toFixed(2)}x</span></span><input type="range" min="0.2" max="1.5" step="0.05" value={localNameScale} disabled={savingSettings} onChange={(event) => setLocalNameScale(Number(event.target.value))} onMouseUp={(event) => onSaveSettings({ jarNameScale: Number((event.target as HTMLInputElement).value) })} onTouchEnd={(event) => onSaveSettings({ jarNameScale: Number((event.target as HTMLInputElement).value) })} className="h-1.5 w-full cursor-pointer accent-primary" /></label>
                 <div className="grid grid-cols-2 gap-3">
-                  <label className="flex flex-col gap-1.5"><span className="flex justify-between text-[0.76rem] font-bold text-text-secondary"><span>X</span><span className="font-mono text-secondary">{localNameX}px</span></span><input type="range" min="-220" max="220" step="2" value={localNameX} disabled={savingSettings} onChange={(event) => setLocalNameX(Number(event.target.value))} onMouseUp={(event) => onSaveSettings({ jarNameX: Number((event.target as HTMLInputElement).value) })} onTouchEnd={(event) => onSaveSettings({ jarNameX: Number((event.target as HTMLInputElement).value) })} className="h-1.5 w-full cursor-pointer accent-secondary" /></label>
-                  <label className="flex flex-col gap-1.5"><span className="flex justify-between text-[0.76rem] font-bold text-text-secondary"><span>Y</span><span className="font-mono text-secondary">{localNameY}px</span></span><input type="range" min="-180" max="160" step="2" value={localNameY} disabled={savingSettings} onChange={(event) => setLocalNameY(Number(event.target.value))} onMouseUp={(event) => onSaveSettings({ jarNameY: Number((event.target as HTMLInputElement).value) })} onTouchEnd={(event) => onSaveSettings({ jarNameY: Number((event.target as HTMLInputElement).value) })} className="h-1.5 w-full cursor-pointer accent-secondary" /></label>
+                  <label className="flex flex-col gap-1.5"><span className="flex justify-between text-[0.76rem] font-bold text-text-secondary"><span>X</span><span className="font-mono text-primary font-bold">{localNameX}px</span></span><input type="range" min="-220" max="220" step="2" value={localNameX} disabled={savingSettings} onChange={(event) => setLocalNameX(Number(event.target.value))} onMouseUp={(event) => onSaveSettings({ jarNameX: Number((event.target as HTMLInputElement).value) })} onTouchEnd={(event) => onSaveSettings({ jarNameX: Number((event.target as HTMLInputElement).value) })} className="h-1.5 w-full cursor-pointer accent-primary" /></label>
+                  <label className="flex flex-col gap-1.5"><span className="flex justify-between text-[0.76rem] font-bold text-text-secondary"><span>Y</span><span className="font-mono text-primary font-bold">{localNameY}px</span></span><input type="range" min="-180" max="160" step="2" value={localNameY} disabled={savingSettings} onChange={(event) => setLocalNameY(Number(event.target.value))} onMouseUp={(event) => onSaveSettings({ jarNameY: Number((event.target as HTMLInputElement).value) })} onTouchEnd={(event) => onSaveSettings({ jarNameY: Number((event.target as HTMLInputElement).value) })} className="h-1.5 w-full cursor-pointer accent-primary" /></label>
                 </div>
               </div>}
             </div>
@@ -446,7 +447,7 @@ export default function GiftJarDesignerPanel({
               <div className="flex justify-between items-center select-none">
                 <div className="flex flex-col gap-0.5">
                   <span className="text-[0.85rem] text-text-secondary font-bold flex items-center gap-1.5">
-                    <i className="fa-solid fa-person-dancing text-secondary" />
+                    <i className="fa-solid fa-person-dancing text-primary" />
                     {language === 'vi' ? 'Nhân vật Nhảy Trang Trí:' : 'Dance Mascot Decoration:'}
                   </span>
                   <span className="text-[0.68rem] text-text-muted">
@@ -461,7 +462,7 @@ export default function GiftJarDesignerPanel({
                     className="peer sr-only"
                     disabled={savingSettings || !fullOptions}
                   />
-                  <span className="w-10 h-[20px] bg-white/8 rounded-full relative transition-all duration-300 border border-border-color after:absolute after:w-[14px] after:h-[14px] after:rounded-full after:bg-white after:top-[2px] after:left-[2px] after:transition-all after:duration-300 after:ease-out peer-checked:bg-secondary peer-checked:border-transparent peer-checked:shadow-[0_0_8px_var(--color-secondary-glow)] peer-checked:after:translate-x-[20px] peer-disabled:opacity-40" />
+                  <span className="w-10 h-[20px] bg-white/10 rounded-full relative transition-all duration-300 border border-border-color after:absolute after:w-[14px] after:h-[14px] after:rounded-full after:bg-white after:top-[2px] after:left-[2px] after:transition-all after:duration-300 after:ease-out peer-checked:bg-primary peer-checked:border-transparent peer-checked:shadow-[0_0_8px_var(--color-primary-glow)] peer-checked:after:translate-x-[20px] peer-disabled:opacity-40" />
                 </label>
               </div>
 
@@ -479,8 +480,8 @@ export default function GiftJarDesignerPanel({
                         disabled={savingSettings}
                         className={`py-1.5 rounded-xl text-[0.72rem] font-bold cursor-pointer transition-all duration-200 border outline-none disabled:opacity-40 ${
                           (settings.jarDancePosition || 'left') === 'left'
-                            ? 'bg-secondary/20 text-secondary border-secondary shadow-[0_0_8px_var(--color-secondary-glow)]'
-                            : 'bg-white/5 text-text-secondary border-border-color hover:bg-white/10'
+                            ? 'bg-primary/15 text-primary border-primary shadow-[0_0_8px_var(--color-primary-glow)]'
+                            : 'bg-bg-surface text-text-secondary border-border-color hover:bg-bg-input'
                         }`}
                       >
                         <i className="fa-solid fa-arrow-left mr-1.5" />
@@ -492,8 +493,8 @@ export default function GiftJarDesignerPanel({
                         disabled={savingSettings}
                         className={`py-1.5 rounded-xl text-[0.72rem] font-bold cursor-pointer transition-all duration-200 border outline-none disabled:opacity-40 ${
                           settings.jarDancePosition === 'right'
-                            ? 'bg-secondary/20 text-secondary border-secondary shadow-[0_0_8px_var(--color-secondary-glow)]'
-                            : 'bg-white/5 text-text-secondary border-border-color hover:bg-white/10'
+                            ? 'bg-primary/15 text-primary border-primary shadow-[0_0_8px_var(--color-primary-glow)]'
+                            : 'bg-bg-surface text-text-secondary border-border-color hover:bg-bg-input'
                         }`}
                       >
                         {language === 'vi' ? 'Bên Phải Hũ' : 'Right Side'}
@@ -506,7 +507,7 @@ export default function GiftJarDesignerPanel({
                   <div className="flex flex-col gap-1.5">
                     <div className="flex justify-between items-center text-[0.78rem] text-text-muted select-none">
                       <span>{language === 'vi' ? 'Kích thước nhân vật:' : 'Mascot Scale:'}</span>
-                      <span className="text-secondary font-mono">{localDanceScale.toFixed(1)}x</span>
+                      <span className="text-primary font-mono font-bold">{localDanceScale.toFixed(1)}x</span>
                     </div>
                     <input
                       type="range"
@@ -518,7 +519,7 @@ export default function GiftJarDesignerPanel({
                       onMouseUp={(e) => onSaveSettings({ jarDanceScale: Number((e.target as HTMLInputElement).value) })}
                       onTouchEnd={(e) => onSaveSettings({ jarDanceScale: Number((e.target as HTMLInputElement).value) })}
                       disabled={savingSettings}
-                      className="w-full accent-secondary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="w-full accent-primary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
                     />
                   </div>
 
@@ -526,7 +527,7 @@ export default function GiftJarDesignerPanel({
                   <div className="flex flex-col gap-1.5">
                     <div className="flex justify-between items-center text-[0.78rem] text-text-muted select-none">
                       <span>{language === 'vi' ? 'Khoảng cách tới Hũ (Gần/Xa):' : 'Distance to Jar (Near/Far):'}</span>
-                      <span className="text-secondary font-mono">{localDanceOffsetX}px</span>
+                      <span className="text-primary font-mono font-bold">{localDanceOffsetX}px</span>
                     </div>
                     <input
                       type="range"
@@ -538,14 +539,14 @@ export default function GiftJarDesignerPanel({
                       onMouseUp={(e) => onSaveSettings({ jarDanceOffsetX: Number((e.target as HTMLInputElement).value) })}
                       onTouchEnd={(e) => onSaveSettings({ jarDanceOffsetX: Number((e.target as HTMLInputElement).value) })}
                       disabled={savingSettings}
-                      className="w-full accent-secondary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="w-full accent-primary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
                     />
                   </div>
 
                   {/* Source info */}
-                  <div className="flex items-center justify-between p-2 bg-black/20 rounded-xl border border-white/5 text-[0.7rem] text-text-muted">
+                  <div className="flex items-center justify-between p-2 bg-bg-input rounded-xl border border-border-color text-[0.7rem] text-text-muted">
                     <span className="flex items-center gap-1.5 truncate">
-                      <i className="fa-solid fa-film text-secondary" />
+                      <i className="fa-solid fa-film text-primary" />
                       <span className="truncate">Capybara Dance (capy_dance.mp4)</span>
                     </span>
                     <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded-md text-[0.62rem] font-mono shrink-0">
@@ -585,7 +586,7 @@ export default function GiftJarDesignerPanel({
                 type="button"
                 onClick={handleClearJar}
                 disabled={savingSettings}
-                className="w-full py-2.5 rounded-xl text-[0.8rem] font-bold tracking-[0.5px] uppercase cursor-pointer outline-none bg-gradient-to-r from-primary to-[#d0003c] text-white hover:shadow-[0_4px_16px_var(--color-primary-glow)] hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:scale-100"
+                className="w-full py-2.5 rounded-xl text-[0.8rem] font-bold tracking-[0.5px] uppercase cursor-pointer outline-none bg-gradient-to-r from-primary to-accent text-white hover:shadow-[0_4px_16px_var(--color-primary-glow)] hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:scale-100"
               >
                 <i className="fa-solid fa-trash-can mr-2" />
                 {language === 'vi' ? 'Làm trống hũ quà' : 'Empty the Jar'}
@@ -603,7 +604,7 @@ export default function GiftJarDesignerPanel({
                     type="button"
                     onClick={() => handleSimulateDrop(1)}
                     disabled={savingSettings}
-                    className="py-2.5 rounded-xl text-[0.78rem] font-bold tracking-[0.5px] uppercase cursor-pointer outline-none bg-secondary text-black hover:shadow-[0_4px_12px_var(--color-secondary-glow)] hover:scale-[1.01] active:scale-[0.99] transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:scale-100"
+                    className="py-2.5 rounded-xl text-[0.78rem] font-bold tracking-[0.5px] uppercase cursor-pointer outline-none bg-primary text-white hover:shadow-[0_4px_12px_var(--color-primary-glow)] hover:scale-[1.01] active:scale-[0.99] transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:scale-100"
                   >
                     <i className="fa-solid fa-gift mr-1.5" />
                     {language === 'vi' ? 'Rơi 1 Quà' : 'Drop 1 Gift'}
@@ -612,7 +613,7 @@ export default function GiftJarDesignerPanel({
                     type="button"
                     onClick={() => handleSimulateDrop(5)}
                     disabled={savingSettings}
-                    className="py-2.5 rounded-xl text-[0.78rem] font-bold tracking-[0.5px] uppercase cursor-pointer outline-none bg-gradient-to-r from-secondary to-[#00f2fe] text-black hover:shadow-[0_4px_12px_var(--color-secondary-glow)] hover:scale-[1.01] active:scale-[0.99] transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:scale-100"
+                    className="py-2.5 rounded-xl text-[0.78rem] font-bold tracking-[0.5px] uppercase cursor-pointer outline-none bg-gradient-to-r from-primary to-accent text-white hover:shadow-[0_4px_12px_var(--color-primary-glow)] hover:scale-[1.01] active:scale-[0.99] transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:scale-100"
                   >
                     <i className="fa-solid fa-gifts mr-1.5" />
                     {language === 'vi' ? 'Rơi Combo x5' : 'Drop Combo x5'}

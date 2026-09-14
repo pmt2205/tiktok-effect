@@ -78,7 +78,7 @@ export default function GiftTreeDesignerPanel({
       <div className="lg:col-span-6 bg-bg-card border border-border-color rounded-2xl p-5 md:p-6 backdrop-blur-[24px] flex flex-col gap-5 glass-shadow w-full">
         <div className="flex flex-col gap-1 border-b border-border-color/30 pb-3">
           <h4 className="font-header text-[0.98rem] font-bold text-white uppercase tracking-[0.5px] flex items-center gap-2">
-            <i className="fa-solid fa-tree text-secondary animate-pulse" />
+            <i className="fa-solid fa-tree text-primary animate-pulse" />
             <span>{language === 'vi' ? 'Thiết lập Cây Quà' : 'Gift Tree Settings'}</span>
           </h4>
           <p className="text-[0.7rem] text-text-muted">
@@ -104,7 +104,7 @@ export default function GiftTreeDesignerPanel({
               className="peer sr-only"
               disabled={savingSettings}
             />
-            <span className="w-10 h-[20px] bg-white/8 rounded-full relative transition-all duration-300 border border-border-color after:absolute after:w-[14px] after:h-[14px] after:rounded-full after:bg-white after:top-[2px] after:left-[2px] after:transition-all after:duration-300 after:ease-out peer-checked:bg-secondary peer-checked:border-transparent peer-checked:shadow-[0_0_8px_var(--color-secondary-glow)] peer-checked:after:translate-x-[20px] peer-disabled:opacity-40" />
+            <span className="w-10 h-[20px] bg-white/10 rounded-full relative transition-all duration-300 border border-border-color after:absolute after:w-[14px] after:h-[14px] after:rounded-full after:bg-white after:top-[2px] after:left-[2px] after:transition-all after:duration-300 after:ease-out peer-checked:bg-primary peer-checked:border-transparent peer-checked:shadow-[0_0_8px_var(--color-primary-glow)] peer-checked:after:translate-x-[20px] peer-disabled:opacity-40" />
           </label>
         </div>
 
@@ -112,7 +112,7 @@ export default function GiftTreeDesignerPanel({
         {settings.treeEnabled && (
           <div className="flex flex-col gap-5 animate-[fade-in-up_0.25s_ease-out]">
             {/* Debug Coordinates Toggle */}
-            <div className="flex justify-between items-center py-2 select-none border-t border-white/5 pt-3">
+            <div className="flex justify-between items-center py-2 select-none border-t border-border-color/20 pt-3">
               <div className="flex flex-col gap-0.5">
                 <span className="text-[0.85rem] text-text-secondary font-bold">
                   {language === 'vi' ? 'Định vị tọa độ cành (Debug):' : 'Debug Coordinates:'}
@@ -129,15 +129,15 @@ export default function GiftTreeDesignerPanel({
                   className="peer sr-only"
                   disabled={savingSettings}
                 />
-                <span className="w-10 h-[20px] bg-white/8 rounded-full relative transition-all duration-300 border border-border-color after:absolute after:w-[14px] after:h-[14px] after:rounded-full after:bg-white after:top-[2px] after:left-[2px] after:transition-all after:duration-300 after:ease-out peer-checked:bg-primary peer-checked:border-transparent peer-checked:shadow-[0_0_8px_var(--color-primary-glow)] peer-checked:after:translate-x-[20px] peer-disabled:opacity-40" />
+                <span className="w-10 h-[20px] bg-white/10 rounded-full relative transition-all duration-300 border border-border-color after:absolute after:w-[14px] after:h-[14px] after:rounded-full after:bg-white after:top-[2px] after:left-[2px] after:transition-all after:duration-300 after:ease-out peer-checked:bg-primary peer-checked:border-transparent peer-checked:shadow-[0_0_8px_var(--color-primary-glow)] peer-checked:after:translate-x-[20px] peer-disabled:opacity-40" />
               </label>
             </div>
 
             {/* Tree Model Selector */}
-            <div className="flex flex-col gap-2.5 border-t border-white/5 pt-3">
+            <div className="flex flex-col gap-2.5 border-t border-border-color/20 pt-3">
               <label className="text-[0.8rem] text-text-secondary font-bold select-none flex items-center justify-between">
                 <span>{language === 'vi' ? 'Mẫu Cây Quà:' : 'Gift Tree Model:'}</span>
-                <span className="text-[0.7rem] text-secondary font-mono">
+                <span className="text-[0.7rem] text-primary font-mono font-bold">
                   {TREE_OPTIONS.find(t => t.id === (settings.treeType || 'standard'))?.[language === 'vi' ? 'nameVi' : 'nameEn']}
                 </span>
               </label>
@@ -152,13 +152,13 @@ export default function GiftTreeDesignerPanel({
                       disabled={savingSettings || (!fullOptions && tree.id !== 'standard')}
                       className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-200 cursor-pointer outline-none relative overflow-hidden ${
                         isSelected
-                          ? 'bg-secondary/15 border-secondary shadow-[0_0_12px_var(--color-secondary-glow)] text-white scale-[1.02]'
-                          : 'bg-white/[0.02] border-white/10 hover:border-white/25 text-text-muted hover:text-white'
+                          ? 'bg-primary/15 border-primary shadow-[0_0_12px_var(--color-primary-glow)] text-white scale-[1.02]'
+                          : 'bg-bg-surface border-border-color hover:border-primary/40 text-text-muted hover:text-white'
                       } disabled:opacity-40 disabled:cursor-not-allowed`}
                     >
                       {/* PRO Badge */}
                       {tree.isPro && (
-                        <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded text-[0.58rem] font-extrabold uppercase bg-gradient-to-r from-primary to-[#d0003c] text-white shadow-[0_0_6px_var(--color-primary-glow)]">
+                        <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded text-[0.58rem] font-extrabold uppercase bg-gradient-to-r from-primary to-accent text-white shadow-[0_0_6px_var(--color-primary-glow)]">
                           PRO
                         </div>
                       )}
@@ -186,7 +186,7 @@ export default function GiftTreeDesignerPanel({
             <div className="flex flex-col gap-2">
               <div className="flex justify-between items-center text-[0.8rem] text-text-secondary font-bold select-none">
                 <span>{language === 'vi' ? 'Tọa độ X (Ngang):' : 'Position X:'}</span>
-                <span className="text-secondary font-mono">{localX}%</span>
+                <span className="text-primary font-mono font-bold">{localX}%</span>
               </div>
               <input
                 type="range"
@@ -197,7 +197,7 @@ export default function GiftTreeDesignerPanel({
                 onMouseUp={(e) => handleSliderRelease('x', Number((e.target as HTMLInputElement).value))}
                 onTouchEnd={(e) => handleSliderRelease('x', Number((e.target as HTMLInputElement).value))}
                 disabled={savingSettings}
-                className="w-full accent-secondary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-full accent-primary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -205,7 +205,7 @@ export default function GiftTreeDesignerPanel({
             <div className="flex flex-col gap-2">
               <div className="flex justify-between items-center text-[0.8rem] text-text-secondary font-bold select-none">
                 <span>{language === 'vi' ? 'Tọa độ Y (Dọc):' : 'Position Y:'}</span>
-                <span className="text-secondary font-mono">{localY}%</span>
+                <span className="text-primary font-mono font-bold">{localY}%</span>
               </div>
               <input
                 type="range"
@@ -216,7 +216,7 @@ export default function GiftTreeDesignerPanel({
                 onMouseUp={(e) => handleSliderRelease('y', Number((e.target as HTMLInputElement).value))}
                 onTouchEnd={(e) => handleSliderRelease('y', Number((e.target as HTMLInputElement).value))}
                 disabled={savingSettings}
-                className="w-full accent-secondary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-full accent-primary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -224,7 +224,7 @@ export default function GiftTreeDesignerPanel({
             <div className="flex flex-col gap-2">
               <div className="flex justify-between items-center text-[0.8rem] text-text-secondary font-bold select-none">
                 <span>{language === 'vi' ? 'Kích thước cây:' : 'Tree Scale:'}</span>
-                <span className="text-secondary font-mono">{localScale.toFixed(1)}x</span>
+                <span className="text-primary font-mono font-bold">{localScale.toFixed(1)}x</span>
               </div>
               <input
                 type="range"
@@ -236,7 +236,7 @@ export default function GiftTreeDesignerPanel({
                 onMouseUp={(e) => handleSliderRelease('scale', Number((e.target as HTMLInputElement).value))}
                 onTouchEnd={(e) => handleSliderRelease('scale', Number((e.target as HTMLInputElement).value))}
                 disabled={savingSettings}
-                className="w-full accent-secondary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-full accent-primary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -244,7 +244,7 @@ export default function GiftTreeDesignerPanel({
             <div className="flex flex-col gap-2">
               <div className="flex justify-between items-center text-[0.8rem] text-text-secondary font-bold select-none">
                 <span>{language === 'vi' ? 'Kích thước icon quả:' : 'Gift Icon Size:'}</span>
-                <span className="text-secondary font-mono">{localGiftSize.toFixed(1)}x</span>
+                <span className="text-primary font-mono font-bold">{localGiftSize.toFixed(1)}x</span>
               </div>
               <input
                 type="range"
@@ -256,7 +256,7 @@ export default function GiftTreeDesignerPanel({
                 onMouseUp={(e) => handleSliderRelease('giftSize', Number((e.target as HTMLInputElement).value))}
                 onTouchEnd={(e) => handleSliderRelease('giftSize', Number((e.target as HTMLInputElement).value))}
                 disabled={savingSettings}
-                className="w-full accent-secondary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-full accent-primary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
               />
             </div>
           </div>
@@ -289,7 +289,7 @@ export default function GiftTreeDesignerPanel({
                 type="button"
                 onClick={handleClearTree}
                 disabled={savingSettings}
-                className="w-full py-2.5 rounded-xl text-[0.8rem] font-bold tracking-[0.5px] uppercase cursor-pointer outline-none bg-gradient-to-r from-primary to-[#d0003c] text-white hover:shadow-[0_4px_16px_var(--color-primary-glow)] hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:scale-100"
+                className="w-full py-2.5 rounded-xl text-[0.8rem] font-bold tracking-[0.5px] uppercase cursor-pointer outline-none bg-gradient-to-r from-primary to-accent text-white hover:shadow-[0_4px_16px_var(--color-primary-glow)] hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:scale-100"
               >
                 <i className="fa-solid fa-wind mr-2" />
                 {language === 'vi' ? 'Thổi rụng toàn bộ quả' : 'Shake off all gifts'}
@@ -307,7 +307,7 @@ export default function GiftTreeDesignerPanel({
                     type="button"
                     onClick={() => handleSimulateDrop(1)}
                     disabled={savingSettings}
-                    className="py-2.5 rounded-xl text-[0.78rem] font-bold tracking-[0.5px] uppercase cursor-pointer outline-none bg-secondary text-black hover:shadow-[0_4px_12px_var(--color-secondary-glow)] hover:scale-[1.01] active:scale-[0.99] transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:scale-100"
+                    className="py-2.5 rounded-xl text-[0.78rem] font-bold tracking-[0.5px] uppercase cursor-pointer outline-none bg-primary text-white hover:shadow-[0_4px_12px_var(--color-primary-glow)] hover:scale-[1.01] active:scale-[0.99] transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:scale-100"
                   >
                     <i className="fa-solid fa-gift mr-1.5" />
                     {language === 'vi' ? 'Nở 1 Quà' : 'Bloom 1 Gift'}
@@ -316,7 +316,7 @@ export default function GiftTreeDesignerPanel({
                     type="button"
                     onClick={() => handleSimulateDrop(5)}
                     disabled={savingSettings}
-                    className="py-2.5 rounded-xl text-[0.78rem] font-bold tracking-[0.5px] uppercase cursor-pointer outline-none bg-gradient-to-r from-secondary to-[#00f2fe] text-black hover:shadow-[0_4px_12px_var(--color-secondary-glow)] hover:scale-[1.01] active:scale-[0.99] transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:scale-100"
+                    className="py-2.5 rounded-xl text-[0.78rem] font-bold tracking-[0.5px] uppercase cursor-pointer outline-none bg-gradient-to-r from-primary to-accent text-white hover:shadow-[0_4px_12px_var(--color-primary-glow)] hover:scale-[1.01] active:scale-[0.99] transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:scale-100"
                   >
                     <i className="fa-solid fa-gifts mr-1.5" />
                     {language === 'vi' ? 'Nở Combo x5' : 'Bloom Combo x5'}
@@ -328,9 +328,9 @@ export default function GiftTreeDesignerPanel({
         )}
 
         {/* Tips Box */}
-        <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl text-[0.72rem] text-text-muted select-none flex flex-col gap-2 mt-2">
+        <div className="p-4 bg-bg-input border border-border-color rounded-2xl text-[0.72rem] text-text-muted select-none flex flex-col gap-2 mt-2">
           <div className="font-bold text-text-secondary flex items-center gap-1.5">
-            <i className="fa-solid fa-circle-info text-secondary" />
+            <i className="fa-solid fa-circle-info text-primary" />
             <span>Interactive Gift Tree Tips</span>
           </div>
           <ul className="list-disc pl-4 flex flex-col gap-1.5">

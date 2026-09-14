@@ -26,7 +26,7 @@ export default function LikeLeaderboardDesignerPanel({
   const isEnabled = settings.likeLeaderboardEnabled !== false;
 
   return (
-    <div className="flex flex-col gap-6 w-full animate-[fade-in-up_0.4s_ease-out] glass-card p-6 rounded-2xl border border-border-color bg-[#0d0f18]/70 backdrop-blur-2xl">
+    <div className="flex flex-col gap-6 w-full animate-[fade-in-up_0.4s_ease-out] glass-card p-6 rounded-2xl border border-border-color bg-bg-card backdrop-blur-2xl">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-border-color/30 pb-4">
         <div>
           <h3 className="font-header text-xl font-extrabold text-white flex items-center gap-2">
@@ -49,7 +49,7 @@ export default function LikeLeaderboardDesignerPanel({
         {/* Left Column: Controls */}
         <div className="lg:col-span-6 flex flex-col gap-4">
           {/* Toggle Switch */}
-          <div className="flex flex-col gap-2 p-4 rounded-xl bg-white/5 border border-white/10">
+          <div className="flex flex-col gap-2 p-4 rounded-xl bg-bg-input border border-border-color">
             <div className="flex justify-between items-center">
               <span className="text-sm font-bold text-white">
                 {language === 'vi' ? 'Bật BXH Tap Tay' : 'Enable Like Leaderboard'}
@@ -61,7 +61,7 @@ export default function LikeLeaderboardDesignerPanel({
                   onChange={(e) => onSaveSettings({ likeLeaderboardEnabled: e.target.checked })}
                   className="peer sr-only"
                 />
-                <span className="w-11 h-6 bg-white/10 rounded-full relative transition-all border border-border-color after:absolute after:w-4 after:h-4 after:rounded-full after:bg-white after:top-[3px] after:left-[3px] after:transition-all peer-checked:bg-secondary peer-checked:after:translate-x-5" />
+                <span className="w-11 h-6 bg-white/10 rounded-full relative transition-all border border-border-color after:absolute after:w-4 after:h-4 after:rounded-full after:bg-white after:top-[3px] after:left-[3px] after:transition-all peer-checked:bg-primary peer-checked:after:translate-x-5" />
               </label>
             </div>
             <p className="text-xs text-text-muted">
@@ -75,7 +75,7 @@ export default function LikeLeaderboardDesignerPanel({
           {isEnabled && (
             <div className="flex flex-col gap-4 animate-[fade-in-up_0.25s_ease-out]">
               {/* Leaderboard Title */}
-              <div className="flex flex-col gap-2 p-4 rounded-xl bg-white/5 border border-white/10">
+              <div className="flex flex-col gap-2 p-4 rounded-xl bg-bg-input border border-border-color">
                 <label className="text-sm font-bold text-white">
                   {language === 'vi' ? 'Tiêu đề BXH:' : 'Leaderboard Title:'}
                 </label>
@@ -84,7 +84,7 @@ export default function LikeLeaderboardDesignerPanel({
                   value={settings.likeLeaderboardTitle || 'BẢNG XẾP HẠNG'}
                   onChange={(e) => onSaveSettings({ likeLeaderboardTitle: e.target.value })}
                   placeholder="BẢNG XẾP HẠNG"
-                  className="bg-bg-input border border-border-color rounded-xl px-3 py-2 text-sm text-white font-body outline-none focus:border-secondary"
+                  className="bg-bg-surface border border-border-color rounded-xl px-3 py-2 text-sm text-white font-body outline-none focus:border-primary"
                 />
                 <p className="text-xs text-text-muted">
                   {language === 'vi'
@@ -94,7 +94,7 @@ export default function LikeLeaderboardDesignerPanel({
               </div>
 
               {/* Scale Slider */}
-              <div className="flex flex-col gap-2 p-4 rounded-xl bg-white/5 border border-white/10">
+              <div className="flex flex-col gap-2 p-4 rounded-xl bg-bg-input border border-border-color">
                 <label className="text-sm font-bold text-white">
                   {language === 'vi' ? 'Kích thước / Tỷ lệ (Scale):' : 'Leaderboard Scale:'}
                 </label>
@@ -106,9 +106,9 @@ export default function LikeLeaderboardDesignerPanel({
                     step="0.1"
                     value={settings.likeLeaderboardScale !== undefined ? settings.likeLeaderboardScale : 1.0}
                     onChange={(e) => onSaveSettings({ likeLeaderboardScale: Number(e.target.value) })}
-                    className="w-full accent-secondary cursor-pointer"
+                    className="w-full accent-primary cursor-pointer"
                   />
-                  <span className="text-sm font-extrabold text-secondary font-mono w-12 text-center">
+                  <span className="text-sm font-extrabold text-primary font-mono w-12 text-center">
                     {settings.likeLeaderboardScale !== undefined ? settings.likeLeaderboardScale : 1.0}x
                   </span>
                 </div>
@@ -118,7 +118,7 @@ export default function LikeLeaderboardDesignerPanel({
               </div>
 
               {/* X Position Slider */}
-              <div className="flex flex-col gap-2 p-4 rounded-xl bg-white/5 border border-white/10">
+              <div className="flex flex-col gap-2 p-4 rounded-xl bg-bg-input border border-border-color">
                 <label className="text-sm font-bold text-white">
                   {language === 'vi' ? 'Vị trí Ngang X (%):' : 'X Position (%):'}
                 </label>
@@ -130,9 +130,9 @@ export default function LikeLeaderboardDesignerPanel({
                     step="1"
                     value={settings.likeLeaderboardX !== undefined ? settings.likeLeaderboardX : 78}
                     onChange={(e) => onSaveSettings({ likeLeaderboardX: Number(e.target.value) })}
-                    className="w-full accent-secondary cursor-pointer"
+                    className="w-full accent-primary cursor-pointer"
                   />
-                  <span className="text-sm font-extrabold text-secondary font-mono w-12 text-center">
+                  <span className="text-sm font-extrabold text-primary font-mono w-12 text-center">
                     {settings.likeLeaderboardX !== undefined ? settings.likeLeaderboardX : 78}%
                   </span>
                 </div>
@@ -142,7 +142,7 @@ export default function LikeLeaderboardDesignerPanel({
               </div>
 
               {/* Y Position Slider */}
-              <div className="flex flex-col gap-2 p-4 rounded-xl bg-white/5 border border-white/10">
+              <div className="flex flex-col gap-2 p-4 rounded-xl bg-bg-input border border-border-color">
                 <label className="text-sm font-bold text-white">
                   {language === 'vi' ? 'Vị trí Dọc Y (%):' : 'Y Position (%):'}
                 </label>
@@ -154,9 +154,9 @@ export default function LikeLeaderboardDesignerPanel({
                     step="1"
                     value={settings.likeLeaderboardY !== undefined ? settings.likeLeaderboardY : 15}
                     onChange={(e) => onSaveSettings({ likeLeaderboardY: Number(e.target.value) })}
-                    className="w-full accent-secondary cursor-pointer"
+                    className="w-full accent-primary cursor-pointer"
                   />
-                  <span className="text-sm font-extrabold text-[#00f2fe] font-mono w-12 text-center">
+                  <span className="text-sm font-extrabold text-primary font-mono w-12 text-center">
                     {settings.likeLeaderboardY !== undefined ? settings.likeLeaderboardY : 15}%
                   </span>
                 </div>
@@ -166,14 +166,14 @@ export default function LikeLeaderboardDesignerPanel({
               </div>
 
               {/* Quick Actions */}
-              <div className="flex flex-col gap-2 p-4 rounded-xl bg-white/5 border border-white/10">
+              <div className="flex flex-col gap-2 p-4 rounded-xl bg-bg-input border border-border-color">
                 <span className="text-sm font-bold text-white">
                   {language === 'vi' ? 'Hành động nhanh:' : 'Quick Actions:'}
                 </span>
                 <div className="grid grid-cols-2 gap-3">
                   <Button
                     onClick={onSimulateLike}
-                    className="bg-gradient-to-r from-[#ff0050] to-[#d0003c] text-white shadow-[0_4px_16px_var(--primary-glow)] hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 py-2"
+                    className="bg-gradient-to-r from-primary to-accent text-white shadow-[0_4px_16px_var(--primary-glow)] hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 py-2"
                   >
                     <i className="fa-solid fa-heart animate-bounce" />
                     <span>
@@ -182,7 +182,7 @@ export default function LikeLeaderboardDesignerPanel({
                   </Button>
                   <Button
                     onClick={onResetLikeLeaderboard}
-                    className="bg-white/10 hover:bg-white/20 text-gray-200 border border-white/15 active:scale-[0.98] transition-all flex items-center justify-center gap-2 py-2"
+                    className="bg-bg-surface hover:bg-bg-card border border-border-color text-text-main active:scale-[0.98] transition-all flex items-center justify-center gap-2 py-2"
                   >
                     <i className="fa-solid fa-rotate-left" />
                     <span>{language === 'vi' ? 'Đặt lại BXH' : 'Reset Leaderboard'}</span>
@@ -199,16 +199,16 @@ export default function LikeLeaderboardDesignerPanel({
           
           {/* Component Live Demo Preview */}
           {isEnabled && (
-            <div className="relative w-full rounded-2xl bg-black/40 border border-secondary/30 p-4 flex flex-col gap-3 overflow-hidden animate-[fade-in-up_0.25s_ease-out]">
-              <div className="flex justify-between items-center text-xs font-bold text-secondary uppercase tracking-wider">
+            <div className="relative w-full rounded-2xl bg-bg-surface border border-primary/30 p-4 flex flex-col gap-3 overflow-hidden animate-[fade-in-up_0.25s_ease-out]">
+              <div className="flex justify-between items-center text-xs font-bold text-primary uppercase tracking-wider">
                 <span className="flex items-center gap-1.5">
-                  <i className="fa-solid fa-eye animate-pulse text-[#ff0050]" />
+                  <i className="fa-solid fa-eye animate-pulse text-primary" />
                   <span>
                     {language === 'vi' ? 'Xem Trước Component Podium Top 1-3' : 'Podium 1-3 Component View'}
                   </span>
                 </span>
               </div>
-              <div className="relative min-h-[220px] bg-[#07080d]/80 rounded-xl border border-white/10 p-4 flex items-center justify-center overflow-hidden">
+              <div className="relative min-h-[220px] bg-bg-input rounded-xl border border-border-color p-4 flex items-center justify-center overflow-hidden">
                 <LikeLeaderboardOverlay
                   items={likeLeaderboard}
                   settings={{

@@ -92,7 +92,7 @@ export default function ChatDashboard({ onSendMessage }: ChatDashboardProps) {
       {/* Left Sidebar: Conversations list */}
       <div className="flex h-60 w-full shrink-0 flex-col gap-4 lg:h-full lg:w-80">
         <GlassCard
-          headerIcon={<i className="fa-solid fa-inbox text-secondary" />}
+          headerIcon={<i className="fa-solid fa-inbox text-primary" />}
           headerTitle={t.activeConversations}
           className="flex-1 flex flex-col h-full overflow-hidden"
           contentClassName="flex-1 flex flex-col overflow-hidden h-full min-h-0"
@@ -109,14 +109,14 @@ export default function ChatDashboard({ onSendMessage }: ChatDashboardProps) {
                   <div
                     key={conv.username}
                     onClick={() => dispatch(setActiveChatUser(conv.username))}
-                    className={`flex items-center justify-between p-3.5 rounded-lg border cursor-pointer transition-all duration-200 ${
+                    className={`flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition-all duration-200 ${
                       isActive
-                        ? 'bg-secondary/10 border-secondary shadow-[0_0_12px_var(--color-secondary-glow)] text-white'
-                        : 'bg-black/20 border-border-color hover:bg-black/35 hover:border-white/12 text-text-secondary hover:text-white'
+                        ? 'bg-primary/10 border-primary shadow-[0_0_12px_var(--color-primary-glow)] text-white'
+                        : 'bg-bg-input border-border-color hover:bg-bg-card-hover hover:border-primary/40 text-text-secondary hover:text-white'
                     }`}
                   >
                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <div className="w-10 h-10 rounded-full bg-bg-surface border border-border-color flex items-center justify-center font-header text-[0.9rem] font-bold text-secondary uppercase shrink-0">
+                      <div className="w-10 h-10 rounded-full bg-bg-surface border border-border-color flex items-center justify-center font-header text-[0.9rem] font-bold text-primary uppercase shrink-0">
                         {conv.username.slice(0, 2)}
                       </div>
                       <div className="flex flex-col gap-0.5 min-w-0 flex-1">
@@ -164,7 +164,7 @@ export default function ChatDashboard({ onSendMessage }: ChatDashboardProps) {
             </div>
 
             {/* Message input controls */}
-            <form onSubmit={handleSend} className="flex gap-3 pt-3 border-t border-border-color/60 shrink-0 items-center">
+            <form onSubmit={handleSend} className="flex gap-3 pt-3 border-t border-border-color shrink-0 items-center">
               <input
                 type="file"
                 ref={fileInputRef}
@@ -176,7 +176,7 @@ export default function ChatDashboard({ onSendMessage }: ChatDashboardProps) {
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
-                className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-text-secondary hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-200 cursor-pointer outline-none active:scale-95 disabled:opacity-40"
+                className="w-10 h-10 rounded-xl bg-bg-input border border-border-color flex items-center justify-center text-text-secondary hover:text-primary hover:border-primary/40 transition-all duration-200 cursor-pointer outline-none active:scale-95 disabled:opacity-40"
               >
                 {isUploading ? (
                   <i className="fa-solid fa-spinner animate-spin text-[0.85rem]" />
@@ -190,7 +190,7 @@ export default function ChatDashboard({ onSendMessage }: ChatDashboardProps) {
                 onChange={(e) => setInputVal(e.target.value)}
                 placeholder={t.placeholder}
                 disabled={isUploading}
-                className="flex-1 bg-bg-input border border-border-color rounded-lg px-4 py-3 text-white font-body text-[0.88rem] outline-none transition-all duration-200 focus:border-secondary focus:ring-3 focus:ring-secondary-glow/20 disabled:opacity-50"
+                className="flex-1 bg-bg-input border border-border-color rounded-xl px-4 py-3 text-text-main font-body text-[0.88rem] outline-none transition-all duration-200 focus:border-primary focus:ring-3 focus:ring-primary-glow/20 disabled:opacity-50"
               />
               <Button type="submit" variant="gradient" className="px-5 shrink-0" disabled={isUploading}>
                 <i className="fa-solid fa-paper-plane mr-1.5" />
@@ -199,8 +199,8 @@ export default function ChatDashboard({ onSendMessage }: ChatDashboardProps) {
             </form>
           </GlassCard>
         ) : (
-          <div className="flex-1 bg-bg-card/50 border border-border-color rounded-2xl flex flex-col items-center justify-center p-8 text-center select-none backdrop-blur-[24px]">
-            <i className="fa-solid fa-comments text-[3.5rem] text-text-muted mb-4 opacity-50" />
+          <div className="flex-1 bg-bg-card border border-border-color rounded-2xl flex flex-col items-center justify-center p-8 text-center select-none backdrop-blur-[24px]">
+            <i className="fa-solid fa-comments text-[3.5rem] text-primary/40 mb-4" />
             <h3 className="font-header text-[1.1rem] font-bold text-white mb-1.5 uppercase tracking-[0.5px]">Dialog Window</h3>
             <p className="font-body text-[0.85rem] text-text-muted max-w-[320px] leading-relaxed">
               {t.selectUser}
@@ -306,30 +306,32 @@ export function ChatWidget({ onSendMessage }: ChatWidgetProps) {
   }[language];
 
   return (
-    <div className="fixed bottom-3 right-3 z-50 flex flex-col items-end sm:bottom-6 sm:right-6">
+    <div className="fixed bottom-3 right-3 z-50 flex flex-col items-end sm:bottom-6 sm:right-6 font-body">
       {/* Floating Dialog Box */}
       {isOpen && (
-        <div className="h-[calc(100dvh-96px)] max-h-[520px] w-[calc(100vw-24px)] max-w-[365px] rounded-lg sm:rounded-2xl border border-border-color bg-bg-surface/95 backdrop-blur-xl shadow-[0_12px_48px_rgba(0,0,0,0.6)] flex flex-col overflow-hidden mb-3 sm:mb-4 animate-[fade-in-up_0.25s_cubic-bezier(0.175,0.885,0.32,1.275)]">
+        <div className="h-[calc(100dvh-96px)] max-h-[520px] w-[calc(100vw-24px)] max-w-[365px] rounded-2xl border border-border-color bg-bg-surface/98 backdrop-blur-xl shadow-2xl flex flex-col overflow-hidden mb-3 sm:mb-4 animate-[fade-in-up_0.25s_cubic-bezier(0.175,0.885,0.32,1.275)]">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3.5 border-b border-border-color bg-white/3 select-none">
+          <div className="flex items-center justify-between px-4 py-3.5 border-b border-border-color bg-bg-card select-none">
             <div className="flex items-center gap-2.5">
-              <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
               <span className="font-header text-[0.88rem] font-bold text-white tracking-[0.5px]">{t.title}</span>
             </div>
             <button
               onClick={() => setIsOpen(false)}
-              className="w-7 h-7 rounded-full bg-white/4 hover:bg-white/10 flex items-center justify-center text-text-muted hover:text-white transition-all duration-200 outline-none cursor-pointer"
+              className="w-7 h-7 rounded-lg bg-bg-input hover:bg-primary/20 border border-border-color flex items-center justify-center text-text-muted hover:text-white transition-all duration-200 outline-none cursor-pointer"
             >
               <i className="fa-solid fa-xmark text-[0.85rem]" />
             </button>
           </div>
 
           {/* Scrollable Message Thread */}
-          <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 custom-scrollbar bg-bg-surface">
             {messages.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-center opacity-40 px-6 select-none">
-                <i className="fa-solid fa-comments text-[2.5rem] mb-3 text-secondary" />
-                <span className="text-[0.78rem] font-body">{t.noMessages}</span>
+              <div className="flex-1 flex flex-col items-center justify-center text-center px-6 select-none my-auto">
+                <div className="w-14 h-14 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary text-2xl mb-3 shadow-[0_0_15px_var(--color-primary-glow)]">
+                  <i className="fa-solid fa-comments" />
+                </div>
+                <span className="text-[0.8rem] text-text-muted">{t.noMessages}</span>
               </div>
             ) : (
               messages.map((msg) => {
@@ -341,7 +343,7 @@ export function ChatWidget({ onSendMessage }: ChatWidgetProps) {
           </div>
 
           {/* Fixed Input Form at the bottom */}
-          <form onSubmit={handleSend} className="p-3 border-t border-border-color bg-[#07080d]/60 backdrop-blur-md flex gap-2 items-center">
+          <form onSubmit={handleSend} className="p-3 border-t border-border-color bg-bg-card backdrop-blur-md flex gap-2.5 items-center">
             <input
               type="file"
               ref={fileInputRef}
@@ -353,7 +355,7 @@ export function ChatWidget({ onSendMessage }: ChatWidgetProps) {
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
-              className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-text-muted hover:text-white hover:bg-white/10 transition-all duration-200 cursor-pointer outline-none active:scale-95 disabled:opacity-40"
+              className="w-9 h-9 rounded-xl bg-bg-input border border-border-color flex items-center justify-center text-text-muted hover:text-primary hover:border-primary/40 transition-all duration-200 cursor-pointer outline-none active:scale-95 disabled:opacity-40 shrink-0"
             >
               {isUploading ? (
                 <i className="fa-solid fa-spinner animate-spin text-[0.8rem]" />
@@ -367,12 +369,12 @@ export function ChatWidget({ onSendMessage }: ChatWidgetProps) {
               onChange={(e) => setInputVal(e.target.value)}
               placeholder={t.placeholder}
               disabled={isUploading}
-              className="flex-1 bg-bg-input border border-border-color rounded-xl px-3.5 py-2 text-white font-body text-[0.8rem] outline-none transition-all duration-200 focus:border-secondary focus:ring-3 focus:ring-secondary-glow/15 disabled:opacity-50"
+              className="flex-1 bg-bg-input border border-border-color rounded-xl px-3.5 py-2 text-text-main font-body text-[0.82rem] outline-none transition-all duration-200 placeholder:text-text-muted/50 focus:border-primary focus:ring-3 focus:ring-primary-glow/20 disabled:opacity-50"
             />
             <button
               type="submit"
               disabled={!inputVal.trim() || isUploading}
-              className="w-9 h-9 rounded-xl bg-gradient-to-r from-primary to-[#d0003c] shadow-[0_4px_12px_var(--color-primary-glow)] hover:shadow-[0_4px_16px_var(--color-primary-glow)] flex items-center justify-center text-white transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-40 disabled:pointer-events-none cursor-pointer outline-none border-none"
+              className="w-9 h-9 rounded-xl bg-gradient-to-r from-primary to-accent shadow-[0_4px_12px_var(--color-primary-glow)] hover:shadow-[0_4px_16px_var(--color-primary-glow)] flex items-center justify-center text-white transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-40 disabled:pointer-events-none cursor-pointer outline-none border-none shrink-0"
             >
               <i className="fa-solid fa-paper-plane text-[0.8rem]" />
             </button>
@@ -383,7 +385,7 @@ export function ChatWidget({ onSendMessage }: ChatWidgetProps) {
       {/* Floating Messenger Bubble Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-14 h-14 rounded-full bg-gradient-to-tr from-primary to-[#ff0050] border border-white/10 hover:border-white/20 shadow-[0_8px_32px_rgba(255,0,80,0.35)] flex items-center justify-center text-white transition-all duration-300 hover:scale-110 hover:shadow-[0_8px_32px_rgba(255,0,80,0.5)] active:scale-95 cursor-pointer outline-none relative"
+        className="w-14 h-14 rounded-full bg-gradient-to-tr from-primary to-accent border border-white/20 shadow-[0_8px_32px_var(--color-primary-glow)] flex items-center justify-center text-white transition-all duration-300 hover:scale-110 hover:shadow-[0_8px_32px_rgba(255,0,80,0.5)] active:scale-95 cursor-pointer outline-none relative"
       >
         {isOpen ? (
           <i className="fa-solid fa-chevron-down text-[1.1rem] animate-[spin_0.3s_ease-out]" />
@@ -393,7 +395,7 @@ export function ChatWidget({ onSendMessage }: ChatWidgetProps) {
         
         {/* Unread badge on the bubble */}
         {!isOpen && unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1.5 rounded-full bg-secondary text-[0.62rem] font-bold text-black flex items-center justify-center shadow-[0_0_10px_var(--color-secondary-glow)] border border-bg-dark animate-pulse select-none">
+          <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1.5 rounded-full bg-primary text-[0.62rem] font-bold text-white flex items-center justify-center shadow-[0_0_10px_var(--color-primary-glow)] border border-bg-dark animate-pulse select-none">
             {unreadCount}
           </span>
         )}
@@ -418,7 +420,7 @@ function MessageBubble({ message, isMe }: { message: ChatMessage; isMe: boolean 
       <div className={`flex items-end gap-2.5 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
         {/* Profile Avatar icon */}
         <div className={`w-7 h-7 rounded-full border border-border-color flex items-center justify-center font-header text-[0.68rem] font-bold select-none uppercase shrink-0 ${
-          isMe ? 'bg-secondary/15 text-secondary' : 'bg-primary/15 text-primary'
+          isMe ? 'bg-primary/20 text-primary border-primary/30' : 'bg-bg-input text-text-secondary'
         }`}>
           {message.sender.slice(0, 2)}
         </div>
@@ -426,22 +428,22 @@ function MessageBubble({ message, isMe }: { message: ChatMessage; isMe: boolean 
         {/* Message box bubble */}
         <div className={`px-3.5 py-2 rounded-xl text-[0.82rem] font-body leading-relaxed shadow-md border ${
           isMe
-            ? 'bg-gradient-to-br from-[#ff0050]/20 to-[#ff0050]/5 border-primary/20 text-white rounded-tr-none'
-            : 'bg-[#101220]/60 backdrop-blur-md border-border-color text-text-main rounded-tl-none'
+            ? 'bg-gradient-to-br from-primary/20 to-primary/5 border-primary/30 text-text-main rounded-tr-none'
+            : 'bg-bg-input border-border-color text-text-main rounded-tl-none'
         }`}>
           {isImage ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img 
               src={mediaUrl} 
               alt="Uploaded content" 
-              className="max-w-[220px] max-h-[220px] rounded-lg object-contain cursor-zoom-in border border-white/5 bg-black/40 hover:scale-[1.02] transition-all duration-200"
+              className="max-w-[220px] max-h-[220px] rounded-lg object-contain cursor-zoom-in border border-border-color bg-bg-surface hover:scale-[1.02] transition-all duration-200"
               onClick={() => typeof window !== 'undefined' && window.open(mediaUrl, '_blank')}
             />
           ) : isVideo ? (
             <video 
               src={mediaUrl} 
               controls 
-              className="max-w-[220px] max-h-[220px] rounded-lg object-contain border border-white/5 bg-black/40"
+              className="max-w-[220px] max-h-[220px] rounded-lg object-contain border border-border-color bg-bg-surface"
             />
           ) : (
             message.message

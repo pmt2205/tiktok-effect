@@ -110,12 +110,12 @@ export default function TtsDesignerPanel({
         <div className="flex flex-col gap-1 select-none">
           <div className="flex items-center gap-3">
             <h3 className="font-header text-[1.2rem] font-bold text-white uppercase tracking-[0.5px] flex items-center gap-2">
-              <i className="fa-solid fa-volume-high text-secondary animate-pulse" />
+              <i className="fa-solid fa-volume-high text-primary animate-pulse" />
               <span>{language === 'vi' ? 'Cấu Hình Bot Đọc Comment (TTS AI)' : 'AI Text-to-Speech Comment Bot'}</span>
             </h3>
             {isSpeaking && (
-              <span className="px-2.5 py-0.5 rounded-full bg-secondary/15 border border-secondary/30 text-secondary text-[0.7rem] font-bold flex items-center gap-1.5 animate-pulse">
-                <span className="w-2 h-2 rounded-full bg-secondary" />
+              <span className="px-2.5 py-0.5 rounded-full bg-primary/15 border border-primary/30 text-primary text-[0.7rem] font-bold flex items-center gap-1.5 animate-pulse">
+                <span className="w-2 h-2 rounded-full bg-primary" />
                 {language === 'vi' ? 'Đang đọc...' : 'Speaking...'}
               </span>
             )}
@@ -141,7 +141,7 @@ export default function TtsDesignerPanel({
             className={`px-4 py-2 rounded-xl text-[0.8rem] font-bold transition-all duration-200 cursor-pointer outline-none flex items-center gap-2 active:scale-[0.97] ${
               isMuted
                 ? 'bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30'
-                : 'bg-secondary/10 border border-secondary/30 text-secondary hover:bg-secondary/20'
+                : 'bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20'
             }`}
           >
             <i className={`fa-solid ${isMuted ? 'fa-volume-xmark' : 'fa-volume-high'}`} />
@@ -158,7 +158,7 @@ export default function TtsDesignerPanel({
             <button
               type="button"
               onClick={clearQueue}
-              className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white/70 text-[0.8rem] font-bold cursor-pointer transition-all active:scale-[0.97]"
+              className="px-3 py-2 rounded-xl bg-bg-input border border-border-color hover:bg-primary/20 text-white/70 hover:text-white text-[0.8rem] font-bold cursor-pointer transition-all active:scale-[0.97]"
               title={language === 'vi' ? 'Xóa hàng chờ đọc' : 'Clear speech queue'}
             >
               <i className="fa-solid fa-trash-can" />
@@ -173,7 +173,7 @@ export default function TtsDesignerPanel({
         <div className="lg:col-span-2 bg-bg-card border border-border-color rounded-2xl p-6 backdrop-blur-[24px] glass-shadow flex flex-col gap-6">
           <div className="flex justify-between items-center select-none border-b border-border-color/30 pb-4">
             <h4 className="font-header text-[1rem] font-bold text-white uppercase tracking-[0.5px] flex items-center gap-2">
-              <i className="fa-solid fa-sliders text-secondary" />
+              <i className="fa-solid fa-sliders text-primary" />
               {language === 'vi' ? 'Tùy chỉnh Giọng đọc & Bộ lọc' : 'Voice & Filter Settings'}
             </h4>
 
@@ -186,7 +186,7 @@ export default function TtsDesignerPanel({
                 className="peer sr-only"
                 disabled={savingSettings}
               />
-              <span className="w-11 h-[22px] bg-white/8 rounded-full relative transition-all duration-300 border border-border-color after:absolute after:w-[16px] after:h-[16px] after:rounded-full after:bg-white after:top-[2px] after:left-[2px] after:transition-all after:duration-300 after:ease-out peer-checked:bg-secondary peer-checked:border-transparent peer-checked:shadow-[0_0_10px_var(--secondary-glow)] peer-checked:after:translate-x-[22px] peer-disabled:opacity-40" />
+              <span className="w-11 h-[22px] bg-white/10 rounded-full relative transition-all duration-300 border border-border-color after:absolute after:w-[16px] after:h-[16px] after:rounded-full after:bg-white after:top-[2px] after:left-[2px] after:transition-all after:duration-300 after:ease-out peer-checked:bg-primary peer-checked:border-transparent peer-checked:shadow-[0_0_10px_var(--primary-glow)] peer-checked:after:translate-x-[22px] peer-disabled:opacity-40" />
             </label>
           </div>
 
@@ -215,7 +215,7 @@ export default function TtsDesignerPanel({
                 <label className="text-[0.8rem] text-text-secondary font-bold select-none">
                   {language === 'vi' ? 'Tốc độ đọc:' : 'Rate / Speed:'}
                 </label>
-                <span className="text-[0.78rem] font-mono font-bold text-secondary">{ttsRate.toFixed(1)}x</span>
+                <span className="text-[0.78rem] font-mono font-bold text-primary">{ttsRate.toFixed(1)}x</span>
               </div>
               <input
                 type="range"
@@ -225,7 +225,7 @@ export default function TtsDesignerPanel({
                 value={ttsRate}
                 onChange={(e) => handleRateChange(parseFloat(e.target.value))}
                 disabled={!ttsEnabled || savingSettings}
-                className="w-full accent-secondary cursor-pointer bg-bg-input rounded-lg h-2"
+                className="w-full accent-primary cursor-pointer bg-bg-input rounded-lg h-2"
               />
             </div>
 
@@ -235,7 +235,7 @@ export default function TtsDesignerPanel({
                 <label className="text-[0.8rem] text-text-secondary font-bold select-none">
                   {language === 'vi' ? 'Tông giọng (Pitch):' : 'Pitch Tone:'}
                 </label>
-                <span className="text-[0.78rem] font-mono font-bold text-secondary">{ttsPitch.toFixed(1)}</span>
+                <span className="text-[0.78rem] font-mono font-bold text-primary">{ttsPitch.toFixed(1)}</span>
               </div>
               <input
                 type="range"
@@ -245,7 +245,7 @@ export default function TtsDesignerPanel({
                 value={ttsPitch}
                 onChange={(e) => handlePitchChange(parseFloat(e.target.value))}
                 disabled={!ttsEnabled || savingSettings}
-                className="w-full accent-secondary cursor-pointer bg-bg-input rounded-lg h-2"
+                className="w-full accent-primary cursor-pointer bg-bg-input rounded-lg h-2"
               />
             </div>
 
@@ -255,7 +255,7 @@ export default function TtsDesignerPanel({
                 <label className="text-[0.8rem] text-text-secondary font-bold select-none">
                   {language === 'vi' ? 'Âm lượng:' : 'Volume:'}
                 </label>
-                <span className="text-[0.78rem] font-mono font-bold text-secondary">{Math.round(ttsVolume * 100)}%</span>
+                <span className="text-[0.78rem] font-mono font-bold text-primary">{Math.round(ttsVolume * 100)}%</span>
               </div>
               <input
                 type="range"
@@ -265,7 +265,7 @@ export default function TtsDesignerPanel({
                 value={ttsVolume}
                 onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
                 disabled={!ttsEnabled || savingSettings}
-                className="w-full accent-secondary cursor-pointer bg-bg-input rounded-lg h-2"
+                className="w-full accent-primary cursor-pointer bg-bg-input rounded-lg h-2"
               />
             </div>
           </div>
@@ -284,11 +284,11 @@ export default function TtsDesignerPanel({
               onChange={(e) => handleTemplateChange(e.target.value)}
               disabled={!ttsEnabled || savingSettings}
               placeholder="{nickname} nói: {comment}"
-              className="w-full bg-bg-input border border-border-color rounded-xl px-3.5 py-2.5 text-white font-body text-[0.85rem] outline-none transition-all duration-200 focus:border-secondary focus:ring-3 focus:ring-secondary-glow/25 disabled:opacity-50"
+              className="w-full bg-bg-input border border-border-color rounded-xl px-3.5 py-2.5 text-white font-body text-[0.85rem] outline-none transition-all duration-200 focus:border-primary focus:ring-3 focus:ring-primary-glow/25 disabled:opacity-50"
             />
           </div>
 
-          {/* Filter Rules Toggles (2A) */}
+          {/* Filter Rules Toggles */}
           <div className="flex flex-col gap-4 border-t border-border-color/20 pt-4">
             <span className="text-[0.85rem] font-header font-bold text-white uppercase tracking-[0.5px]">
               {language === 'vi' ? 'Quy tắc lọc Comment tự động' : 'Smart Comment Filters'}
@@ -296,7 +296,7 @@ export default function TtsDesignerPanel({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Emoji filter */}
-              <div className="flex justify-between items-center bg-white/5 border border-white/5 p-3 rounded-xl">
+              <div className="flex justify-between items-center bg-bg-input border border-border-color p-3 rounded-xl">
                 <div className="flex flex-col gap-0.5">
                   <span className="text-[0.8rem] text-text-secondary font-bold">
                     {language === 'vi' ? 'Lọc bỏ Emoji / Icon:' : 'Filter Emoji / Icons:'}
@@ -313,12 +313,12 @@ export default function TtsDesignerPanel({
                     disabled={!ttsEnabled || savingSettings}
                     className="peer sr-only"
                   />
-                  <span className="w-9 h-[18px] bg-white/10 rounded-full relative transition-all duration-300 border border-border-color after:absolute after:w-[12px] after:h-[12px] after:rounded-full after:bg-white after:top-[2px] after:left-[2px] after:transition-all after:duration-300 peer-checked:bg-secondary peer-checked:after:translate-x-[18px]" />
+                  <span className="w-9 h-[18px] bg-white/10 rounded-full relative transition-all duration-300 border border-border-color after:absolute after:w-[12px] after:h-[12px] after:rounded-full after:bg-white after:top-[2px] after:left-[2px] after:transition-all after:duration-300 peer-checked:bg-primary peer-checked:after:translate-x-[18px]" />
                 </label>
               </div>
 
               {/* Bad words filter */}
-              <div className="flex justify-between items-center bg-white/5 border border-white/5 p-3 rounded-xl">
+              <div className="flex justify-between items-center bg-bg-input border border-border-color p-3 rounded-xl">
                 <div className="flex flex-col gap-0.5">
                   <span className="text-[0.8rem] text-text-secondary font-bold">
                     {language === 'vi' ? 'Lọc từ thô tục / cấm:' : 'Filter Profanity:'}
@@ -335,13 +335,13 @@ export default function TtsDesignerPanel({
                     disabled={!ttsEnabled || savingSettings}
                     className="peer sr-only"
                   />
-                  <span className="w-9 h-[18px] bg-white/10 rounded-full relative transition-all duration-300 border border-border-color after:absolute after:w-[12px] after:h-[12px] after:rounded-full after:bg-white after:top-[2px] after:left-[2px] after:transition-all after:duration-300 peer-checked:bg-secondary peer-checked:after:translate-x-[18px]" />
+                  <span className="w-9 h-[18px] bg-white/10 rounded-full relative transition-all duration-300 border border-border-color after:absolute after:w-[12px] after:h-[12px] after:rounded-full after:bg-white after:top-[2px] after:left-[2px] after:transition-all after:duration-300 peer-checked:bg-primary peer-checked:after:translate-x-[18px]" />
                 </label>
               </div>
             </div>
 
             {/* Max length */}
-            <div className="flex justify-between items-center bg-white/5 border border-white/5 p-3 rounded-xl">
+            <div className="flex justify-between items-center bg-bg-input border border-border-color p-3 rounded-xl">
               <div className="flex flex-col gap-0.5">
                 <span className="text-[0.8rem] text-text-secondary font-bold">
                   {language === 'vi' ? 'Giới hạn ký tự tối đa:' : 'Max Text Length:'}
@@ -358,7 +358,7 @@ export default function TtsDesignerPanel({
                   value={ttsMaxChars}
                   onChange={(e) => handleMaxCharsChange(parseInt(e.target.value) || 100)}
                   disabled={!ttsEnabled || savingSettings}
-                  className="w-20 bg-bg-input border border-border-color rounded-lg px-2.5 py-1 text-white font-mono text-[0.82rem] text-center outline-none focus:border-secondary"
+                  className="w-20 bg-bg-surface border border-border-color rounded-lg px-2.5 py-1 text-white font-mono text-[0.82rem] text-center outline-none focus:border-primary"
                 />
                 <span className="text-[0.72rem] text-text-muted font-mono">{language === 'vi' ? 'ký tự' : 'chars'}</span>
               </div>
@@ -389,7 +389,7 @@ export default function TtsDesignerPanel({
               <button
                 type="button"
                 onClick={handleTestSpeech}
-                className="py-2 px-3 rounded-xl bg-primary text-white text-[0.78rem] font-bold hover:shadow-[0_0_12px_var(--primary-glow)] transition-all cursor-pointer outline-none active:scale-[0.97] flex items-center justify-center gap-1.5"
+                className="py-2 px-3 rounded-xl bg-gradient-to-r from-primary to-accent text-white text-[0.78rem] font-bold hover:shadow-[0_0_12px_var(--primary-glow)] transition-all cursor-pointer outline-none active:scale-[0.97] flex items-center justify-center gap-1.5"
               >
                 <i className="fa-solid fa-play" />
                 {language === 'vi' ? 'Thử Đọc Ngay' : 'Play Sound'}
@@ -399,7 +399,7 @@ export default function TtsDesignerPanel({
                 <button
                   type="button"
                   onClick={handleSimulateChat}
-                  className="py-2 px-3 rounded-xl bg-secondary text-black text-[0.78rem] font-bold hover:shadow-[0_0_12px_var(--secondary-glow)] transition-all cursor-pointer outline-none active:scale-[0.97] flex items-center justify-center gap-1.5"
+                  className="py-2 px-3 rounded-xl bg-primary/20 border border-primary/40 text-primary text-[0.78rem] font-bold hover:bg-primary hover:text-white transition-all cursor-pointer outline-none active:scale-[0.97] flex items-center justify-center gap-1.5"
                 >
                   <i className="fa-solid fa-paper-plane" />
                   Test OBS
@@ -412,7 +412,7 @@ export default function TtsDesignerPanel({
           <div className="bg-bg-card border border-border-color rounded-2xl p-5 backdrop-blur-[24px] glass-shadow flex flex-col gap-3.5 flex-1 min-h-[300px]">
             <h4 className="font-header text-[0.95rem] font-bold text-white uppercase tracking-[0.5px] flex items-center justify-between select-none">
               <span className="flex items-center gap-2">
-                <i className="fa-solid fa-list-check text-secondary" />
+                <i className="fa-solid fa-list-check text-primary" />
                 {language === 'vi' ? 'Lịch Sử Comment Đã Đọc' : 'Spoken History Log'}
               </span>
               <span className="text-[0.7rem] font-mono text-text-muted">{spokenLogs.length} items</span>
@@ -427,10 +427,10 @@ export default function TtsDesignerPanel({
                 spokenLogs.map((log) => (
                   <div
                     key={log.id}
-                    className="p-2.5 rounded-xl bg-white/5 border border-white/5 flex flex-col gap-1 text-[0.78rem] transition-all hover:bg-white/8"
+                    className="p-2.5 rounded-xl bg-bg-surface border border-border-color flex flex-col gap-1 text-[0.78rem] transition-all hover:border-primary/40"
                   >
                     <div className="flex justify-between items-center">
-                      <span className="font-bold text-secondary">{log.nickname}</span>
+                      <span className="font-bold text-primary">{log.nickname}</span>
                       <span className="text-[0.66rem] font-mono text-text-muted">{log.time}</span>
                     </div>
                     <p className="text-text-main line-clamp-2 font-body text-[0.78rem]">{log.processedText}</p>

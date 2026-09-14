@@ -146,28 +146,26 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-[100dvh] flex items-center justify-center p-3 sm:p-5 bg-gradient-to-b from-[#020205] via-[#07080d] to-[#0c081a] overflow-hidden">
+    <div className="relative min-h-[100dvh] flex items-center justify-center p-3 sm:p-5 bg-bg-dark transition-colors duration-300 overflow-hidden">
       {/* 3D Twinkling Cosmic Starfield Layers */}
-      <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.8)_1px,_transparent_1px)] bg-[size:180px_180px] bg-[position:0_0] pointer-events-none z-0 animate-twinkle" style={{ animationDuration: '5s' }} />
-      <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.6)_1.5px,_transparent_1.5px)] bg-[size:280px_280px] bg-[position:40px_70px] pointer-events-none z-0 animate-twinkle" style={{ animationDuration: '8s', animationDelay: '1.5s' } as React.CSSProperties} />
-      <div className="absolute inset-0 bg-[radial-gradient(rgba(0,242,254,0.4)_2px,_transparent_2px)] bg-[size:400px_400px] bg-[position:100px_220px] pointer-events-none z-0 animate-twinkle" style={{ animationDuration: '11s', animationDelay: '3s' } as React.CSSProperties} />
+      <div className="absolute inset-0 bg-[radial-gradient(rgba(0,242,254,0.15)_1px,_transparent_1px)] bg-[size:180px_180px] bg-[position:0_0] pointer-events-none z-0 animate-twinkle" style={{ animationDuration: '5s' }} />
+      <div className="absolute inset-0 bg-[radial-gradient(rgba(255,0,80,0.15)_1.5px,_transparent_1.5px)] bg-[size:280px_280px] bg-[position:40px_70px] pointer-events-none z-0 animate-twinkle" style={{ animationDuration: '8s', animationDelay: '1.5s' } as React.CSSProperties} />
 
       <BackgroundGlows variant="login" />
       <ShootingStars />
 
-      <div className="relative z-10 w-full max-w-[420px] bg-bg-surface rounded-lg sm:rounded-xl border border-transparent shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] p-5 min-[380px]:p-6 sm:p-8 md:p-10 transition-all duration-300 hover:shadow-[0_8px_40px_0_rgba(0,242,254,0.15)] hover:-translate-y-0.5 border-glow-animated">
+      <div className="glass-card relative z-10 w-full max-w-[420px] rounded-2xl border border-border-color bg-bg-surface p-5 min-[380px]:p-6 sm:p-8 md:p-10 transition-all duration-300 hover:shadow-[0_8px_40px_0_rgba(0,242,254,0.15)] hover:-translate-y-0.5 border-glow-animated">
         <div className="text-center mb-8">
           <div className="w-48 h-24 sm:w-64 sm:h-32 mb-2 mx-auto transition-all duration-300 hover:scale-105 select-none relative">
             <Image src="/logo.png" alt="TikTok Effect Auto Logo" fill className="object-contain" priority />
           </div>
-          <h2 className="font-header text-[1.5rem] font-bold text-center text-white leading-tight tracking-[0.5px]">TIKTOK LIVE</h2>
+          <h2 className="font-header text-[1.5rem] font-bold text-center text-text-main leading-tight tracking-[0.5px]">TIKTOK LIVE</h2>
           <span className="font-header text-[0.7rem] text-secondary text-center tracking-[4px] block mt-1">EVENT & EFFECT MAPPING</span>
         </div>
 
         {isLogin ? (
           <>
             <LoginForm onSuccess={() => router.push('/dashboard')} />
-            
             <div className="flex items-center gap-3 my-4.5 select-none">
               <div className="h-[1px] bg-border-color flex-1 opacity-60" />
               <span className="text-[0.7rem] text-text-muted font-bold uppercase tracking-[1px]">{language === 'vi' ? 'Hoặc' : 'OR'}</span>

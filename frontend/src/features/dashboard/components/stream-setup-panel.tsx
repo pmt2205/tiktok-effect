@@ -85,12 +85,6 @@ export default function StreamSetupPanel({ socketConnected }: { socketConnected:
         <Button type="button" variant="secondary" onClick={() => { void refreshStatus(); void createOverlayLink(); }} className="text-xs"><i className="fa-solid fa-rotate" />{language === 'vi' ? 'Kiểm tra lại' : 'Refresh'}</Button>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-3">
-        <StatusRow icon="fa-solid fa-server" label="Backend" value={health === 'checking' ? (language === 'vi' ? 'Đang kiểm tra' : 'Checking') : backendOnline ? (language === 'vi' ? 'Sẵn sàng' : 'Ready') : (language === 'vi' ? 'Ngoại tuyến' : 'Offline')} detail={backendOnline ? `${BACKEND_URL}` : (language === 'vi' ? 'Không phản hồi. Hãy chạy backend hoặc kiểm tra NEXT_PUBLIC_BACKEND_URL.' : 'No response. Start backend or check NEXT_PUBLIC_BACKEND_URL.')} tone={backendOnline ? 'success' : health === 'checking' ? 'warning' : 'danger'} />
-        <StatusRow icon="fa-brands fa-tiktok" label="TikTok Live" value={tiktokConnected ? (language === 'vi' ? 'Đã kết nối' : 'Connected') : (language === 'vi' ? 'Chưa kết nối' : 'Disconnected')} detail={tiktokConnected ? `@${streamStatus.username || streamerUsername}` : (language === 'vi' ? 'Nhập username TikTok và bấm Kết nối ở phía trên.' : 'Enter a TikTok username and press Connect above.')} tone={tiktokConnected ? 'success' : 'warning'} />
-        <StatusRow icon="fa-solid fa-desktop" label="OBS Overlay" value={overlayUrl ? (language === 'vi' ? 'Sẵn sàng' : 'Ready') : (language === 'vi' ? 'Cần tạo link' : 'Link needed')} detail={overlayUrl ? (language === 'vi' ? 'Link bảo mật đã được tạo cho Browser Source.' : 'A secure Browser Source link is ready.') : (language === 'vi' ? 'Chưa thể tạo link overlay.' : 'Overlay link has not been created.')} tone={overlayUrl ? 'success' : 'warning'} />
-      </div>
-
       <div className="mt-5 rounded-xl border border-border-color bg-bg-input p-4">
         <div className="mb-2 flex items-center justify-between gap-3"><span className="text-sm font-bold text-white">{language === 'vi' ? 'Link OBS Browser Source' : 'OBS Browser Source URL'}</span>{overlayUrl && <Button type="button" variant="secondary" onClick={copyOverlayLink} className="px-3 py-1.5 text-xs"><i className="fa-regular fa-copy" />{language === 'vi' ? 'Sao chép' : 'Copy'}</Button>}</div>
         <code className="block overflow-x-auto rounded-lg border border-border-color bg-black/30 p-3 text-xs text-secondary">{overlayUrl || (language === 'vi' ? 'Đang tạo link bảo mật…' : 'Creating a secure link…')}</code>

@@ -103,7 +103,7 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
           aria-invalid={Boolean(fieldError('username'))}
           aria-describedby={fieldError('username') ? 'register-username-error' : undefined}
           required
-          className={`bg-bg-input border rounded-md px-4 py-3 text-white font-body text-[0.95rem] outline-none transition-all duration-200 placeholder:text-white/20 disabled:opacity-50 focus:ring-3 ${fieldError('username') ? 'border-primary focus:border-primary focus:ring-primary-glow/25' : 'border-border-color focus:border-secondary focus:ring-secondary-glow/25'}`}
+          className={`bg-bg-input border rounded-md px-4 py-3 text-text-main font-body text-[0.95rem] outline-none transition-all duration-200 placeholder:text-text-muted disabled:opacity-50 focus:ring-3 ${fieldError('username') ? 'border-primary focus:border-primary focus:ring-primary-glow/25' : 'border-border-color focus:border-secondary focus:ring-secondary-glow/25'}`}
           disabled={loading}
         />
         {fieldError('username') && <p id="register-username-error" className="text-primary text-xs" role="alert">{fieldError('username')}</p>}
@@ -123,12 +123,12 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
             aria-invalid={Boolean(fieldError('password'))}
             aria-describedby={fieldError('password') ? 'register-password-error' : 'register-password-hint'}
             required
-            className={`w-full bg-bg-input border rounded-md pl-4 pr-12 py-3 text-white font-body text-[0.95rem] outline-none transition-all duration-200 placeholder:text-white/20 disabled:opacity-50 focus:border-primary focus:ring-3 focus:ring-primary-glow/25 ${fieldError('password') ? 'border-primary' : 'border-border-color'}`}
+            className={`w-full bg-bg-input border rounded-md pl-4 pr-12 py-3 text-text-main font-body text-[0.95rem] outline-none transition-all duration-200 placeholder:text-text-muted disabled:opacity-50 focus:border-primary focus:ring-3 focus:ring-primary-glow/25 ${fieldError('password') ? 'border-primary' : 'border-border-color'}`}
             disabled={loading}
           />
           <button 
             type="button"
-            className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer select-none text-[1.05rem] text-text-muted hover:text-white transition-colors duration-150 outline-none bg-transparent border-none" 
+            className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer select-none text-[1.05rem] text-text-muted hover:text-text-main transition-colors duration-150 outline-none bg-transparent border-none" 
             onClick={() => setShowPassword(!showPassword)}
           >
             {showPassword ? (
@@ -159,13 +159,13 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
             aria-invalid={Boolean(fieldError('confirmPassword'))}
             aria-describedby={fieldError('confirmPassword') ? 'register-confirm-password-error' : undefined}
             required
-            className={`w-full bg-bg-input border rounded-md pl-4 pr-12 py-3 text-white font-body text-[0.95rem] outline-none transition-all duration-200 placeholder:text-white/20 disabled:opacity-50 focus:border-primary focus:ring-3 focus:ring-primary-glow/25 ${fieldError('confirmPassword') ? 'border-primary' : 'border-border-color'}`}
+            className={`w-full bg-bg-input border rounded-md pl-4 pr-12 py-3 text-text-main font-body text-[0.95rem] outline-none transition-all duration-200 placeholder:text-text-muted disabled:opacity-50 focus:border-primary focus:ring-3 focus:ring-primary-glow/25 ${fieldError('confirmPassword') ? 'border-primary' : 'border-border-color'}`}
             disabled={loading}
           />
           <button
             type="button"
             aria-label={showConfirmPassword ? 'Ẩn mật khẩu xác nhận' : 'Hiện mật khẩu xác nhận'}
-            className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer select-none text-[1.05rem] text-text-muted hover:text-white transition-colors duration-150 outline-none bg-transparent border-none"
+            className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer select-none text-[1.05rem] text-text-muted hover:text-text-main transition-colors duration-150 outline-none bg-transparent border-none"
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
           >
             <i className={`fa-solid ${showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'}`} />
