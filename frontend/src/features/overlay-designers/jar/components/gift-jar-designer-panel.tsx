@@ -4,11 +4,8 @@
 import React, { useState } from 'react';
 import { OverlaySettings } from '@/types';
 import LiveOverlayViewport from '@/features/user-dashboard/components/live-overlay-viewport';
-
-const JAR_NAME_OPTIONS = [
-  { id: 'pink', label: 'Kenaly Pink', src: '/jar/name_jar/ChatGPT%20Image%2011_05_36%2011%20thg%209,%202026.png' },
-  { id: 'violet', label: 'Kenaly Violet', src: '/jar/name_jar/ChatGPT%20Image%2011_29_53%2011%20thg%209,%202026.png' },
-];
+import OverlayPreviewControls from '@/features/overlay-designers/components/overlay-preview-controls';
+import { JAR_COLOR_PRESETS, JAR_EFFECT_OPTIONS, JAR_NAME_OPTIONS, JAR_STYLE_OPTIONS } from '../lib/jar-options';
 
 interface GiftJarDesignerPanelProps {
   language: 'vi' | 'en';
@@ -17,6 +14,7 @@ interface GiftJarDesignerPanelProps {
   onSaveSettings: (updates: Partial<OverlaySettings>) => Promise<void>;
   onSimulateEvent?: (eventType: string, payload: unknown) => void;
   fullOptions?: boolean;
+  canSelectStyles?: boolean;
 }
 
 function parseColorToHexAndAlpha(colorStr: string = '#ffffff'): { hex: string; alpha: number } {
@@ -62,6 +60,7 @@ export default function GiftJarDesignerPanel({
   onSaveSettings,
   onSimulateEvent,
   fullOptions = false,
+  canSelectStyles = false,
 }: GiftJarDesignerPanelProps) {
   const [localX, setLocalX] = useState(settings.jarX !== undefined ? settings.jarX : 75);
   const [localY, setLocalY] = useState(settings.jarY !== undefined ? settings.jarY : 50);
@@ -73,6 +72,10 @@ export default function GiftJarDesignerPanel({
   const [localNameScale, setLocalNameScale] = useState(settings.jarNameScale !== undefined ? settings.jarNameScale : 0.55);
   const [localNameX, setLocalNameX] = useState(settings.jarNameX !== undefined ? settings.jarNameX : 0);
   const [localNameY, setLocalNameY] = useState(settings.jarNameY !== undefined ? settings.jarNameY : -54);
+  const [localEffectScale, setLocalEffectScale] = useState(settings.jarEffectScale !== undefined ? settings.jarEffectScale : 1.0);
+  const [localEffectX, setLocalEffectX] = useState(settings.jarEffectX ?? 0);
+  const [localEffectY, setLocalEffectY] = useState(settings.jarEffectY ?? 0);
+  const [localEffectDelay, setLocalEffectDelay] = useState(settings.jarEffectDelay ?? 0);
 
   const currentJarColor = settings.jarColor || '#ffffff';
   const { hex: parsedHex, alpha: parsedAlpha } = parseColorToHexAndAlpha(currentJarColor);
@@ -107,28 +110,16 @@ export default function GiftJarDesignerPanel({
     onSaveSettings({ jarEnabled: enabled });
   };
 
-  const handleSliderChange = (field: 'x' | 'y' | 'scale' | 'giftSize' | 'fallSpeed', val: number) => {
-    if (field === 'x') {
-      setLocalX(val);
-    } else if (field === 'y') {
-      setLocalY(val);
-    } else if (field === 'scale') {
-      setLocalScale(val);
-    } else if (field === 'giftSize') {
+  const handleSliderChange = (field: 'giftSize' | 'fallSpeed', val: number) => {
+    if (field === 'giftSize') {
       setLocalGiftSize(val);
     } else if (field === 'fallSpeed') {
       setLocalFallSpeed(val);
     }
   };
 
-  const handleSliderRelease = (field: 'x' | 'y' | 'scale' | 'giftSize' | 'fallSpeed', val: number) => {
-    if (field === 'x') {
-      onSaveSettings({ jarX: val });
-    } else if (field === 'y') {
-      onSaveSettings({ jarY: val });
-    } else if (field === 'scale') {
-      onSaveSettings({ jarScale: val });
-    } else if (field === 'giftSize') {
+  const handleSliderRelease = (field: 'giftSize' | 'fallSpeed', val: number) => {
+    if (field === 'giftSize') {
       onSaveSettings({ jarGiftSize: val });
     } else if (field === 'fallSpeed') {
       onSaveSettings({ jarFallSpeed: val });
@@ -153,9 +144,9 @@ export default function GiftJarDesignerPanel({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full items-start animate-[fade-in-up_0.4s_ease-out]">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(360px,480px)_minmax(0,1fr)] w-full items-start animate-[fade-in-up_0.4s_ease-out]">
       {/* Left Column: Settings Form */}
-      <div className="lg:col-span-6 bg-bg-card border border-border-color rounded-2xl p-5 md:p-6 backdrop-blur-[24px] flex flex-col gap-5 glass-shadow w-full">
+      <div className="order-2 min-w-0 bg-bg-card border border-border-color rounded-2xl p-5 md:p-6 backdrop-blur-[24px] flex flex-col gap-5 glass-shadow w-full">
         <div className="flex flex-col gap-1 border-b border-border-color/30 pb-3">
           <h4 className="font-header text-[0.98rem] font-bold text-white uppercase tracking-[0.5px] flex items-center gap-2">
             <i className="fa-solid fa-jar text-primary animate-pulse" />
@@ -189,64 +180,6 @@ export default function GiftJarDesignerPanel({
         {/* Sub-settings visible only when Jar is Enabled */}
         {settings.jarEnabled && (
           <div className="flex flex-col gap-5 animate-[fade-in-up_0.25s_ease-out]">
-            {/* Position X Slider */}
-            <div className="flex flex-col gap-2">
-              <div className="flex justify-between items-center text-[0.8rem] text-text-secondary font-bold select-none">
-                <span>{language === 'vi' ? 'Tọa độ X (Ngang):' : 'Position X:'}</span>
-                <span className="text-primary font-mono font-bold">{localX}%</span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={localX}
-                onChange={(e) => handleSliderChange('x', Number(e.target.value))}
-                onMouseUp={(e) => handleSliderRelease('x', Number((e.target as HTMLInputElement).value))}
-                onTouchEnd={(e) => handleSliderRelease('x', Number((e.target as HTMLInputElement).value))}
-                disabled={savingSettings}
-                className="w-full accent-primary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
-              />
-            </div>
-
-            {/* Position Y Slider */}
-            <div className="flex flex-col gap-2">
-              <div className="flex justify-between items-center text-[0.8rem] text-text-secondary font-bold select-none">
-                <span>{language === 'vi' ? 'Tọa độ Y (Dọc):' : 'Position Y:'}</span>
-                <span className="text-primary font-mono font-bold">{localY}%</span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={localY}
-                onChange={(e) => handleSliderChange('y', Number(e.target.value))}
-                onMouseUp={(e) => handleSliderRelease('y', Number((e.target as HTMLInputElement).value))}
-                onTouchEnd={(e) => handleSliderRelease('y', Number((e.target as HTMLInputElement).value))}
-                disabled={savingSettings}
-                className="w-full accent-primary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
-              />
-            </div>
-
-            {/* Scale Slider */}
-            <div className="flex flex-col gap-2">
-              <div className="flex justify-between items-center text-[0.8rem] text-text-secondary font-bold select-none">
-                <span>{language === 'vi' ? 'Kích thước hũ:' : 'Jar Scale:'}</span>
-                <span className="text-primary font-mono font-bold">{localScale.toFixed(1)}x</span>
-              </div>
-              <input
-                type="range"
-                min="0.5"
-                max="2.0"
-                step="0.1"
-                value={localScale}
-                onChange={(e) => handleSliderChange('scale', Number(e.target.value))}
-                onMouseUp={(e) => handleSliderRelease('scale', Number((e.target as HTMLInputElement).value))}
-                onTouchEnd={(e) => handleSliderRelease('scale', Number((e.target as HTMLInputElement).value))}
-                disabled={savingSettings}
-                className="w-full accent-primary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
-              />
-            </div>
-
             {/* Gift Size Slider */}
             <div className="flex flex-col gap-2">
               <div className="flex justify-between items-center text-[0.8rem] text-text-secondary font-bold select-none">
@@ -293,13 +226,7 @@ export default function GiftJarDesignerPanel({
                 {language === 'vi' ? 'Kiểu hũ quà:' : 'Jar Style:'}
               </span>
               <div className="grid grid-cols-2 gap-2 min-[420px]:grid-cols-3 sm:grid-cols-5">
-                {[
-                  { id: 'standard', name: language === 'vi' ? 'Mặc định' : 'Standard', preview: '/jar/jar.png' },
-                  { id: 'pro_1', name: 'Pro 1', preview: '/jar/jar_pro_1.png' },
-                  { id: 'pro_2', name: 'Pro 2', preview: '/jar/jar_pro_2.png' },
-                  { id: 'pro_3', name: 'Pro 3', preview: '/jar/jar_pro_3.png' },
-                  { id: 'pro_4', name: 'Pro 4', preview: '/jar/jar_pro_4.png' },
-                ].map((jarOpt) => {
+                {JAR_STYLE_OPTIONS.map((jarOpt) => {
                   const isSelected =
                     (settings.jarType || 'standard') === jarOpt.id ||
                     (jarOpt.id === 'pro_3' && settings.jarType === 'pro') ||
@@ -310,7 +237,7 @@ export default function GiftJarDesignerPanel({
                       key={jarOpt.id}
                       type="button"
                       onClick={() => onSaveSettings({ jarType: jarOpt.id })}
-                      disabled={savingSettings || (!fullOptions && jarOpt.id !== 'standard')}
+                      disabled={savingSettings || (!canSelectStyles && jarOpt.id !== 'standard')}
                       className={`flex flex-col items-center p-1.5 rounded-xl border transition-all duration-200 cursor-pointer outline-none disabled:opacity-40 disabled:cursor-not-allowed ${
                         isSelected
                           ? 'bg-primary/15 border-primary text-white shadow-[0_0_12px_var(--color-primary-glow)] scale-[1.03]'
@@ -320,12 +247,12 @@ export default function GiftJarDesignerPanel({
                       <div className="w-10 h-12 relative flex items-center justify-center">
                         <img
                           src={jarOpt.preview}
-                          alt={jarOpt.name}
+                          alt={language === 'vi' ? jarOpt.nameVi : jarOpt.nameEn}
                           className="w-full h-full object-contain pointer-events-none drop-shadow"
                         />
                       </div>
                       <span className="text-[0.65rem] font-bold mt-1 truncate w-full text-center">
-                        {jarOpt.name}
+                        {language === 'vi' ? jarOpt.nameVi : jarOpt.nameEn}
                       </span>
                     </button>
                   );
@@ -395,13 +322,7 @@ export default function GiftJarDesignerPanel({
 
                 {/* Preset quick colors */}
                 <div className="flex gap-1.5 grow justify-between pt-1">
-                  {[
-                    { value: 'rgba(226, 179, 163, 0.85)', label: language === 'vi' ? 'Hồng Vàng' : 'Rose Gold' },
-                    { value: 'rgba(244, 155, 187, 0.85)', label: language === 'vi' ? 'Hồng Đậm' : 'Pink' },
-                    { value: 'rgba(255, 255, 255, 0.85)', label: language === 'vi' ? 'Bạc/Trắng' : 'Silver' },
-                    { value: 'rgba(0, 242, 254, 0.85)', label: language === 'vi' ? 'Xanh Neon' : 'Neon' },
-                    { value: 'rgba(255, 0, 80, 0.85)', label: language === 'vi' ? 'Đỏ TikTok' : 'Red' },
-                  ].map((preset) => (
+                  {JAR_COLOR_PRESETS.map((preset) => (
                     <button
                       key={preset.value}
                       type="button"
@@ -418,12 +339,141 @@ export default function GiftJarDesignerPanel({
                           : 'border-border-color'
                       }`}
                     >
-                      {preset.label}
+                      {language === 'vi' ? preset.labelVi : preset.labelEn}
                     </button>
                   ))}
                 </div>
               </div>
             )}
+
+            {/* Pro Max chroma-key effect surrounding the jar */}
+            <div className="flex flex-col gap-3 border-t border-border-color/20 pt-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <span className="flex items-center gap-2 text-[0.85rem] font-bold text-text-secondary">
+                    <i className="fa-solid fa-wand-magic-sparkles text-primary" />
+                    {language === 'vi' ? 'Hiệu ứng quanh hũ' : 'Jar surround effect'}
+                    <span className="rounded-sm bg-primary/15 px-1.5 py-0.5 text-[0.58rem] font-extrabold text-primary">PRO MAX</span>
+                  </span>
+                  <p className="mt-1 text-[0.68rem] text-text-muted">
+                    {language === 'vi' ? 'Video hiệu ứng được tự động xóa phông xanh và bám theo hũ.' : 'The video is chroma-keyed and follows the jar.'}
+                  </p>
+                </div>
+                <label className="relative inline-flex shrink-0 cursor-pointer items-center">
+                  <input
+                    type="checkbox"
+                    className="peer sr-only"
+                    disabled={savingSettings || !fullOptions}
+                    checked={fullOptions && Boolean(settings.jarEffectEnabled)}
+                    onChange={(event) => onSaveSettings({
+                      jarEffectEnabled: event.target.checked,
+                      jarEffectVideo: settings.jarEffectVideo || JAR_EFFECT_OPTIONS[0].src,
+                    })}
+                  />
+                  <span className="relative h-[20px] w-10 rounded-full border border-border-color bg-white/10 transition-all duration-300 after:absolute after:left-[2px] after:top-[2px] after:h-[14px] after:w-[14px] after:rounded-full after:bg-white after:transition-all peer-checked:border-transparent peer-checked:bg-primary peer-checked:shadow-[0_0_8px_var(--color-primary-glow)] peer-checked:after:translate-x-[20px] peer-disabled:cursor-not-allowed peer-disabled:opacity-40" />
+                </label>
+              </div>
+
+              {fullOptions && settings.jarEffectEnabled && (
+                <div className="flex flex-col gap-3 rounded-xl border border-border-color bg-bg-input p-3">
+                  <div className="grid grid-cols-2 gap-2">
+                    {JAR_EFFECT_OPTIONS.map((option) => (
+                      <button
+                        key={option.id}
+                        type="button"
+                        disabled={savingSettings}
+                        onClick={() => onSaveSettings({ jarEffectVideo: option.src })}
+                        className={`rounded-xl border px-3 py-2 text-[0.72rem] font-bold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${
+                          (settings.jarEffectVideo || JAR_EFFECT_OPTIONS[0].src) === option.src
+                            ? 'border-primary bg-primary/15 text-primary shadow-[0_0_10px_var(--color-primary-glow)]'
+                            : 'border-border-color bg-bg-surface text-text-secondary hover:border-primary/40 hover:text-white'
+                        }`}
+                      >
+                        <i className="fa-solid fa-film mr-2" />
+                        {language === 'vi' ? option.labelVi : option.labelEn}
+                      </button>
+                    ))}
+                  </div>
+                  <label className="flex flex-col gap-1.5">
+                    <span className="flex justify-between text-[0.76rem] font-bold text-text-secondary">
+                      <span>{language === 'vi' ? 'Kích thước hiệu ứng' : 'Effect scale'}</span>
+                      <span className="font-mono font-bold text-primary">{localEffectScale.toFixed(2)}x</span>
+                    </span>
+                    <input
+                      type="range"
+                      min="0.1"
+                      max="2"
+                      step="0.05"
+                      value={localEffectScale}
+                      disabled={savingSettings}
+                      onChange={(event) => setLocalEffectScale(Number(event.target.value))}
+                      onMouseUp={(event) => onSaveSettings({ jarEffectScale: Number((event.target as HTMLInputElement).value) })}
+                      onTouchEnd={(event) => onSaveSettings({ jarEffectScale: Number((event.target as HTMLInputElement).value) })}
+                      className="h-1.5 w-full cursor-pointer accent-primary disabled:cursor-not-allowed disabled:opacity-40"
+                    />
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="flex flex-col gap-1.5">
+                      <span className="flex justify-between text-[0.76rem] font-bold text-text-secondary">
+                        <span>{language === 'vi' ? 'Căn ngang' : 'Horizontal'}</span>
+                        <span className="font-mono text-primary">{localEffectX}px</span>
+                      </span>
+                      <input
+                        type="range"
+                        min="-300"
+                        max="300"
+                        step="2"
+                        value={localEffectX}
+                        disabled={savingSettings}
+                        onChange={(event) => setLocalEffectX(Number(event.target.value))}
+                        onMouseUp={(event) => onSaveSettings({ jarEffectX: Number((event.target as HTMLInputElement).value) })}
+                        onTouchEnd={(event) => onSaveSettings({ jarEffectX: Number((event.target as HTMLInputElement).value) })}
+                        className="h-1.5 w-full cursor-pointer accent-primary disabled:cursor-not-allowed disabled:opacity-40"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1.5">
+                      <span className="flex justify-between text-[0.76rem] font-bold text-text-secondary">
+                        <span>{language === 'vi' ? 'Căn dọc' : 'Vertical'}</span>
+                        <span className="font-mono text-primary">{localEffectY}px</span>
+                      </span>
+                      <input
+                        type="range"
+                        min="-300"
+                        max="300"
+                        step="2"
+                        value={localEffectY}
+                        disabled={savingSettings}
+                        onChange={(event) => setLocalEffectY(Number(event.target.value))}
+                        onMouseUp={(event) => onSaveSettings({ jarEffectY: Number((event.target as HTMLInputElement).value) })}
+                        onTouchEnd={(event) => onSaveSettings({ jarEffectY: Number((event.target as HTMLInputElement).value) })}
+                        className="h-1.5 w-full cursor-pointer accent-primary disabled:cursor-not-allowed disabled:opacity-40"
+                      />
+                    </label>
+                  </div>
+                  <label className="flex flex-col gap-1.5 border-t border-border-color/20 pt-3">
+                    <span className="flex justify-between text-[0.76rem] font-bold text-text-secondary">
+                      <span>{language === 'vi' ? 'Thời gian nghỉ giữa các lần chạy' : 'Interval between plays'}</span>
+                      <span className="font-mono text-primary">{localEffectDelay}s</span>
+                    </span>
+                    <input
+                      type="range"
+                      min="0"
+                      max="60"
+                      step="1"
+                      value={localEffectDelay}
+                      disabled={savingSettings}
+                      onChange={(event) => setLocalEffectDelay(Number(event.target.value))}
+                      onMouseUp={(event) => onSaveSettings({ jarEffectDelay: Number((event.target as HTMLInputElement).value) })}
+                      onTouchEnd={(event) => onSaveSettings({ jarEffectDelay: Number((event.target as HTMLInputElement).value) })}
+                      className="h-1.5 w-full cursor-pointer accent-primary disabled:cursor-not-allowed disabled:opacity-40"
+                    />
+                    <span className="text-[0.66rem] text-text-muted">
+                      {language === 'vi' ? 'Hiệu ứng chạy hết một lần, ẩn đi rồi chờ đủ số giây này để chạy lại.' : 'After one full play, the effect hides and waits this many seconds before replaying.'}
+                    </span>
+                  </label>
+                </div>
+              )}
+            </div>
 
             {/* Pro Max jar name plate */}
             <div className="flex flex-col gap-3 border-t border-border-color/20 pt-3">
@@ -560,13 +610,49 @@ export default function GiftJarDesignerPanel({
         )}
       </div>
 
-      {/* Right Column: Mini Preview & Actions */}
-      <div className="lg:col-span-6 bg-bg-card border border-border-color rounded-2xl p-5 md:p-6 backdrop-blur-[24px] flex flex-col gap-5 glass-shadow w-full">
+      {/* Left Column: Interactive Preview & Actions */}
+      <div className="contents">
         {/* Standalone Live Overlay Viewport */}
-        <LiveOverlayViewport enabled={settings.jarEnabled || false} />
+        <LiveOverlayViewport
+          enabled={settings.jarEnabled || false}
+          showHeader={false}
+          className="order-1 lg:row-span-2 !border-0 !bg-transparent !p-0 !backdrop-blur-none"
+          viewportClassName="max-w-[420px] xl:max-w-[480px]"
+          previewTarget="jar"
+          previewSettings={{
+            ...settings,
+            jarX: localX,
+            jarY: localY,
+            jarScale: localScale,
+            jarEffectScale: localEffectScale,
+            jarEffectX: localEffectX,
+            jarEffectY: localEffectY,
+            jarEffectDelay: localEffectDelay,
+          }}
+          interactionLayer={(
+            <OverlayPreviewControls
+              x={localX}
+              y={localY}
+              scale={localScale}
+              target="jar"
+              settingKeys={{ x: 'jarX', y: 'jarY', scale: 'jarScale' }}
+              label={language === 'vi' ? 'Kéo để di chuyển' : 'Drag to move'}
+              disabled={savingSettings}
+              maxScale={2.5}
+              onChange={(next) => {
+                setLocalX(next.x);
+                setLocalY(next.y);
+                setLocalScale(next.scale);
+              }}
+              onCommit={(next) => {
+                void onSaveSettings({ jarX: next.x, jarY: next.y, jarScale: next.scale });
+              }}
+            />
+          )}
+        />
 
         {settings.jarEnabled && (
-          <div className="flex flex-col gap-5 animate-[fade-in-up_0.25s_ease-out]">
+          <div className="order-3 bg-bg-card border border-border-color rounded-2xl p-5 backdrop-blur-[24px] flex flex-col gap-5 glass-shadow w-full animate-[fade-in-up_0.25s_ease-out]">
             <div className="flex flex-col gap-1 border-b border-border-color/30 pb-3">
               <h4 className="font-header text-[0.98rem] font-bold text-white uppercase tracking-[0.5px] flex items-center gap-2">
                 <i className="fa-solid fa-broom text-primary animate-pulse" />

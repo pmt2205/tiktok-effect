@@ -136,12 +136,12 @@ export default function UserSidebar({ activeTab, setActiveTab }: UserSidebarProp
     },
   }[language];
 
-  const navItems: { id: UserSubTab; label: string; icon: string; proMax?: boolean }[] = [
+  const navItems: { id: UserSubTab; label: string; icon: string; proMax?: boolean; requiresTreeAccess?: boolean }[] = [
     { id: 'overview', label: t.overview, icon: 'fa-solid fa-[#00f2fe] fa-[#00f2fe] fa-house' },
     { id: 'catalog', label: t.catalog, icon: 'fa-solid fa-gift' },
     { id: 'menu', label: t.menu, icon: 'fa-solid fa-layer-group' },
     { id: 'jar', label: t.jar, icon: 'fa-solid fa-box-archive' },
-    { id: 'tree', label: t.tree, icon: 'fa-solid fa-tree' },
+    { id: 'tree', label: t.tree, icon: 'fa-solid fa-tree', requiresTreeAccess: true },
     { id: 'tts', label: t.tts, icon: 'fa-solid fa-[#ff0050] fa-volume-high', proMax: true },
     { id: 'topgifter', label: t.topgifter, icon: 'fa-solid fa-crown text-yellow-400', proMax: true },
     { id: 'likeleaderboard', label: t.likeleaderboard, icon: 'fa-solid fa-heart text-[#ff0050]', proMax: true },
@@ -193,7 +193,7 @@ export default function UserSidebar({ activeTab, setActiveTab }: UserSidebarProp
                 >
                   <i className={`${item.icon} text-[0.9rem] w-5 text-center`} />
                   <span className="min-w-0 truncate">{item.label}</span>
-                  {item.proMax && !plan.premiumFeatures && <i className="fa-solid fa-lock ml-auto text-[0.65rem] text-primary" />}
+                  {((item.proMax && !plan.premiumFeatures) || (item.requiresTreeAccess && !plan.treeAccess)) && <i className="fa-solid fa-lock ml-auto text-[0.65rem] text-primary" />}
                 </button>
               );
             })}
@@ -313,7 +313,7 @@ export default function UserSidebar({ activeTab, setActiveTab }: UserSidebarProp
                   {user?.role === 'admin' ? 'Admin' : t.streamer}
                 </span>
               </div>
-              <div className="flex justify-between border-b border-border-color/40 pb-2.5"><span className="text-text-muted">Gói</span><span className="font-bold text-secondary">{plan.name} · {plan.price === 0 ? 'Free' : `${Math.round(plan.price / 1000)}K`}</span></div>
+              <div className="flex justify-between border-b border-border-color/40 pb-2.5"><span className="text-text-muted">Gói</span><span className="text-right font-bold text-secondary">{plan.name} · {plan.price === 0 ? 'Free' : `${Math.round(plan.price / 1000)}K lần đầu`}<span className="block text-[0.62rem] font-medium text-text-muted">{plan.renewalPrice > 0 ? `Gia hạn ${Math.round(plan.renewalPrice / 1000)}K/tháng` : ''}</span></span></div>
               <div className="flex justify-between border-b border-border-color/40 pb-2.5">
                 <span className="text-text-muted">{t.joined}</span>
                 <span className="text-text-secondary font-semibold">2026-08-20</span>

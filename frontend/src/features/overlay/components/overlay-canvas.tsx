@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { ParticleEngine } from '../particles/particle-engine';
 import { GiftEvent, ChatEvent, OverlaySettings, GiftMappings, BannerInfo, Gift, TopGifterJoinEvent, LikeLeaderboardItem } from '@/types';
-import { DEFAULT_SETTINGS, DEFAULT_MAPPINGS, WS_URL, BACKEND_URL } from '@/lib/constants';
+import { DEFAULT_SETTINGS, WS_URL, BACKEND_URL } from '@/lib/constants';
 import { io } from 'socket.io-client';
 import GiftMenuOverlay from './gift-menu-overlay';
 import { GiftJarOverlay, GiftJarOverlayRef } from './gift-jar-overlay';
@@ -16,7 +16,7 @@ export default function OverlayCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<ParticleEngine | null>(null);
   const settingsRef = useRef<OverlaySettings>({ ...DEFAULT_SETTINGS });
-  const mappingsRef = useRef<GiftMappings>({ ...DEFAULT_MAPPINGS });
+  const mappingsRef = useRef<GiftMappings>({});
   const giftsRef = useRef<Gift[]>([]);
   const [settingsState, setSettingsState] = useState<OverlaySettings>({ ...DEFAULT_SETTINGS });
   const [giftsList, setGiftsList] = useState<Gift[]>([]);
@@ -245,6 +245,22 @@ export default function OverlayCanvas() {
       const timer = setTimeout(() => removeBanner(bannerKey), settings.duration * 1000);
       bannersRef.current.set(bannerKey, { bannerEl, timer, combo: repeatCount, lastRepeatEnd: !!giftData.repeatEnd });
     }
+  }, []);
+
+  useEffect(() => {
+    const handlePreviewSettings = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
+      if (event.data?.type !== 'overlay-preview-settings' || !event.data.settings) return;
+      const previewSettings = event.data.settings as Partial<OverlaySettings>;
+      settingsRef.current = { ...settingsRef.current, ...previewSettings };
+      setSettingsState(settingsRef.current);
+    };
+
+    window.addEventListener('message', handlePreviewSettings);
+    if (window.parent !== window) {
+      window.parent.postMessage({ type: 'overlay-preview-ready' }, window.location.origin);
+    }
+    return () => window.removeEventListener('message', handlePreviewSettings);
   }, []);
 
   useEffect(() => {

@@ -5,6 +5,7 @@ import React, { useEffect, useRef, useMemo, useImperativeHandle, forwardRef } fr
 import { GiftEvent, OverlaySettings } from '@/types';
 import { getJarImage } from '@/features/overlay/lib/jar-assets';
 import { getJarBottomY } from '@/features/overlay/lib/jar-geometry';
+import { useChromaKeyVideo } from '@/features/overlay/hooks/use-chroma-key-video';
 
 interface JarGift {
   id: string;
@@ -35,11 +36,40 @@ interface GiftJarOverlayProps {
 export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>(
   ({ settings }, ref) => {
     const jarCanvasRef = useRef<HTMLCanvasElement | null>(null);
+    const jarContainerRef = useRef<HTMLDivElement | null>(null);
     const overflowCanvasRef = useRef<HTMLCanvasElement | null>(null);
     const danceCanvasRef = useRef<HTMLCanvasElement | null>(null);
+    const jarEffectCanvasRef = useRef<HTMLCanvasElement | null>(null);
     const danceVideoRef = useRef<HTMLVideoElement | null>(null);
     const jarGiftsRef = useRef<JarGift[]>([]);
     const overflowGiftsRef = useRef<JarGift[]>([]);
+
+    useChromaKeyVideo(
+      jarEffectCanvasRef,
+      settings.jarEffectVideo || '/jar/effect_jar/effect1.mp4',
+      Boolean(settings.jarEnabled && settings.jarEffectEnabled),
+      settings.jarEffectDelay ?? 0,
+    );
+
+    useEffect(() => {
+      const jar = jarContainerRef.current;
+      if (!jar || window.parent === window || !settings.jarEnabled) return;
+      const reportBounds = () => {
+        window.parent.postMessage(
+          {
+            type: 'overlay-preview-target-bounds',
+            target: 'jar',
+            width: jar.offsetWidth,
+            height: jar.offsetHeight,
+          },
+          window.location.origin,
+        );
+      };
+      const observer = new ResizeObserver(reportBounds);
+      observer.observe(jar);
+      reportBounds();
+      return () => observer.disconnect();
+    }, [settings.jarEnabled, settings.jarScale, settings.jarType]);
 
     // Expose control API to parent component
     useImperativeHandle(ref, () => ({
@@ -890,7 +920,9 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
       <>
         {/* Interactive Gift Jar */}
         <div
-          className="absolute z-25 transition-all duration-300 pointer-events-none select-none bg-transparent border-none shadow-none"
+          ref={jarContainerRef}
+          data-overlay-preview-target="jar"
+          className="absolute z-25 pointer-events-none select-none bg-transparent border-none shadow-none"
           style={{
             left: `${settings.jarX !== undefined ? settings.jarX : 75}%`,
             top: `${settings.jarY !== undefined ? settings.jarY : 50}%`,
@@ -900,6 +932,23 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
             height: '380px',
           }}
         >
+          {/* Pro Max chroma-key video follows the same position and scale as the jar. */}
+          {settings.jarEffectEnabled && (
+            <canvas
+              ref={jarEffectCanvasRef}
+              className="absolute pointer-events-none z-0 max-w-none"
+              style={{
+                left: `calc(50% + ${settings.jarEffectX ?? 0}px)`,
+                top: `calc(50% + ${settings.jarEffectY ?? 0}px)`,
+                width: `${Math.round(520 * (settings.jarEffectScale ?? 1))}px`,
+                height: 'auto',
+                transform: 'translate(-50%, -50%)',
+                transformOrigin: 'center',
+                filter: 'drop-shadow(0 0 18px var(--color-primary-glow))',
+              }}
+            />
+          )}
+
           {/* Layer 1: Jar Background (Back, sides, lid, and inner rim) */}
           {jarImages.colorized ? (
             <div className="absolute inset-0 w-full h-full pointer-events-none z-1" style={{ isolation: 'isolate' }}>

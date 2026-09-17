@@ -10,6 +10,27 @@ interface GiftMenuOverlayProps {
 
 export default function GiftMenuOverlay({ settings, giftsList }: GiftMenuOverlayProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const menu = menuRef.current;
+    if (!menu || window.parent === window) return;
+    const reportBounds = () => {
+      window.parent.postMessage(
+        {
+          type: 'overlay-preview-target-bounds',
+          target: 'menu',
+          width: menu.offsetWidth,
+          height: menu.offsetHeight,
+        },
+        window.location.origin,
+      );
+    };
+    const observer = new ResizeObserver(reportBounds);
+    observer.observe(menu);
+    reportBounds();
+    return () => observer.disconnect();
+  }, [settings.menuScale, settings.menuColumns, settings.menuLayout, giftsList.length]);
 
   const isHorizontal = settings.menuLayout === 'horizontal';
   const scrollThreshold = settings.menuScrollThreshold !== undefined && settings.menuScrollThreshold > 0
@@ -146,7 +167,9 @@ export default function GiftMenuOverlay({ settings, giftsList }: GiftMenuOverlay
 
   return (
     <div
-      className="absolute z-20 animate-[fade-in-up_0.5s_ease-out] transition-all duration-300 pointer-events-none select-none bg-transparent border-none shadow-none flex flex-col gap-4 items-start text-left"
+      ref={menuRef}
+      data-overlay-preview-target="menu"
+      className="absolute z-20 animate-[fade-in-up_0.5s_ease-out] pointer-events-none select-none bg-transparent border-none shadow-none flex flex-col gap-4 items-start text-left"
       style={{
         left: `${settings.menuX !== undefined ? settings.menuX : 15}%`,
         top: `${settings.menuY !== undefined ? settings.menuY : 20}%`,

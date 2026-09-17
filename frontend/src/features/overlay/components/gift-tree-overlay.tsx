@@ -131,6 +131,7 @@ const BRANCH_POINTS = [
 export const GiftTreeOverlay = forwardRef<GiftTreeOverlayRef, GiftTreeOverlayProps>(
   ({ settings }, ref) => {
     const treeCanvasRef = useRef<HTMLCanvasElement | null>(null);
+    const treeContainerRef = useRef<HTMLDivElement | null>(null);
     const fallingCanvasRef = useRef<HTMLCanvasElement | null>(null);
     const activeGiftsRef = useRef<TreeGift[]>([]);
     const fallingGiftsRef = useRef<FallingGift[]>([]);
@@ -195,6 +196,21 @@ export const GiftTreeOverlay = forwardRef<GiftTreeOverlayRef, GiftTreeOverlayPro
     }));
 
     const TREE_CANVAS_SIZE = 520;
+
+    useEffect(() => {
+      const tree = treeContainerRef.current;
+      if (!tree || window.parent === window || !settings.treeEnabled) return;
+      const reportBounds = () => {
+        window.parent.postMessage(
+          { type: 'overlay-preview-target-bounds', target: 'tree', width: tree.offsetWidth, height: tree.offsetHeight },
+          window.location.origin,
+        );
+      };
+      const observer = new ResizeObserver(reportBounds);
+      observer.observe(tree);
+      reportBounds();
+      return () => observer.disconnect();
+    }, [settings.treeEnabled, settings.treeType]);
     const TREE_OFFSET_X = 45;
     const TREE_OFFSET_Y = 45;
 
@@ -449,22 +465,25 @@ export const GiftTreeOverlay = forwardRef<GiftTreeOverlayRef, GiftTreeOverlayPro
       <>
         {/* Interactive Gift Tree */}
         <div
-          className="absolute z-20 transition-all duration-300 pointer-events-none select-none bg-transparent border-none shadow-none"
+          ref={treeContainerRef}
+          data-overlay-preview-target="tree"
+          className="absolute z-20 pointer-events-none select-none bg-transparent border-none shadow-none"
           style={{
+            '--tree-scale': settings.treeScale !== undefined ? settings.treeScale : 1.0,
             left: `${settings.treeX !== undefined ? settings.treeX : 20}%`,
             top: `${settings.treeY !== undefined ? settings.treeY : 50}%`,
-            transform: `scale(${settings.treeScale !== undefined ? settings.treeScale : 1.0})`,
+            transform: 'scale(var(--tree-scale))',
             transformOrigin: 'top left',
             width: `${TREE_CANVAS_SIZE}px`,
             height: `${TREE_CANVAS_SIZE}px`,
             animation: 'treeSway 8s ease-in-out infinite',
-          }}
+          } as React.CSSProperties}
         >
           {/* Custom CSS Animation for Tree Swaying */}
           <style dangerouslySetInnerHTML={{__html: `
             @keyframes treeSway {
-              0%, 100% { transform: scale(${settings.treeScale !== undefined ? settings.treeScale : 1.0}) rotate(0deg); }
-              50% { transform: scale(${settings.treeScale !== undefined ? settings.treeScale : 1.0}) rotate(0.8deg); }
+              0%, 100% { transform: scale(var(--tree-scale)) rotate(0deg); }
+              50% { transform: scale(var(--tree-scale)) rotate(0.8deg); }
             }
           `}} />
 

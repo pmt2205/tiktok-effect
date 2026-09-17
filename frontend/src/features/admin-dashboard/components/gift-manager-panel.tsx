@@ -9,6 +9,7 @@ import { BACKEND_URL } from '@/lib/constants';
 import { useToast } from '@/hooks/use-toast';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { setCustomGifts, setSelectedStreamer, setUsersList } from '@/features/admin-dashboard/store/dashboard-slice';
+import { AUDIO_FILE_EXTENSIONS } from '../lib/media-upload-options';
 
 export default function GiftManagerPanel() {
   const toast = useToast();
@@ -239,8 +240,7 @@ export default function GiftManagerPanel() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const allowedExtensions = ['.mp3', '.wav', '.ogg', '.m4a', '.aac'];
-    const hasAllowedExtension = allowedExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+    const hasAllowedExtension = AUDIO_FILE_EXTENSIONS.some((extension) => file.name.toLowerCase().endsWith(extension));
     if (!hasAllowedExtension) {
       toast.error(language === 'vi' ? 'Chỉ hỗ trợ file âm thanh MP3, WAV, OGG, M4A, AAC.' : 'Only audio files (MP3, WAV, OGG, M4A, AAC) are allowed.');
       return;
@@ -445,8 +445,8 @@ export default function GiftManagerPanel() {
 
   return (
     <div className="flex flex-col gap-6 w-full animate-[fade-in-up_0.6s_ease-out]">
-      <div className="sticky top-0 bg-[#07080d]/80 backdrop-blur-md z-30 flex flex-col gap-1.5 border-b border-border-color pb-3 pt-1 md:pb-4 md:pt-8 md:-mt-8 select-none">
-        <h2 className="font-header text-[1.4rem] font-bold text-white tracking-[0.5px] uppercase">{t.title}</h2>
+      <div className="sticky top-0 bg-bg-dark/80 backdrop-blur-md z-30 flex flex-col gap-1.5 border-b border-border-color pb-3 pt-1 md:pb-4 md:pt-8 md:-mt-8 select-none">
+        <h2 className="font-header text-[1.4rem] font-bold text-text-main tracking-[0.5px] uppercase">{t.title}</h2>
         <p className="text-[0.88rem] text-text-muted">{t.subtitle}</p>
       </div>
 
@@ -500,29 +500,29 @@ export default function GiftManagerPanel() {
                   {gifts.map((gift) => (
                     <div
                       key={gift._id}
-                      className="flex justify-between items-center bg-black/25 p-3.5 rounded-lg border border-border-color hover:border-white/12 transition-all duration-150 hover:bg-black/30"
+                      className="flex justify-between items-center bg-bg-input p-3.5 rounded-lg border border-border-color hover:border-secondary/30 transition-all duration-150 hover:bg-bg-card-hover"
                     >
                       <div className="flex items-center gap-4">
                         {/* Gift Icon Thumbnail */}
-                        <div className="w-14 h-14 bg-black/45 border border-white/5 rounded-md flex items-center justify-center p-2 shrink-0 select-none">
+                        <div className="w-14 h-14 bg-bg-surface border border-border-color/80 rounded-md flex items-center justify-center p-2 shrink-0 select-none">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={gift.icon} alt={gift.name} className="w-full h-full object-contain" />
                         </div>
 
                         <div className="flex flex-col gap-0.5 min-w-0">
                           <div className="flex items-center gap-2.5">
-                            <span className="font-header text-[0.95rem] font-bold text-white truncate">{gift.name}</span>
-                            <span className="text-[0.7rem] px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-secondary font-semibold font-body select-none">{gift.giftId}</span>
+                            <span className="font-header text-[0.95rem] font-bold text-text-main truncate">{gift.name}</span>
+                            <span className="text-[0.7rem] px-2 py-0.5 rounded-full bg-secondary/10 border border-secondary/20 text-secondary font-semibold font-body select-none">{gift.giftId}</span>
                           </div>
                           <span className="text-[0.78rem] text-text-muted font-body mt-0.5">
-                            ⚡ {gift.coins} coins | Videos: <span className="text-white/80 font-semibold">{gift.videos && gift.videos.length > 0 ? `${gift.videos.length} video(s)` : 'None'}</span>
+                            ⚡ {gift.coins} coins | Videos: <span className="text-text-secondary font-semibold">{gift.videos && gift.videos.length > 0 ? `${gift.videos.length} video(s)` : 'None'}</span>
                             {gift.videos && gift.videos.length > 0 && (
                               <>
                                 {' | '}{language === 'vi' ? 'Đang dùng: ' : 'Active: '}
                                 <span className="text-secondary font-semibold">{gift.activeVideo || gift.videos[0]}</span>
                               </>
                             )}
-                            {' | '}Sounds: <span className="text-white/80 font-semibold">{gift.sounds && gift.sounds.length > 0 ? `${gift.sounds.length} sound(s)` : 'None'}</span>
+                            {' | '}Sounds: <span className="text-text-secondary font-semibold">{gift.sounds && gift.sounds.length > 0 ? `${gift.sounds.length} sound(s)` : 'None'}</span>
                           </span>
                         </div>
                       </div>

@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { OverlaySettings, LikeLeaderboardItem } from '@/types';
 import Button from '@/components/ui/button';
 import LikeLeaderboardOverlay from '@/features/overlay/components/like-leaderboard-overlay';
 import LiveOverlayViewport from '@/features/user-dashboard/components/live-overlay-viewport';
+import OverlayPreviewControls from '@/features/overlay-designers/components/overlay-preview-controls';
 
 interface LikeLeaderboardDesignerPanelProps {
   language: 'vi' | 'en';
@@ -24,6 +25,9 @@ export default function LikeLeaderboardDesignerPanel({
   onResetLikeLeaderboard,
 }: LikeLeaderboardDesignerPanelProps) {
   const isEnabled = settings.likeLeaderboardEnabled !== false;
+  const [localX, setLocalX] = useState(settings.likeLeaderboardX ?? 78);
+  const [localY, setLocalY] = useState(settings.likeLeaderboardY ?? 15);
+  const [localScale, setLocalScale] = useState(settings.likeLeaderboardScale ?? 1);
 
   return (
     <div className="flex flex-col gap-6 w-full animate-[fade-in-up_0.4s_ease-out] glass-card p-6 rounded-2xl border border-border-color bg-bg-card backdrop-blur-2xl">
@@ -45,9 +49,9 @@ export default function LikeLeaderboardDesignerPanel({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(360px,480px)_minmax(0,1fr)] items-start">
         {/* Left Column: Controls */}
-        <div className="lg:col-span-6 flex flex-col gap-4">
+        <div className="order-2 min-w-0 flex flex-col gap-4">
           {/* Toggle Switch */}
           <div className="flex flex-col gap-2 p-4 rounded-xl bg-bg-input border border-border-color">
             <div className="flex justify-between items-center">
@@ -93,78 +97,6 @@ export default function LikeLeaderboardDesignerPanel({
                 </p>
               </div>
 
-              {/* Scale Slider */}
-              <div className="flex flex-col gap-2 p-4 rounded-xl bg-bg-input border border-border-color">
-                <label className="text-sm font-bold text-white">
-                  {language === 'vi' ? 'Kích thước / Tỷ lệ (Scale):' : 'Leaderboard Scale:'}
-                </label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="range"
-                    min="0.5"
-                    max="1.8"
-                    step="0.1"
-                    value={settings.likeLeaderboardScale !== undefined ? settings.likeLeaderboardScale : 1.0}
-                    onChange={(e) => onSaveSettings({ likeLeaderboardScale: Number(e.target.value) })}
-                    className="w-full accent-primary cursor-pointer"
-                  />
-                  <span className="text-sm font-extrabold text-primary font-mono w-12 text-center">
-                    {settings.likeLeaderboardScale !== undefined ? settings.likeLeaderboardScale : 1.0}x
-                  </span>
-                </div>
-                <p className="text-xs text-text-muted">
-                  {language === 'vi' ? 'Phóng to hoặc thu nhỏ khung BXH' : 'Adjust overlay component size'}
-                </p>
-              </div>
-
-              {/* X Position Slider */}
-              <div className="flex flex-col gap-2 p-4 rounded-xl bg-bg-input border border-border-color">
-                <label className="text-sm font-bold text-white">
-                  {language === 'vi' ? 'Vị trí Ngang X (%):' : 'X Position (%):'}
-                </label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="range"
-                    min="0"
-                    max="90"
-                    step="1"
-                    value={settings.likeLeaderboardX !== undefined ? settings.likeLeaderboardX : 78}
-                    onChange={(e) => onSaveSettings({ likeLeaderboardX: Number(e.target.value) })}
-                    className="w-full accent-primary cursor-pointer"
-                  />
-                  <span className="text-sm font-extrabold text-primary font-mono w-12 text-center">
-                    {settings.likeLeaderboardX !== undefined ? settings.likeLeaderboardX : 78}%
-                  </span>
-                </div>
-                <p className="text-xs text-text-muted">
-                  {language === 'vi' ? 'Khoảng cách từ lề trái màn hình' : 'Distance from left screen edge'}
-                </p>
-              </div>
-
-              {/* Y Position Slider */}
-              <div className="flex flex-col gap-2 p-4 rounded-xl bg-bg-input border border-border-color">
-                <label className="text-sm font-bold text-white">
-                  {language === 'vi' ? 'Vị trí Dọc Y (%):' : 'Y Position (%):'}
-                </label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="range"
-                    min="0"
-                    max="90"
-                    step="1"
-                    value={settings.likeLeaderboardY !== undefined ? settings.likeLeaderboardY : 15}
-                    onChange={(e) => onSaveSettings({ likeLeaderboardY: Number(e.target.value) })}
-                    className="w-full accent-primary cursor-pointer"
-                  />
-                  <span className="text-sm font-extrabold text-primary font-mono w-12 text-center">
-                    {settings.likeLeaderboardY !== undefined ? settings.likeLeaderboardY : 15}%
-                  </span>
-                </div>
-                <p className="text-xs text-text-muted">
-                  {language === 'vi' ? 'Khoảng cách từ lề trên màn hình' : 'Distance from top screen edge'}
-                </p>
-              </div>
-
               {/* Quick Actions */}
               <div className="flex flex-col gap-2 p-4 rounded-xl bg-bg-input border border-border-color">
                 <span className="text-sm font-bold text-white">
@@ -194,12 +126,36 @@ export default function LikeLeaderboardDesignerPanel({
         </div>
 
         {/* Right Column: Live OBS Viewport */}
-        <div className="lg:col-span-6 flex flex-col gap-4">
-          <LiveOverlayViewport enabled={isEnabled} />
+        <div className="contents">
+          <LiveOverlayViewport
+            enabled={isEnabled}
+            showHeader={false}
+            className="order-1 lg:row-span-2 !border-0 !bg-transparent !p-0 !backdrop-blur-none"
+            viewportClassName="max-w-[420px] xl:max-w-[480px]"
+            previewTarget="likeLeaderboard"
+            previewSettings={{ ...settings, likeLeaderboardX: localX, likeLeaderboardY: localY, likeLeaderboardScale: localScale }}
+            interactionLayer={(
+              <OverlayPreviewControls
+                x={localX}
+                y={localY}
+                scale={localScale}
+                target="likeLeaderboard"
+                settingKeys={{ x: 'likeLeaderboardX', y: 'likeLeaderboardY', scale: 'likeLeaderboardScale' }}
+                label={language === 'vi' ? 'Kéo để di chuyển' : 'Drag to move'}
+                maxScale={2.5}
+                onChange={(next) => {
+                  setLocalX(next.x);
+                  setLocalY(next.y);
+                  setLocalScale(next.scale);
+                }}
+                onCommit={(next) => onSaveSettings({ likeLeaderboardX: next.x, likeLeaderboardY: next.y, likeLeaderboardScale: next.scale })}
+              />
+            )}
+          />
           
           {/* Component Live Demo Preview */}
           {isEnabled && (
-            <div className="relative w-full rounded-2xl bg-bg-surface border border-primary/30 p-4 flex flex-col gap-3 overflow-hidden animate-[fade-in-up_0.25s_ease-out]">
+            <div className="order-3 relative w-full rounded-2xl bg-bg-surface border border-primary/30 p-4 flex flex-col gap-3 overflow-hidden animate-[fade-in-up_0.25s_ease-out]">
               <div className="flex justify-between items-center text-xs font-bold text-primary uppercase tracking-wider">
                 <span className="flex items-center gap-1.5">
                   <i className="fa-solid fa-eye animate-pulse text-primary" />

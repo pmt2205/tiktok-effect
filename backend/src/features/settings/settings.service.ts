@@ -43,6 +43,12 @@ export class SettingsService implements OnModuleInit {
     jarDanceScale: 1.0,
     jarDanceOffsetX: 185,
     jarDanceVideo: '/dance/capy_dance.mp4',
+    jarEffectEnabled: false,
+    jarEffectVideo: '/jar/effect_jar/effect1.mp4',
+    jarEffectScale: 1.0,
+    jarEffectX: 0,
+    jarEffectY: 0,
+    jarEffectDelay: 0,
     singleEnabled: true,
     npcEnabled: true,
     videoEnabled: true,
@@ -167,7 +173,7 @@ export class SettingsService implements OnModuleInit {
         jarClearedAt: settingsDoc.jarClearedAt !== undefined ? settingsDoc.jarClearedAt : this.defaultSettings.jarClearedAt,
         jarGiftSize: (settingsDoc as any).jarGiftSize !== undefined ? (settingsDoc as any).jarGiftSize : this.defaultSettings.jarGiftSize,
         jarFallSpeed: (settingsDoc as any).jarFallSpeed !== undefined ? (settingsDoc as any).jarFallSpeed : this.defaultSettings.jarFallSpeed,
-        jarType: subscriptionTier === 'promax' ? ((settingsDoc as any).jarType || this.defaultSettings.jarType) : 'standard',
+        jarType: subscriptionTier !== 'free' ? ((settingsDoc as any).jarType || this.defaultSettings.jarType) : 'standard',
         jarColor: (settingsDoc as any).jarColor || this.defaultSettings.jarColor,
         jarNameEnabled: subscriptionTier === 'promax' && Boolean((settingsDoc as any).jarNameEnabled),
         jarNameImage: subscriptionTier === 'promax' ? ((settingsDoc as any).jarNameImage || '') : '',
@@ -179,6 +185,12 @@ export class SettingsService implements OnModuleInit {
         jarDanceScale: (settingsDoc as any).jarDanceScale !== undefined ? (settingsDoc as any).jarDanceScale : 1.0,
         jarDanceOffsetX: (settingsDoc as any).jarDanceOffsetX !== undefined ? (settingsDoc as any).jarDanceOffsetX : 185,
         jarDanceVideo: (settingsDoc as any).jarDanceVideo || '/dance/capy_dance.mp4',
+        jarEffectEnabled: subscriptionTier === 'promax' && Boolean((settingsDoc as any).jarEffectEnabled),
+        jarEffectVideo: subscriptionTier === 'promax' ? ((settingsDoc as any).jarEffectVideo || '/jar/effect_jar/effect1.mp4') : '/jar/effect_jar/effect1.mp4',
+        jarEffectScale: (settingsDoc as any).jarEffectScale !== undefined ? (settingsDoc as any).jarEffectScale : 1.0,
+        jarEffectX: (settingsDoc as any).jarEffectX !== undefined ? (settingsDoc as any).jarEffectX : 0,
+        jarEffectY: (settingsDoc as any).jarEffectY !== undefined ? (settingsDoc as any).jarEffectY : 0,
+        jarEffectDelay: (settingsDoc as any).jarEffectDelay !== undefined ? (settingsDoc as any).jarEffectDelay : 0,
         liveMode: (settingsDoc as any).liveMode || 'single',
         singleGiftIds: Array.isArray((settingsDoc as any).singleGiftIds) ? (settingsDoc as any).singleGiftIds.slice(0, subscriptionTier === 'promax' ? (settingsDoc as any).singleGiftIds.length : subscriptionTier === 'pro' ? 10 : 5) : [],
         activeNpcCategory: (settingsDoc as any).activeNpcCategory || fallbackCategory,
@@ -186,7 +198,7 @@ export class SettingsService implements OnModuleInit {
         npcEnabled: (settingsDoc as any).npcEnabled !== undefined ? (settingsDoc as any).npcEnabled : true,
         videoEnabled: (settingsDoc as any).videoEnabled !== undefined ? (settingsDoc as any).videoEnabled : true,
         soundEnabled: (settingsDoc as any).soundEnabled !== undefined ? (settingsDoc as any).soundEnabled : true,
-        treeEnabled: settingsDoc.treeEnabled !== undefined ? settingsDoc.treeEnabled : this.defaultSettings.treeEnabled,
+        treeEnabled: subscriptionTier !== 'free' && (settingsDoc.treeEnabled !== undefined ? settingsDoc.treeEnabled : this.defaultSettings.treeEnabled),
         treeType: subscriptionTier === 'promax' ? ((settingsDoc as any).treeType || 'standard') : 'standard',
         treeImage: subscriptionTier === 'promax' ? ((settingsDoc as any).treeImage || 'tree.png') : 'tree.png',
         treeX: settingsDoc.treeX !== undefined ? settingsDoc.treeX : this.defaultSettings.treeX,
@@ -245,17 +257,24 @@ export class SettingsService implements OnModuleInit {
           .slice(0, giftLimit);
       }
       const jarNameImages = new Set([
-        '/jar/name_jar/ChatGPT%20Image%2011_05_36%2011%20thg%209,%202026.png',
-        '/jar/name_jar/ChatGPT%20Image%2011_29_53%2011%20thg%209,%202026.png',
+        '/jar/name_jar/teddy.png',
+        '/jar/name_jar/cute.png',
+        '/jar/name_jar/moon.png',
       ]);
       if (typeof safeSettings.jarNameImage === 'string' && !jarNameImages.has(safeSettings.jarNameImage)) delete safeSettings.jarNameImage;
       if (typeof safeSettings.jarNameScale === 'number') safeSettings.jarNameScale = Math.min(1.5, Math.max(0.2, safeSettings.jarNameScale));
       if (typeof safeSettings.jarNameX === 'number') safeSettings.jarNameX = Math.min(220, Math.max(-220, safeSettings.jarNameX));
       if (typeof safeSettings.jarNameY === 'number') safeSettings.jarNameY = Math.min(160, Math.max(-180, safeSettings.jarNameY));
+      const jarEffectVideos = new Set(['/jar/effect_jar/effect1.mp4', '/jar/effect_jar/effect2.mp4']);
+      if (typeof safeSettings.jarEffectVideo === 'string' && !jarEffectVideos.has(safeSettings.jarEffectVideo)) delete safeSettings.jarEffectVideo;
+      if (typeof safeSettings.jarEffectScale === 'number') safeSettings.jarEffectScale = Math.min(2, Math.max(0.1, safeSettings.jarEffectScale));
+      if (typeof safeSettings.jarEffectX === 'number') safeSettings.jarEffectX = Math.min(300, Math.max(-300, safeSettings.jarEffectX));
+      if (typeof safeSettings.jarEffectY === 'number') safeSettings.jarEffectY = Math.min(300, Math.max(-300, safeSettings.jarEffectY));
+      if (typeof safeSettings.jarEffectDelay === 'number') safeSettings.jarEffectDelay = Math.min(60, Math.max(0, safeSettings.jarEffectDelay));
       if (tier !== 'promax') {
         const proMaxOnlyKeys = ['ttsEnabled', 'ttsVoice', 'ttsRate', 'ttsPitch', 'ttsVolume', 'ttsTemplate', 'ttsMaxChars', 'ttsFilterEmoji', 'ttsFilterBadWords', 'ttsMode', 'topGifterEnabled', 'topGifterDuration', 'topGifterRankLimit', 'topGifterMinDiamonds', 'likeLeaderboardEnabled', 'likeLeaderboardTitle', 'likeLeaderboardX', 'likeLeaderboardY', 'likeLeaderboardScale', 'likeLeaderboardTopCount', 'likeLeaderboardResetAt'];
         proMaxOnlyKeys.forEach((key) => delete safeSettings[key]);
-        if (safeSettings.jarType && safeSettings.jarType !== 'standard') delete safeSettings.jarType;
+        if (tier === 'free' && safeSettings.jarType && safeSettings.jarType !== 'standard') delete safeSettings.jarType;
         if (safeSettings.treeType && safeSettings.treeType !== 'standard') {
           delete safeSettings.treeType;
           delete safeSettings.treeImage;
@@ -270,6 +289,23 @@ export class SettingsService implements OnModuleInit {
         delete safeSettings.jarNameScale;
         delete safeSettings.jarNameX;
         delete safeSettings.jarNameY;
+        delete safeSettings.jarEffectEnabled;
+        delete safeSettings.jarEffectVideo;
+        delete safeSettings.jarEffectScale;
+        delete safeSettings.jarEffectX;
+        delete safeSettings.jarEffectY;
+        delete safeSettings.jarEffectDelay;
+        if (tier === 'free') {
+          delete safeSettings.treeEnabled;
+          delete safeSettings.treeType;
+          delete safeSettings.treeImage;
+          delete safeSettings.treeX;
+          delete safeSettings.treeY;
+          delete safeSettings.treeScale;
+          delete safeSettings.treeGiftSize;
+          delete safeSettings.treeClearedAt;
+          delete safeSettings.treeDebug;
+        }
       }
       const updated = await this.settingsModel.findOneAndUpdate(
         { username },
@@ -321,7 +357,7 @@ export class SettingsService implements OnModuleInit {
         jarClearedAt: updated.jarClearedAt,
         jarGiftSize: (updated as any).jarGiftSize !== undefined ? (updated as any).jarGiftSize : this.defaultSettings.jarGiftSize,
         jarFallSpeed: (updated as any).jarFallSpeed !== undefined ? (updated as any).jarFallSpeed : this.defaultSettings.jarFallSpeed,
-        jarType: tier === 'promax' ? ((updated as any).jarType || this.defaultSettings.jarType) : 'standard',
+        jarType: tier !== 'free' ? ((updated as any).jarType || this.defaultSettings.jarType) : 'standard',
         jarColor: (updated as any).jarColor || this.defaultSettings.jarColor,
         jarNameEnabled: tier === 'promax' && Boolean((updated as any).jarNameEnabled),
         jarNameImage: tier === 'promax' ? ((updated as any).jarNameImage || '') : '',
@@ -333,6 +369,12 @@ export class SettingsService implements OnModuleInit {
         jarDanceScale: (updated as any).jarDanceScale !== undefined ? (updated as any).jarDanceScale : 1.0,
         jarDanceOffsetX: (updated as any).jarDanceOffsetX !== undefined ? (updated as any).jarDanceOffsetX : 185,
         jarDanceVideo: (updated as any).jarDanceVideo || '/dance/capy_dance.mp4',
+        jarEffectEnabled: tier === 'promax' && Boolean((updated as any).jarEffectEnabled),
+        jarEffectVideo: tier === 'promax' ? ((updated as any).jarEffectVideo || '/jar/effect_jar/effect1.mp4') : '/jar/effect_jar/effect1.mp4',
+        jarEffectScale: (updated as any).jarEffectScale !== undefined ? (updated as any).jarEffectScale : 1.0,
+        jarEffectX: (updated as any).jarEffectX !== undefined ? (updated as any).jarEffectX : 0,
+        jarEffectY: (updated as any).jarEffectY !== undefined ? (updated as any).jarEffectY : 0,
+        jarEffectDelay: (updated as any).jarEffectDelay !== undefined ? (updated as any).jarEffectDelay : 0,
         liveMode: (updated as any).liveMode || 'single',
         singleGiftIds: Array.isArray((updated as any).singleGiftIds) ? (updated as any).singleGiftIds.slice(0, giftLimit) : [],
         activeNpcCategory: (updated as any).activeNpcCategory || fallbackCategory,
@@ -340,7 +382,7 @@ export class SettingsService implements OnModuleInit {
         npcEnabled: (updated as any).npcEnabled !== undefined ? (updated as any).npcEnabled : true,
         videoEnabled: (updated as any).videoEnabled !== undefined ? (updated as any).videoEnabled : true,
         soundEnabled: (updated as any).soundEnabled !== undefined ? (updated as any).soundEnabled : true,
-        treeEnabled: updated.treeEnabled !== undefined ? updated.treeEnabled : this.defaultSettings.treeEnabled,
+        treeEnabled: tier !== 'free' && (updated.treeEnabled !== undefined ? updated.treeEnabled : this.defaultSettings.treeEnabled),
         treeType: tier === 'promax' ? ((updated as any).treeType || 'standard') : 'standard',
         treeImage: tier === 'promax' ? ((updated as any).treeImage || 'tree.png') : 'tree.png',
         treeX: updated.treeX !== undefined ? updated.treeX : this.defaultSettings.treeX,

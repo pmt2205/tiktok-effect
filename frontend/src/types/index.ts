@@ -92,6 +92,12 @@ export interface OverlaySettings {
   jarDanceScale?: number;
   jarDanceOffsetX?: number;
   jarDanceVideo?: string;
+  jarEffectEnabled?: boolean;
+  jarEffectVideo?: string;
+  jarEffectScale?: number;
+  jarEffectX?: number;
+  jarEffectY?: number;
+  jarEffectDelay?: number;
   liveMode?: string;
   singleGiftIds?: number[];
   subscriptionTier?: 'free' | 'pro' | 'promax';
@@ -125,6 +131,9 @@ export interface OverlaySettings {
   topGifterDuration?: number;
   topGifterRankLimit?: number;
   topGifterMinDiamonds?: number;
+  topGifterX?: number;
+  topGifterY?: number;
+  topGifterScale?: number;
   likeLeaderboardEnabled?: boolean;
   likeLeaderboardTitle?: string;
   likeLeaderboardX?: number;

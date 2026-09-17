@@ -92,6 +92,12 @@ export interface OverlaySettings {
   jarDanceScale?: number;
   jarDanceOffsetX?: number;
   jarDanceVideo?: string;
+  jarEffectEnabled?: boolean;
+  jarEffectVideo?: string;
+  jarEffectScale?: number;
+  jarEffectX?: number;
+  jarEffectY?: number;
+  jarEffectDelay?: number;
   singleEnabled?: boolean;
   npcEnabled?: boolean;
   videoEnabled?: boolean;

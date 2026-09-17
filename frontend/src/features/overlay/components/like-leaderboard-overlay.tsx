@@ -1,7 +1,7 @@
 'use client';
 /* eslint-disable @next/next/no-img-element -- Live TikTok avatar URLs are dynamic and rendered directly in the OBS overlay. */
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { OverlaySettings, LikeLeaderboardItem } from '@/types';
 import { formatNumber } from '@/lib/constants';
 
@@ -19,6 +19,23 @@ interface LikeLeaderboardOverlayProps {
 }
 
 export default function LikeLeaderboardOverlay({ settings, items }: LikeLeaderboardOverlayProps) {
+  const leaderboardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const leaderboard = leaderboardRef.current;
+    if (!leaderboard || window.parent === window || !settings.likeLeaderboardEnabled) return;
+    const reportBounds = () => {
+      window.parent.postMessage(
+        { type: 'overlay-preview-target-bounds', target: 'likeLeaderboard', width: leaderboard.offsetWidth, height: leaderboard.offsetHeight },
+        window.location.origin,
+      );
+    };
+    const observer = new ResizeObserver(reportBounds);
+    observer.observe(leaderboard);
+    reportBounds();
+    return () => observer.disconnect();
+  }, [settings.likeLeaderboardEnabled, settings.likeLeaderboardTitle, items.length]);
+
   if (!settings.likeLeaderboardEnabled) {
     return null;
   }
@@ -35,7 +52,9 @@ export default function LikeLeaderboardOverlay({ settings, items }: LikeLeaderbo
 
   return (
     <div
-      className="absolute z-20 pointer-events-none transition-all duration-300 ease-out select-none"
+      ref={leaderboardRef}
+      data-overlay-preview-target="likeLeaderboard"
+      className="absolute z-20 pointer-events-none select-none"
       style={{
         left: `${posX}%`,
         top: `${posY}%`,

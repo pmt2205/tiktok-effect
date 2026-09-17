@@ -14,10 +14,26 @@ export default function TopGifterOverlay({ eventsQueue, onEventFinished, setting
   const [activeEvent, setActiveEvent] = useState<TopGifterJoinEvent | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const onEventFinishedRef = useRef(onEventFinished);
+  const alertRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     onEventFinishedRef.current = onEventFinished;
   }, [onEventFinished]);
+
+  useEffect(() => {
+    const alert = alertRef.current;
+    if (!alert || window.parent === window) return;
+    const reportBounds = () => {
+      window.parent.postMessage(
+        { type: 'overlay-preview-target-bounds', target: 'topGifter', width: alert.offsetWidth, height: alert.offsetHeight },
+        window.location.origin,
+      );
+    };
+    const observer = new ResizeObserver(reportBounds);
+    observer.observe(alert);
+    reportBounds();
+    return () => observer.disconnect();
+  }, [activeEvent]);
 
   // 1. Pick next event from queue when idle
   useEffect(() => {
@@ -60,11 +76,17 @@ export default function TopGifterOverlay({ eventsQueue, onEventFinished, setting
 
   return (
     <div
-      className={`fixed top-10 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 ease-out pointer-events-none ${
-        isVisible ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-90 -translate-y-4'
-      }`}
+      ref={alertRef}
+      data-overlay-preview-target="topGifter"
+      className="absolute z-50 pointer-events-none"
+      style={{
+        left: `${settings.topGifterX ?? 28}%`,
+        top: `${settings.topGifterY ?? 2}%`,
+        transform: `scale(${settings.topGifterScale ?? 1})`,
+        transformOrigin: 'top left',
+      }}
     >
-      <div className="relative flex items-center gap-4 px-6 py-4 rounded-2xl bg-[#0d0f18]/85 backdrop-blur-2xl border border-[#00f2fe]/40 shadow-[0_0_35px_rgba(0,242,254,0.3)] overflow-hidden">
+      <div className={`relative flex items-center gap-4 px-6 py-4 rounded-2xl bg-[#0d0f18]/85 backdrop-blur-2xl border border-[#00f2fe]/40 shadow-[0_0_35px_rgba(0,242,254,0.3)] overflow-hidden transition-all duration-500 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
         {/* Neon Accent Glow Line */}
         <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#ff0050] via-[#00f2fe] to-[#ff0050]" />
 

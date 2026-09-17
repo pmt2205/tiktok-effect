@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import { OverlaySettings } from '@/types';
-import { TREE_OPTIONS } from '@/lib/constants';
+import { TREE_OPTIONS } from '../lib/tree-options';
 import LiveOverlayViewport from '@/features/user-dashboard/components/live-overlay-viewport';
+import OverlayPreviewControls from '@/features/overlay-designers/components/overlay-preview-controls';
 
 interface GiftTreeDesignerPanelProps {
   language: 'vi' | 'en';
@@ -31,26 +32,14 @@ export default function GiftTreeDesignerPanel({
     onSaveSettings({ treeEnabled: enabled });
   };
 
-  const handleSliderChange = (field: 'x' | 'y' | 'scale' | 'giftSize', val: number) => {
-    if (field === 'x') {
-      setLocalX(val);
-    } else if (field === 'y') {
-      setLocalY(val);
-    } else if (field === 'scale') {
-      setLocalScale(val);
-    } else if (field === 'giftSize') {
+  const handleSliderChange = (field: 'giftSize', val: number) => {
+    if (field === 'giftSize') {
       setLocalGiftSize(val);
     }
   };
 
-  const handleSliderRelease = (field: 'x' | 'y' | 'scale' | 'giftSize', val: number) => {
-    if (field === 'x') {
-      onSaveSettings({ treeX: val });
-    } else if (field === 'y') {
-      onSaveSettings({ treeY: val });
-    } else if (field === 'scale') {
-      onSaveSettings({ treeScale: val });
-    } else if (field === 'giftSize') {
+  const handleSliderRelease = (field: 'giftSize', val: number) => {
+    if (field === 'giftSize') {
       onSaveSettings({ treeGiftSize: val });
     }
   };
@@ -73,9 +62,9 @@ export default function GiftTreeDesignerPanel({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full items-start animate-[fade-in-up_0.4s_ease-out]">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(360px,480px)_minmax(0,1fr)] w-full items-start animate-[fade-in-up_0.4s_ease-out]">
       {/* Left Column: Settings Form */}
-      <div className="lg:col-span-6 bg-bg-card border border-border-color rounded-2xl p-5 md:p-6 backdrop-blur-[24px] flex flex-col gap-5 glass-shadow w-full">
+      <div className="order-2 min-w-0 bg-bg-card border border-border-color rounded-2xl p-5 md:p-6 backdrop-blur-[24px] flex flex-col gap-5 glass-shadow w-full">
         <div className="flex flex-col gap-1 border-b border-border-color/30 pb-3">
           <h4 className="font-header text-[0.98rem] font-bold text-white uppercase tracking-[0.5px] flex items-center gap-2">
             <i className="fa-solid fa-tree text-primary animate-pulse" />
@@ -182,64 +171,6 @@ export default function GiftTreeDesignerPanel({
               </div>
             </div>
 
-            {/* Position X Slider */}
-            <div className="flex flex-col gap-2">
-              <div className="flex justify-between items-center text-[0.8rem] text-text-secondary font-bold select-none">
-                <span>{language === 'vi' ? 'Tọa độ X (Ngang):' : 'Position X:'}</span>
-                <span className="text-primary font-mono font-bold">{localX}%</span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={localX}
-                onChange={(e) => handleSliderChange('x', Number(e.target.value))}
-                onMouseUp={(e) => handleSliderRelease('x', Number((e.target as HTMLInputElement).value))}
-                onTouchEnd={(e) => handleSliderRelease('x', Number((e.target as HTMLInputElement).value))}
-                disabled={savingSettings}
-                className="w-full accent-primary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
-              />
-            </div>
-
-            {/* Position Y Slider */}
-            <div className="flex flex-col gap-2">
-              <div className="flex justify-between items-center text-[0.8rem] text-text-secondary font-bold select-none">
-                <span>{language === 'vi' ? 'Tọa độ Y (Dọc):' : 'Position Y:'}</span>
-                <span className="text-primary font-mono font-bold">{localY}%</span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={localY}
-                onChange={(e) => handleSliderChange('y', Number(e.target.value))}
-                onMouseUp={(e) => handleSliderRelease('y', Number((e.target as HTMLInputElement).value))}
-                onTouchEnd={(e) => handleSliderRelease('y', Number((e.target as HTMLInputElement).value))}
-                disabled={savingSettings}
-                className="w-full accent-primary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
-              />
-            </div>
-
-            {/* Scale Slider */}
-            <div className="flex flex-col gap-2">
-              <div className="flex justify-between items-center text-[0.8rem] text-text-secondary font-bold select-none">
-                <span>{language === 'vi' ? 'Kích thước cây:' : 'Tree Scale:'}</span>
-                <span className="text-primary font-mono font-bold">{localScale.toFixed(1)}x</span>
-              </div>
-              <input
-                type="range"
-                min="0.5"
-                max="2.0"
-                step="0.1"
-                value={localScale}
-                onChange={(e) => handleSliderChange('scale', Number(e.target.value))}
-                onMouseUp={(e) => handleSliderRelease('scale', Number((e.target as HTMLInputElement).value))}
-                onTouchEnd={(e) => handleSliderRelease('scale', Number((e.target as HTMLInputElement).value))}
-                disabled={savingSettings}
-                className="w-full accent-primary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
-              />
-            </div>
-
             {/* Gift Size Slider */}
             <div className="flex flex-col gap-2">
               <div className="flex justify-between items-center text-[0.8rem] text-text-secondary font-bold select-none">
@@ -263,10 +194,39 @@ export default function GiftTreeDesignerPanel({
         )}
       </div>
 
-      {/* Right Column: Actions & Tips */}
-      <div className="lg:col-span-6 bg-bg-card border border-border-color rounded-2xl p-5 md:p-6 backdrop-blur-[24px] flex flex-col gap-5 glass-shadow w-full">
+      {/* Left Column: Interactive Preview, Actions & Tips */}
+      <div className="contents">
         {/* Live Overlay Viewport */}
-        <LiveOverlayViewport enabled={settings.treeEnabled || false} />
+        <LiveOverlayViewport
+          enabled={settings.treeEnabled || false}
+          showHeader={false}
+          className="order-1 lg:row-span-2 !border-0 !bg-transparent !p-0 !backdrop-blur-none"
+          viewportClassName="max-w-[420px] xl:max-w-[480px]"
+          previewTarget="tree"
+          previewSettings={{ ...settings, treeX: localX, treeY: localY, treeScale: localScale }}
+          interactionLayer={(
+            <OverlayPreviewControls
+              x={localX}
+              y={localY}
+              scale={localScale}
+              target="tree"
+              settingKeys={{ x: 'treeX', y: 'treeY', scale: 'treeScale' }}
+              label={language === 'vi' ? 'Kéo để di chuyển' : 'Drag to move'}
+              disabled={savingSettings}
+              maxScale={2.5}
+              onChange={(next) => {
+                setLocalX(next.x);
+                setLocalY(next.y);
+                setLocalScale(next.scale);
+              }}
+              onCommit={(next) => {
+                void onSaveSettings({ treeX: next.x, treeY: next.y, treeScale: next.scale });
+              }}
+            />
+          )}
+        />
+
+        <div className="order-3 bg-bg-card border border-border-color rounded-2xl p-5 backdrop-blur-[24px] flex flex-col gap-5 glass-shadow w-full">
 
         {settings.treeEnabled && (
           <div className="flex flex-col gap-5 animate-[fade-in-up_0.25s_ease-out]">
@@ -350,6 +310,7 @@ export default function GiftTreeDesignerPanel({
                 : 'Click "Shake off all gifts" to blow all blooming particles off the tree branches.'}
             </li>
           </ul>
+        </div>
         </div>
       </div>
     </div>

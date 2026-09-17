@@ -12,6 +12,7 @@ import {
   addNpcCategory,
   deleteNpcCategory,
 } from '@/features/admin-dashboard/store/dashboard-slice';
+import { AUDIO_FILE_EXTENSIONS } from '../lib/media-upload-options';
 
 export default function NpcManagerPanel() {
   const toast = useToast();
@@ -325,8 +326,7 @@ export default function NpcManagerPanel() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const allowedExtensions = ['.mp3', '.wav', '.ogg', '.m4a', '.aac'];
-    const hasAllowedExtension = allowedExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+    const hasAllowedExtension = AUDIO_FILE_EXTENSIONS.some((extension) => file.name.toLowerCase().endsWith(extension));
     if (!hasAllowedExtension) {
       toast.error(language === 'vi' ? 'Chỉ hỗ trợ file âm thanh MP3, WAV, OGG, M4A, AAC.' : 'Only audio files (MP3, WAV, OGG, M4A, AAC) are allowed.');
       return;
@@ -491,8 +491,8 @@ export default function NpcManagerPanel() {
 
   return (
     <div className="w-full flex flex-col gap-6 animate-[fade-in-up_0.6s_ease-out]">
-      <div className="sticky top-0 bg-[#07080d]/80 backdrop-blur-md z-30 flex flex-col gap-1.5 border-b border-border-color pb-3 pt-1 md:pb-4 md:pt-8 md:-mt-8 select-none">
-        <h2 className="font-header text-[1.4rem] font-bold text-white tracking-[0.5px] uppercase">{t.title}</h2>
+      <div className="sticky top-0 bg-bg-dark/80 backdrop-blur-md z-30 flex flex-col gap-1.5 border-b border-border-color pb-3 pt-1 md:pb-4 md:pt-8 md:-mt-8 select-none">
+        <h2 className="font-header text-[1.4rem] font-bold text-text-main tracking-[0.5px] uppercase">{t.title}</h2>
         <p className="text-[0.88rem] text-text-muted">{language === 'vi' ? 'Quản lý toàn bộ thể loại và thiết lập quà tặng NPC động.' : 'Manage all categories and configurations of dynamic NPC gifts.'}</p>
       </div>
 
@@ -516,7 +516,7 @@ export default function NpcManagerPanel() {
                     onChange={(e) => setNewCatName(e.target.value)}
                     placeholder={t.catName}
                     required
-                    className="w-full bg-bg-input border border-border-color rounded-xl px-4 py-2.5 text-white font-body text-[0.88rem] outline-none focus:border-primary focus:ring-3 focus:ring-primary-glow/10 transition-all duration-200"
+                    className="w-full bg-bg-input border border-border-color rounded-xl px-4 py-2.5 text-text-main font-body text-[0.88rem] outline-none focus:border-primary focus:ring-3 focus:ring-primary-glow/10 transition-all duration-200"
                   />
                   <input
                     type="text"
@@ -524,7 +524,7 @@ export default function NpcManagerPanel() {
                     onChange={(e) => setNewCatDisplay(e.target.value)}
                     placeholder={t.catDisplay}
                     required
-                    className="w-full bg-bg-input border border-border-color rounded-xl px-4 py-2.5 text-white font-body text-[0.88rem] outline-none focus:border-primary focus:ring-3 focus:ring-primary-glow/10 transition-all duration-200"
+                    className="w-full bg-bg-input border border-border-color rounded-xl px-4 py-2.5 text-text-main font-body text-[0.88rem] outline-none focus:border-primary focus:ring-3 focus:ring-primary-glow/10 transition-all duration-200"
                   />
                   <Button type="submit" variant="gradient" disabled={submittingCat} className="rounded-xl w-full">
                     <i className="fa-solid fa-plus mr-1.5" />
@@ -543,10 +543,10 @@ export default function NpcManagerPanel() {
                 npcCategories.map((cat) => (
                   <div
                     key={cat._id}
-                    className="flex justify-between items-center bg-black/25 p-3 px-4 rounded-xl border border-border-color/80 transition-all duration-200 hover:border-white/12 hover:bg-black/35 hover:-translate-y-[1px] shadow-sm group"
+                    className="flex justify-between items-center bg-bg-input p-3 px-4 rounded-xl border border-border-color/80 transition-all duration-200 hover:border-primary/30 hover:bg-bg-card-hover hover:-translate-y-[1px] shadow-sm group"
                   >
                     <div className="flex flex-col gap-0.5 select-none">
-                      <span className="font-header font-bold text-white text-[0.88rem] group-hover:text-primary transition-colors duration-150">{cat.displayName}</span>
+                      <span className="font-header font-bold text-text-main text-[0.88rem] group-hover:text-primary transition-colors duration-150">{cat.displayName}</span>
                       <span className="text-[0.68rem] text-text-muted font-mono tracking-[0.5px]">id: {cat.name}</span>
                     </div>
                     {isAdmin && (
@@ -620,28 +620,28 @@ export default function NpcManagerPanel() {
                   npcGifts.map((gift) => (
                     <div
                       key={gift._id}
-                      className="flex justify-between items-center bg-black/25 p-3.5 rounded-xl border border-border-color/80 hover:border-white/12 transition-all duration-200 hover:bg-black/35 hover:-translate-y-[1.5px] group shadow-inner"
+                      className="flex justify-between items-center bg-bg-input p-3.5 rounded-xl border border-border-color/80 hover:border-secondary/30 transition-all duration-200 hover:bg-bg-card-hover hover:-translate-y-[1.5px] group shadow-inner"
                     >
                       <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 bg-black/45 border border-white/5 rounded-xl flex items-center justify-center p-2.5 shrink-0 select-none group-hover:scale-105 transition-transform duration-200">
+                        <div className="w-14 h-14 bg-bg-surface border border-border-color/80 rounded-xl flex items-center justify-center p-2.5 shrink-0 select-none group-hover:scale-105 transition-transform duration-200">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={gift.icon} alt={gift.name} className="w-full h-full object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]" />
                         </div>
 
                         <div className="flex flex-col gap-0.5 min-w-0">
                           <div className="flex items-center gap-2.5">
-                            <span className="font-header text-[0.95rem] font-bold text-white group-hover:text-secondary transition-colors duration-150 truncate">{gift.name}</span>
-                            <span className="text-[0.7rem] px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-secondary font-semibold font-body select-none">{gift.giftId}</span>
+                            <span className="font-header text-[0.95rem] font-bold text-text-main group-hover:text-secondary transition-colors duration-150 truncate">{gift.name}</span>
+                            <span className="text-[0.7rem] px-2.5 py-0.5 rounded-full bg-secondary/10 border border-secondary/20 text-secondary font-semibold font-body select-none">{gift.giftId}</span>
                           </div>
                           <span className="text-[0.78rem] text-text-muted font-body mt-0.5">
-                            ⚡ {gift.coins} coins | Videos: <span className="text-white/80 font-semibold">{gift.videos && gift.videos.length > 0 ? `${gift.videos.length} video(s)` : 'None'}</span>
+                            ⚡ {gift.coins} coins | Videos: <span className="text-text-secondary font-semibold">{gift.videos && gift.videos.length > 0 ? `${gift.videos.length} video(s)` : 'None'}</span>
                             {gift.videos && gift.videos.length > 0 && (
                               <>
                                 {' | '}{language === 'vi' ? 'Đang dùng: ' : 'Active: '}
                                 <span className="text-secondary font-semibold">{gift.activeVideo || gift.videos[0]}</span>
                               </>
                             )}
-                            {' | '}Sounds: <span className="text-white/80 font-semibold">{gift.sounds && gift.sounds.length > 0 ? `${gift.sounds.length} sound(s)` : 'None'}</span>
+                            {' | '}Sounds: <span className="text-text-secondary font-semibold">{gift.sounds && gift.sounds.length > 0 ? `${gift.sounds.length} sound(s)` : 'None'}</span>
                           </span>
                         </div>
                       </div>

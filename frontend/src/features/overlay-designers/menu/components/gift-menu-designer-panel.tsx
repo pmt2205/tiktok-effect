@@ -3,8 +3,10 @@
 import React, { useState } from 'react';
 import Select from '@/components/ui/select';
 import { Gift, OverlaySettings } from '@/types';
-import { FRAME_OPTIONS } from '@/lib/constants';
+import { COIN_RANGES } from '@/features/gift-catalog';
 import LiveOverlayViewport from '@/features/user-dashboard/components/live-overlay-viewport';
+import { FRAME_OPTIONS } from '../lib/frame-options';
+import OverlayPreviewControls from '@/features/overlay-designers/components/overlay-preview-controls';
 
 interface GiftMenuDesignerPanelProps {
   language: 'vi' | 'en';
@@ -42,15 +44,6 @@ export default function GiftMenuDesignerPanel({
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [pickerSearchQuery, setPickerSearchQuery] = useState('');
   const [pickerCoinRange, setPickerCoinRange] = useState<string>('all');
-
-  const COIN_RANGES = [
-    { id: 'all', labelVi: 'Tất cả Xu', labelEn: 'All Coins', min: 0, max: Infinity },
-    { id: '1-9', labelVi: '1 - 9 Xu', labelEn: '1 - 9 Coins', min: 1, max: 9 },
-    { id: '10-99', labelVi: '10 - 99 Xu', labelEn: '10 - 99 Coins', min: 10, max: 99 },
-    { id: '100-999', labelVi: '100 - 999 Xu', labelEn: '100 - 999 Coins', min: 100, max: 999 },
-    { id: '1000-9999', labelVi: '1,000 - 9,999 Xu', labelEn: '1k - 9.9k Coins', min: 1000, max: 9999 },
-    { id: '10000+', labelVi: '≥ 10,000 Xu', labelEn: '10k+ Coins', min: 10000, max: Infinity },
-  ];
 
   const gifts = activeTab === 'npc' ? npcGifts : customGifts;
 
@@ -108,19 +101,13 @@ export default function GiftMenuDesignerPanel({
     onSaveSettings({ menuFrame: frameFile });
   };
 
-  const handleSliderChange = (field: 'x' | 'y' | 'scale' | 'scrollThreshold' | 'frameScale', val: number) => {
-    if (field === 'x') setLocalX(val);
-    else if (field === 'y') setLocalY(val);
-    else if (field === 'scale') setLocalScale(val);
-    else if (field === 'scrollThreshold') setLocalScrollThreshold(val);
+  const handleSliderChange = (field: 'scrollThreshold' | 'frameScale', val: number) => {
+    if (field === 'scrollThreshold') setLocalScrollThreshold(val);
     else if (field === 'frameScale') setLocalFrameScale(val);
   };
 
-  const handleSliderRelease = (field: 'x' | 'y' | 'scale' | 'scrollThreshold' | 'frameScale', val: number) => {
-    if (field === 'x') onSaveSettings({ menuX: val });
-    else if (field === 'y') onSaveSettings({ menuY: val });
-    else if (field === 'scale') onSaveSettings({ menuScale: val });
-    else if (field === 'scrollThreshold') onSaveSettings({ menuScrollThreshold: val });
+  const handleSliderRelease = (field: 'scrollThreshold' | 'frameScale', val: number) => {
+    if (field === 'scrollThreshold') onSaveSettings({ menuScrollThreshold: val });
     else if (field === 'frameScale') onSaveSettings({ menuFrameScale: val });
   };
 
@@ -171,9 +158,9 @@ export default function GiftMenuDesignerPanel({
   const isMenuEnabled = settings.menuEnabled !== false;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full items-start animate-[fade-in-up_0.4s_ease-out]">
+    <div className="grid grid-cols-1 lg:grid-cols-[minmax(360px,480px)_minmax(0,1fr)] gap-5 w-full items-start animate-[fade-in-up_0.4s_ease-out]">
       {/* Left Column: UI Customization Settings */}
-      <div className="lg:col-span-6 bg-bg-card border border-border-color rounded-2xl p-5 md:p-6 backdrop-blur-[24px] flex flex-col gap-5 glass-shadow w-full">
+      <div className="order-2 bg-bg-card border border-border-color rounded-2xl p-4 backdrop-blur-[24px] flex flex-col gap-4 glass-shadow w-full">
         <div className="flex flex-col gap-1 border-b border-border-color/30 pb-3">
           <h3 className="font-header text-[1rem] font-bold text-white uppercase tracking-[0.5px] flex items-center gap-2">
             <i className="fa-solid fa-layer-group text-primary animate-pulse" />
@@ -209,7 +196,7 @@ export default function GiftMenuDesignerPanel({
 
         {/* Sub-settings visible only when Menu is Enabled */}
         {isMenuEnabled && (
-          <div className="flex flex-col gap-5 animate-[fade-in-up_0.25s_ease-out]">
+          <div className="flex flex-col gap-4 animate-[fade-in-up_0.25s_ease-out]">
             {/* Menu Title Input */}
             <div className="flex flex-col gap-1.5">
               <label className="text-[0.78rem] font-bold text-text-secondary">
@@ -225,6 +212,7 @@ export default function GiftMenuDesignerPanel({
               />
             </div>
 
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {/* Layout Direction Selector (Vertical vs Horizontal) */}
             <div className="flex flex-col gap-1.5">
               <label className="text-[0.78rem] font-bold text-text-secondary">
@@ -285,6 +273,8 @@ export default function GiftMenuDesignerPanel({
                   {language === 'vi' ? '2 Cột' : '2 Columns'}
                 </button>
               </div>
+            </div>
+
             </div>
 
             {/* Icon Frame Selection Grid */}
@@ -369,69 +359,6 @@ export default function GiftMenuDesignerPanel({
               </p>
             </div>
 
-            {/* Position X Slider */}
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between text-[0.78rem]">
-                <label className="font-bold text-text-secondary">
-                  {language === 'vi' ? 'Vị trí X (%):' : 'X Position (%):'}
-                </label>
-                <span className="font-mono text-primary font-bold">{localX}%</span>
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={100}
-                step={1}
-                value={localX}
-                onChange={(e) => handleSliderChange('x', parseInt(e.target.value))}
-                onMouseUp={(e) => handleSliderRelease('x', parseInt((e.target as HTMLInputElement).value))}
-                onTouchEnd={(e) => handleSliderRelease('x', parseInt((e.target as HTMLInputElement).value))}
-                className="w-full accent-primary cursor-pointer h-1.5 bg-white/10 rounded-lg"
-              />
-            </div>
-
-            {/* Position Y Slider */}
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between text-[0.78rem]">
-                <label className="font-bold text-text-secondary">
-                  {language === 'vi' ? 'Vị trí Y (%):' : 'Y Position (%):'}
-                </label>
-                <span className="font-mono text-primary font-bold">{localY}%</span>
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={100}
-                step={1}
-                value={localY}
-                onChange={(e) => handleSliderChange('y', parseInt(e.target.value))}
-                onMouseUp={(e) => handleSliderRelease('y', parseInt((e.target as HTMLInputElement).value))}
-                onTouchEnd={(e) => handleSliderRelease('y', parseInt((e.target as HTMLInputElement).value))}
-                className="w-full accent-primary cursor-pointer h-1.5 bg-white/10 rounded-lg"
-              />
-            </div>
-
-            {/* Scale Slider */}
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between text-[0.78rem]">
-                <label className="font-bold text-text-secondary">
-                  {language === 'vi' ? 'Tỉ lệ Zoom (Scale):' : 'Scale Multiplier:'}
-                </label>
-                <span className="font-mono text-primary font-bold">{localScale.toFixed(1)}x</span>
-              </div>
-              <input
-                type="range"
-                min={0.5}
-                max={2.5}
-                step={0.1}
-                value={localScale}
-                onChange={(e) => handleSliderChange('scale', parseFloat(e.target.value))}
-                onMouseUp={(e) => handleSliderRelease('scale', parseFloat((e.target as HTMLInputElement).value))}
-                onTouchEnd={(e) => handleSliderRelease('scale', parseFloat((e.target as HTMLInputElement).value))}
-                className="w-full accent-primary cursor-pointer h-1.5 bg-white/10 rounded-lg"
-              />
-            </div>
-
             {/* Frame Scale Slider */}
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between text-[0.78rem]">
@@ -457,14 +384,38 @@ export default function GiftMenuDesignerPanel({
       </div>
 
       {/* Right Column: Live Viewport Preview & Selected Gifts in Menu List */}
-      <div className="lg:col-span-6 flex flex-col gap-6 w-full">
+      <div className="contents">
         {/* Live Overlay Viewport */}
-        <LiveOverlayViewport enabled={isMenuEnabled} />
+        <LiveOverlayViewport
+          enabled={isMenuEnabled}
+          showHeader={false}
+          className="order-1 lg:row-span-2 !border-0 !bg-transparent !p-0 !backdrop-blur-none"
+          viewportClassName="max-w-[420px] xl:max-w-[480px]"
+          previewSettings={{ ...settings, menuX: localX, menuY: localY, menuScale: localScale }}
+          interactionLayer={(
+            <OverlayPreviewControls
+              x={localX}
+              y={localY}
+              scale={localScale}
+              target="menu"
+              settingKeys={{ x: 'menuX', y: 'menuY', scale: 'menuScale' }}
+              label={language === 'vi' ? 'Kéo để di chuyển' : 'Drag to move'}
+              onChange={(next) => {
+                setLocalX(next.x);
+                setLocalY(next.y);
+                setLocalScale(next.scale);
+              }}
+              onCommit={(next) => {
+                void onSaveSettings({ menuX: next.x, menuY: next.y, menuScale: next.scale });
+              }}
+            />
+          )}
+        />
 
         {/* Selected Gifts Panel */}
-        <div className="bg-bg-card border border-border-color rounded-2xl p-5 md:p-6 backdrop-blur-[24px] flex flex-col gap-5 glass-shadow w-full">
+        <div className="order-3 bg-bg-card border border-border-color rounded-2xl p-4 backdrop-blur-[24px] flex flex-col gap-4 glass-shadow w-full">
           {/* Top Header & Add Gift Button */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-border-color/30 pb-3">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-border-color/30 pb-3">
             <div className="flex flex-col gap-1">
               <h4 className="font-header text-[0.98rem] font-bold text-white uppercase tracking-[0.5px] flex items-center gap-2">
                 <i className="fa-solid fa-list-check text-primary animate-pulse" />
@@ -483,7 +434,7 @@ export default function GiftMenuDesignerPanel({
             <button
               type="button"
               onClick={() => setIsPickerOpen(true)}
-              className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-primary to-accent text-white font-bold text-[0.82rem] shadow-[0_4px_16px_var(--color-primary-glow)] hover:scale-[1.02] hover:shadow-[0_6px_20px_var(--color-primary-glow)] active:scale-[0.98] transition-all duration-200 cursor-pointer outline-none"
+              className="w-full sm:w-auto shrink-0 justify-center inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-primary to-accent text-white font-bold text-[0.82rem] shadow-[0_4px_16px_var(--color-primary-glow)] hover:scale-[1.02] hover:shadow-[0_6px_20px_var(--color-primary-glow)] active:scale-[0.98] transition-all duration-200 cursor-pointer outline-none"
             >
               <i className="fa-solid fa-plus text-[0.9rem]" />
               <span>{language === 'vi' ? 'Thêm quà vào Menu' : '+ Add Gift to Menu'}</span>
@@ -568,7 +519,7 @@ export default function GiftMenuDesignerPanel({
                 return (
                   <div
                     key={gift._id}
-                    className={`flex flex-col sm:flex-row items-start sm:items-center gap-3.5 p-3 rounded-xl border transition-all duration-200 ${
+                    className={`flex flex-col xl:flex-row items-start xl:items-center gap-3 p-3 rounded-xl border transition-all duration-200 ${
                       isEnabled
                         ? 'bg-bg-surface border-border-color hover:border-primary/40'
                         : 'bg-bg-input border-border-color/50 opacity-60 hover:opacity-80'

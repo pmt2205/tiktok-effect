@@ -33,6 +33,12 @@ export const DEFAULT_SETTINGS = {
   jarDanceScale: 1.0,
   jarDanceOffsetX: 185,
   jarDanceVideo: '/dance/capy_dance.mp4',
+  jarEffectEnabled: false,
+  jarEffectVideo: '/jar/effect_jar/effect1.mp4',
+  jarEffectScale: 1.0,
+  jarEffectX: 0,
+  jarEffectY: 0,
+  jarEffectDelay: 0,
   videoEnabled: true,
   soundEnabled: true,
   treeEnabled: false,
@@ -63,15 +69,6 @@ export const DEFAULT_SETTINGS = {
   likeLeaderboardResetAt: 0,
 };
 
-// Default gift mappings
-export const DEFAULT_MAPPINGS = {
-  rose: { effect: 'video', videoUrl: 'rose.mp4' },
-  'hoa hồng': { effect: 'video', videoUrl: 'rose.mp4' },
-  galaxy: { effect: 'star' },
-  lion: { effect: 'star' },
-  tiktok: { effect: 'video', videoUrl: 'tiktok.mp4' },
-};
-
 // Mock users for simulator
 export const MOCK_USERS: MockUser[] = [
   { uniqueId: 'rose_fan_99', nickname: 'Rose Giver Pro', profile: 'https://i.pravatar.cc/100?img=1' },
@@ -89,62 +86,6 @@ export const MOCK_CHATS = [
   'Double tap double tap room guys! ❤️',
   'Where are you from?',
   'Nice effect setup!',
-];
-
-// Gift pictures map
-export const GIFT_PICTURES: Record<string, string> = {
-  Rose: 'https://sf16-website-nos.sofproxy.com/obj/tiktok-web-tx/tiktok/web/gift/rose.png',
-  Galaxy: 'https://sf16-website-nos.sofproxy.com/obj/tiktok-web-tx/tiktok/web/gift/galaxy.png',
-  Lion: 'https://sf16-website-nos.sofproxy.com/obj/tiktok-web-tx/tiktok/web/gift/lion.png',
-  Cap: 'https://sf16-website-nos.sofproxy.com/obj/tiktok-web-tx/tiktok/web/gift/cap.png',
-};
-
-// Density levels
-export const DENSITY_LEVELS = ['Low', 'Medium', 'High'];
-
-// Effect options for mapping form
-export const EFFECT_OPTIONS = [
-  { value: 'rose-petal', label: 'Rose Petals' },
-  { value: 'star', label: 'Cosmic Blast' },
-  { value: 'sparkle', label: 'Gold Stars' },
-  { value: 'video', label: 'Green Screen Video (.mp4)' },
-];
-
-// Theme options
-export const THEME_OPTIONS = [
-  { value: 'neon-pulse', label: 'Neon Pulse (Default)' },
-  { value: 'glassmorphism', label: 'Minimal Glass' },
-  { value: 'cyberpunk', label: 'Cyberpunk Glow' },
-];
-
-// Available frames in public/frame
-export const FRAME_OPTIONS = [
-  { id: '', nameVi: 'Không dùng khung', nameEn: 'No Frame', file: '' },
-  { id: 'khung1.png', nameVi: 'Khung 1 (Cổ điển)', nameEn: 'Frame 1 (Classic)', file: 'khung1.png' },
-  { id: 'kpop.png', nameVi: 'K-Pop Neon', nameEn: 'K-Pop Neon', file: 'kpop.png' },
-  { id: 'may.png', nameVi: 'Mây Bồng Bềnh', nameEn: 'Fluffy Cloud', file: 'may.png' },
-  { id: 'vang.png', nameVi: 'Vàng Hoàng Gia', nameEn: 'Royal Gold', file: 'vang.png' },
-  { id: 'vuongmien.png', nameVi: 'Vương Miện', nameEn: 'Crown', file: 'vuongmien.png' },
-  { id: 'ChatGPT Image 14_40_11 2 thg 9, 2026.png', nameVi: 'Cyber Neon 1', nameEn: 'Cyber Neon 1', file: 'ChatGPT Image 14_40_11 2 thg 9, 2026.png' },
-  { id: 'ChatGPT Image 14_40_53 2 thg 9, 2026.png', nameVi: 'Cyber Neon 2', nameEn: 'Cyber Neon 2', file: 'ChatGPT Image 14_40_53 2 thg 9, 2026.png' },
-];
-
-// Available trees in public/tree
-export const TREE_OPTIONS = [
-  {
-    id: 'standard',
-    file: 'tree.png',
-    nameVi: 'Cây Tiêu Chuẩn',
-    nameEn: 'Standard Tree',
-    isPro: false,
-  },
-  {
-    id: 'pro',
-    file: 'ChatGPT Image 15_42_48 2 thg 9, 2026.png',
-    nameVi: 'Cây Thần Thoại',
-    nameEn: 'Mythic Cyber Tree',
-    isPro: true,
-  },
 ];
 
 /**

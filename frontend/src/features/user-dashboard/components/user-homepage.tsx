@@ -14,7 +14,7 @@ import { setSettings, setCustomGifts, setLikeLeaderboard } from '@/features/admi
 import { useToast } from '@/hooks/use-toast';
 import Select from '@/components/ui/select';
 import SettingsDraftBoundary from './settings-draft-boundary';
-import { QuickFeatureShortcuts, StreamSetupPanel } from '@/features/dashboard';
+import StreamSetupPanel from './stream-setup-panel';
 import { UserSubTab } from '@/components/layout/user-sidebar';
 import { getSubscriptionPlan } from '@/lib/subscription-plans';
 
@@ -29,14 +29,12 @@ const LikeLeaderboardDesignerPanel = dynamic(() => import('@/features/overlay-de
 
 export default function UserHomepage({
   activeSubTab = 'overview',
-  onSelectSubTab,
   onConnect,
   onDisconnect,
   onSimulateEvent,
   socketConnected,
 }: {
   activeSubTab?: UserSubTab;
-  onSelectSubTab?: (tab: UserSubTab) => void;
   onConnect: (username: string) => void;
   onDisconnect: () => void;
   onSimulateEvent?: (eventType: string, payload: unknown) => void;
@@ -409,7 +407,6 @@ export default function UserHomepage({
             </div>
           )}
 
-          <QuickFeatureShortcuts language={language} onSelect={onSelectSubTab} />
         </div>
       )}
 
@@ -544,7 +541,7 @@ export default function UserHomepage({
         </SettingsDraftBoundary>
       )}
       {activeSubTab === 'jar' && (
-        <SettingsDraftBoundary revision={[settings.jarX, settings.jarY, settings.jarScale, settings.jarGiftSize, settings.jarFallSpeed, settings.jarDanceScale, settings.jarDanceOffsetX, settings.jarColor, settings.jarNameEnabled, settings.jarNameImage, settings.jarNameScale, settings.jarNameX, settings.jarNameY].join('|')}>
+        <SettingsDraftBoundary revision={[settings.jarX, settings.jarY, settings.jarScale, settings.jarGiftSize, settings.jarFallSpeed, settings.jarDanceScale, settings.jarDanceOffsetX, settings.jarColor, settings.jarNameEnabled, settings.jarNameImage, settings.jarNameScale, settings.jarNameX, settings.jarNameY, settings.jarEffectEnabled, settings.jarEffectVideo, settings.jarEffectScale, settings.jarEffectX, settings.jarEffectY, settings.jarEffectDelay].join('|')}>
           <GiftJarDesignerPanel
           language={language}
           settings={settings}
@@ -552,10 +549,11 @@ export default function UserHomepage({
           onSaveSettings={handleSaveMenuSettings}
           onSimulateEvent={onSimulateEvent}
           fullOptions={subscriptionPlan.fullJar}
+          canSelectStyles={subscriptionPlan.jarStyles}
           />
         </SettingsDraftBoundary>
       )}
-      {activeSubTab === 'tree' && (
+      {activeSubTab === 'tree' && subscriptionPlan.treeAccess && (
         <SettingsDraftBoundary revision={[settings.treeX, settings.treeY, settings.treeScale, settings.treeGiftSize].join('|')}>
           <GiftTreeDesignerPanel
           language={language}
@@ -566,6 +564,9 @@ export default function UserHomepage({
           fullOptions={subscriptionPlan.fullTree}
           />
         </SettingsDraftBoundary>
+      )}
+      {activeSubTab === 'tree' && !subscriptionPlan.treeAccess && (
+        <div className="glass-card mx-auto flex max-w-xl flex-col items-center gap-3 rounded-lg p-8 text-center"><i className="fa-solid fa-lock text-3xl text-primary" /><h2 className="font-header text-xl font-bold text-white">{language === 'vi' ? 'Cây Quà dành cho gói Pro' : 'Gift Tree requires Pro'}</h2><p className="text-sm text-text-muted">{language === 'vi' ? 'Gói miễn phí không hỗ trợ Cây Quà. Nâng cấp Pro hoặc Pro Max để sử dụng.' : 'The Free plan does not include Gift Tree. Upgrade to Pro or Pro Max to use it.'}</p></div>
       )}
       {activeSubTab === 'tts' && subscriptionPlan.premiumFeatures && (
         <SettingsDraftBoundary revision={[settings.ttsEnabled, settings.ttsVoice, settings.ttsRate, settings.ttsPitch, settings.ttsVolume, settings.ttsTemplate, settings.ttsMaxChars, settings.ttsFilterEmoji, settings.ttsFilterBadWords].join('|')}>

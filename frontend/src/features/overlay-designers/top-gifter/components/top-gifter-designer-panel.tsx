@@ -1,11 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { OverlaySettings } from '@/types';
 import Button from '@/components/ui/button';
 import Select, { SelectOption } from '@/components/ui/select';
 
 import LiveOverlayViewport from '@/features/user-dashboard/components/live-overlay-viewport';
+import OverlayPreviewControls from '@/features/overlay-designers/components/overlay-preview-controls';
 
 interface TopGifterDesignerPanelProps {
   language: 'vi' | 'en';
@@ -29,6 +30,9 @@ export default function TopGifterDesignerPanel({
   onSimulateTopGifter,
 }: TopGifterDesignerPanelProps) {
   const isEnabled = settings.topGifterEnabled !== false;
+  const [localX, setLocalX] = useState(settings.topGifterX ?? 28);
+  const [localY, setLocalY] = useState(settings.topGifterY ?? 2);
+  const [localScale, setLocalScale] = useState(settings.topGifterScale ?? 1);
 
   return (
     <div className="flex flex-col gap-6 w-full animate-[fade-in-up_0.4s_ease-out] glass-card p-6 rounded-2xl border border-border-color bg-bg-card backdrop-blur-2xl">
@@ -50,9 +54,9 @@ export default function TopGifterDesignerPanel({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(360px,480px)_minmax(0,1fr)] items-start">
         {/* Left Column: Form Controls */}
-        <div className="lg:col-span-6 flex flex-col gap-4">
+        <div className="order-2 min-w-0 flex flex-col gap-4">
           {/* Toggle Switch */}
           <div className="flex flex-col gap-2 p-4 rounded-xl bg-bg-input border border-border-color">
             <div className="flex justify-between items-center">
@@ -143,8 +147,32 @@ export default function TopGifterDesignerPanel({
         </div>
 
         {/* Right Column: Live OBS Viewport */}
-        <div className="lg:col-span-6">
-          <LiveOverlayViewport enabled={isEnabled} />
+        <div className="order-1">
+          <LiveOverlayViewport
+            enabled={isEnabled}
+            showHeader={false}
+            className="!border-0 !bg-transparent !p-0 !backdrop-blur-none"
+            viewportClassName="max-w-[420px] xl:max-w-[480px]"
+            previewTarget="topGifter"
+            previewSettings={{ ...settings, topGifterX: localX, topGifterY: localY, topGifterScale: localScale }}
+            interactionLayer={(
+              <OverlayPreviewControls
+                x={localX}
+                y={localY}
+                scale={localScale}
+                target="topGifter"
+                settingKeys={{ x: 'topGifterX', y: 'topGifterY', scale: 'topGifterScale' }}
+                label={language === 'vi' ? 'Kéo để di chuyển' : 'Drag to move'}
+                maxScale={2.5}
+                onChange={(next) => {
+                  setLocalX(next.x);
+                  setLocalY(next.y);
+                  setLocalScale(next.scale);
+                }}
+                onCommit={(next) => onSaveSettings({ topGifterX: next.x, topGifterY: next.y, topGifterScale: next.scale })}
+              />
+            )}
+          />
         </div>
       </div>
     </div>

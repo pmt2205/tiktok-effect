@@ -7,7 +7,7 @@ import BackgroundGlows from '@/components/layout/background-glows';
 import GiftManagerPanel from '@/features/admin-dashboard/components/gift-manager-panel';
 import UserManagerPanel from '@/features/admin-dashboard/components/user-manager-panel';
 import NpcManagerPanel from '@/features/admin-dashboard/components/npc-manager-panel';
-import UserHomepage from '@/features/dashboard/components/user-dashboard-page';
+import { UserHomepage } from '@/features/user-dashboard';
 import ChatDashboard, { ChatWidget } from '@/features/shared/components/chat-dashboard';
 import UserSidebar, { UserSubTab } from '@/components/layout/user-sidebar';
 import { useWebSocket } from '@/hooks/use-websocket';
@@ -343,7 +343,6 @@ export default function DashboardPage() {
         <main className="min-h-0 flex-1 overflow-y-auto max-w-[1440px] w-full">
           <UserHomepage
             activeSubTab={userTab}
-            onSelectSubTab={setUserTab}
             onConnect={handleConnect}
             onDisconnect={handleDisconnect}
             socketConnected={isConnected}

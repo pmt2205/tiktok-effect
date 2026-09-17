@@ -209,8 +209,8 @@ export default function UserManagerPanel() {
 
   return (
     <div className="flex flex-col gap-6 w-full animate-[fade-in-up_0.6s_ease-out]">
-      <div className="sticky top-0 bg-[#07080d]/80 backdrop-blur-md z-30 flex flex-col gap-1.5 border-b border-border-color pb-3 pt-1 md:pb-4 md:pt-8 md:-mt-8 select-none">
-        <h2 className="font-header text-[1.4rem] font-bold text-white tracking-[0.5px] uppercase">{t.title}</h2>
+      <div className="sticky top-0 bg-bg-dark/80 backdrop-blur-md z-30 flex flex-col gap-1.5 border-b border-border-color pb-3 pt-1 md:pb-4 md:pt-8 md:-mt-8 select-none">
+        <h2 className="font-header text-[1.4rem] font-bold text-text-main tracking-[0.5px] uppercase">{t.title}</h2>
         <p className="text-[0.88rem] text-text-muted">{t.subtitle}</p>
       </div>
 
@@ -228,10 +228,10 @@ export default function UserManagerPanel() {
             {t.noUsers}
           </div>
         ) : (
-          <div className="overflow-x-auto w-full rounded-xl border border-border-color/80 bg-black/15 shadow-inner">
+          <div className="overflow-x-auto w-full rounded-xl border border-border-color/80 bg-bg-input shadow-inner">
             <table className="w-full text-left border-collapse font-body text-[0.88rem]">
               <thead>
-                <tr className="border-b border-border-color/80 bg-black/35 text-text-muted font-header font-bold text-[0.78rem] tracking-[1px] uppercase select-none">
+                <tr className="border-b border-border-color/80 bg-bg-surface/80 text-text-muted font-header font-bold text-[0.78rem] tracking-[1px] uppercase select-none">
                   <th className="py-4 px-5">{t.username}</th>
                   <th className="py-4 px-5">{t.role}</th>
                   <th className="py-4 px-5">{t.plan}</th>
@@ -247,7 +247,7 @@ export default function UserManagerPanel() {
                     key={u._id}
                     className="border-b border-border-color/30 hover:bg-white/[0.02] transition-all duration-150 group"
                   >
-                    <td className="py-4.5 px-5 font-semibold text-white">
+                    <td className="py-4.5 px-5 font-semibold text-text-main">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-secondary/20 to-secondary/5 border border-secondary/20 group-hover:border-secondary/40 transition-colors duration-250 flex items-center justify-center text-secondary text-[0.82rem] font-bold uppercase select-none">
                           {u.username.substring(0, 2)}
@@ -264,7 +264,7 @@ export default function UserManagerPanel() {
                       </span>
                     </td>
                     <td className="py-4.5 px-5">
-                      {u.role === 'admin' ? <span className="text-xs font-bold text-primary">PRO MAX</span> : <select value={u.subscriptionTier || 'free'} onChange={(event) => handleUpdateTier(u._id, event.target.value as 'free' | 'pro' | 'promax')} className="rounded-md border border-border-color bg-bg-input px-2.5 py-2 text-xs font-bold text-white outline-none transition-all duration-200 focus:border-secondary focus:ring-3 focus:ring-secondary-glow/25"><option value="free">Thường · Free</option><option value="pro">Pro · 99K</option><option value="promax">Pro Max · 299K</option></select>}
+                      {u.role === 'admin' ? <span className="text-xs font-bold text-primary">PRO MAX</span> : <select value={u.subscriptionTier || 'free'} onChange={(event) => handleUpdateTier(u._id, event.target.value as 'free' | 'pro' | 'promax')} className="rounded-md border border-border-color bg-bg-input px-2.5 py-2 text-xs font-bold text-text-main outline-none transition-all duration-200 focus:border-secondary focus:ring-3 focus:ring-secondary-glow/25"><option value="free">Thường · Free</option><option value="pro">Pro · 99K lần đầu · 49K gia hạn</option><option value="promax">Pro Max · 299K lần đầu · 149K gia hạn</option></select>}
                     </td>
                     <td className="py-4.5 px-5">
                       {u.role !== 'admin' ? (
@@ -276,7 +276,7 @@ export default function UserManagerPanel() {
                             disabled={!isAdmin}
                             className="sr-only peer"
                           />
-                          <div className="w-10 h-5.5 bg-black/40 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-text-muted after:border-border-color after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-secondary/40 peer-checked:after:bg-secondary peer-checked:after:border-secondary border border-border-color/80 shadow-inner"></div>
+                          <div className="w-10 h-5.5 bg-bg-input peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-text-muted after:border-border-color after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-secondary/40 peer-checked:after:bg-secondary peer-checked:after:border-secondary border border-border-color/80 shadow-inner"></div>
                         </label>
                       ) : (
                         <span className="text-[0.75rem] text-text-muted italic select-none font-semibold">Always Allowed</span>
@@ -292,7 +292,7 @@ export default function UserManagerPanel() {
                             disabled={!isAdmin}
                             className="sr-only peer"
                           />
-                          <div className="w-10 h-5.5 bg-black/40 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-text-muted after:border-border-color after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-primary/45 peer-checked:after:bg-primary peer-checked:after:border-primary border border-border-color/80 shadow-inner"></div>
+                          <div className="w-10 h-5.5 bg-bg-input peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-text-muted after:border-border-color after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-primary/45 peer-checked:after:bg-primary peer-checked:after:border-primary border border-border-color/80 shadow-inner"></div>
                         </label>
                       ) : (
                         <span className="text-[0.75rem] text-text-muted italic select-none font-semibold">Always Allowed</span>
@@ -397,7 +397,7 @@ function NpcCategoriesSelector({
         ref={buttonRef}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="px-3.5 py-2 rounded-lg bg-black/45 border border-border-color hover:border-white/15 text-white font-body text-[0.8rem] font-semibold flex items-center gap-2 select-none cursor-pointer outline-none active:scale-[0.98] min-w-[140px] justify-between transition-all duration-200"
+        className="px-3.5 py-2 rounded-lg bg-bg-input border border-border-color hover:border-secondary/30 text-text-main font-body text-[0.8rem] font-semibold flex items-center gap-2 select-none cursor-pointer outline-none active:scale-[0.98] min-w-[140px] justify-between transition-all duration-200"
       >
         <span className="truncate max-w-[100px] text-left">
           {selected.length === 0
@@ -431,9 +431,9 @@ function NpcCategoriesSelector({
                 return (
                   <label
                     key={c.name}
-                    className={`flex items-center justify-between px-2.5 py-2 rounded-lg cursor-pointer text-[0.8rem] text-white transition-all select-none border border-transparent ${isChecked
+                    className={`flex items-center justify-between px-2.5 py-2 rounded-lg cursor-pointer text-[0.8rem] text-text-main transition-all select-none border border-transparent ${isChecked
                         ? 'bg-secondary/5 border-secondary/15 text-secondary font-semibold'
-                        : 'hover:bg-white/[0.04] text-white/80'
+                        : 'hover:bg-white/[0.04] text-text-secondary'
                       }`}
                   >
                     <span>{c.displayName}</span>
@@ -441,7 +441,7 @@ function NpcCategoriesSelector({
                       type="checkbox"
                       checked={isChecked}
                       onChange={() => handleToggleCategory(c.name)}
-                      className="rounded-md border-border-color/80 text-secondary focus:ring-secondary-glow bg-black/30 w-4 h-4 cursor-pointer"
+                      className="rounded-md border-border-color/80 text-secondary focus:ring-secondary-glow bg-bg-input w-4 h-4 cursor-pointer"
                     />
                   </label>
                 );

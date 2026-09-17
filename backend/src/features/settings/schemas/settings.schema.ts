@@ -113,6 +113,24 @@ export class Settings extends Document {
   @Prop({ required: true, default: '/dance/capy_dance.mp4' })
   jarDanceVideo: string;
 
+  @Prop({ required: true, default: false })
+  jarEffectEnabled: boolean;
+
+  @Prop({ required: true, default: '/jar/effect_jar/effect1.mp4' })
+  jarEffectVideo: string;
+
+  @Prop({ required: true, default: 1.0 })
+  jarEffectScale: number;
+
+  @Prop({ default: 0 })
+  jarEffectX: number;
+
+  @Prop({ default: 0 })
+  jarEffectY: number;
+
+  @Prop({ default: 0 })
+  jarEffectDelay: number;
+
   @Prop({ required: true, default: true })
   singleEnabled: boolean;
 

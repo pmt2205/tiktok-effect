@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { TiktokStatus, OverlaySettings, GiftMappings, GiftMapping, LogEntry, Gift, NpcCategory, LikeLeaderboardItem } from '@/types';
-import { DEFAULT_SETTINGS, DEFAULT_MAPPINGS } from '@/lib/constants';
+import { DEFAULT_SETTINGS } from '@/lib/constants';
 
 interface DashboardState {
   status: TiktokStatus;
@@ -27,13 +27,13 @@ const initialState: DashboardState = {
     error: null,
   },
   settings: DEFAULT_SETTINGS,
-  mappings: DEFAULT_MAPPINGS,
+  mappings: {},
   npcMappings: {},
   npcCategories: [],
   npcGifts: [],
   availableGifts: [],
   logs: [],
-  selectedMappedGift: Object.keys(DEFAULT_MAPPINGS)[0] || '',
+  selectedMappedGift: '',
   language: 'vi',
   customGifts: [],
   selectedStreamer: '',

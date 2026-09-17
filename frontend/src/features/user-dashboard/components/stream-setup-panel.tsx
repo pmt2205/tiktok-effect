@@ -6,44 +6,14 @@ import { useToast } from '@/hooks/use-toast';
 import { BACKEND_URL } from '@/lib/constants';
 import { useAppSelector } from '@/store/hooks';
 
-type HealthState = 'checking' | 'online' | 'offline';
-
-function StatusRow({ icon, label, value, detail, tone }: { icon: string; label: string; value: string; detail: string; tone: 'success' | 'warning' | 'danger' }) {
-  const toneClass = tone === 'success' ? 'text-secondary bg-secondary/10 border-secondary/20' : tone === 'warning' ? 'text-primary bg-primary/10 border-primary/20' : 'text-danger bg-danger/10 border-danger/20';
-  return (
-    <div className="flex gap-3 rounded-xl border border-border-color bg-black/20 p-3">
-      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border ${toneClass}`}><i className={icon} /></div>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center justify-between gap-2"><span className="text-sm font-bold text-white">{label}</span><span className={`text-[0.68rem] font-bold uppercase tracking-wide ${toneClass.split(' ')[0]}`}>{value}</span></div>
-        <p className="mt-0.5 text-xs text-text-muted">{detail}</p>
-      </div>
-    </div>
-  );
-}
-
 export default function StreamSetupPanel({ socketConnected }: { socketConnected: boolean }) {
   const toast = useToast();
   const language = useAppSelector((state) => state.dashboard.language) || 'vi';
-  const streamStatus = useAppSelector((state) => state.dashboard.status);
   const selectedStreamer = useAppSelector((state) => state.dashboard.selectedStreamer);
   const user = useAppSelector((state) => state.auth.user);
   const streamerUsername = selectedStreamer || user?.username || '';
-  const [health, setHealth] = useState<HealthState>('checking');
   const [overlayToken, setOverlayToken] = useState('');
   const [overlayError, setOverlayError] = useState('');
-
-  const refreshStatus = useCallback(async () => {
-    const controller = new AbortController();
-    const timer = window.setTimeout(() => controller.abort(), 5000);
-    try {
-      const response = await fetch(`${BACKEND_URL}/api/health`, { signal: controller.signal });
-      setHealth(response.ok ? 'online' : 'offline');
-    } catch {
-      setHealth('offline');
-    } finally {
-      window.clearTimeout(timer);
-    }
-  }, []);
 
   const createOverlayLink = useCallback(async () => {
     const authToken = localStorage.getItem('auth_token');
@@ -62,7 +32,6 @@ export default function StreamSetupPanel({ socketConnected }: { socketConnected:
     }
   }, [language, streamerUsername]);
 
-  useEffect(() => { void Promise.resolve().then(refreshStatus); }, [refreshStatus]);
   useEffect(() => { if (streamerUsername) void Promise.resolve().then(createOverlayLink); }, [createOverlayLink, streamerUsername]);
 
   const overlayUrl = useMemo(() => overlayToken && typeof window !== 'undefined' ? `${window.location.origin}/overlay?token=${encodeURIComponent(overlayToken)}` : '', [overlayToken]);
@@ -76,13 +45,11 @@ export default function StreamSetupPanel({ socketConnected }: { socketConnected:
     }
   };
 
-  const backendOnline = health === 'online';
-  const tiktokConnected = streamStatus.status === 'connected';
   return (
     <section className="glass-card rounded-2xl p-5 md:p-6">
       <div className="mb-5 flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
         <div><h2 className="font-header text-lg font-bold text-white"><i className="fa-solid fa-tower-broadcast mr-2 text-secondary" />{language === 'vi' ? 'Thiết lập & Trạng thái' : 'Setup & Status'}</h2><p className="mt-1 text-sm text-text-muted">{language === 'vi' ? 'Kiểm tra kết nối trước khi bắt đầu livestream.' : 'Check every connection before going live.'}</p></div>
-        <Button type="button" variant="secondary" onClick={() => { void refreshStatus(); void createOverlayLink(); }} className="text-xs"><i className="fa-solid fa-rotate" />{language === 'vi' ? 'Kiểm tra lại' : 'Refresh'}</Button>
+        <Button type="button" variant="secondary" onClick={() => { void createOverlayLink(); }} className="text-xs"><i className="fa-solid fa-rotate" />{language === 'vi' ? 'Kiểm tra lại' : 'Refresh'}</Button>
       </div>
 
       <div className="mt-5 rounded-xl border border-border-color bg-bg-input p-4">
