@@ -28,6 +28,8 @@ export const DEFAULT_SETTINGS = {
   jarFallSpeed: 1.0,
   jarType: 'standard',
   jarColor: 'silver',
+  jarDecorationEnabled: false,
+  jarDecoration: 'pro_1',
   jarDanceEnabled: true,
   jarDancePosition: 'left',
   jarDanceScale: 1.0,

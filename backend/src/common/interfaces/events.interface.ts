@@ -82,6 +82,8 @@ export interface OverlaySettings {
   jarFallSpeed?: number;
   jarType?: string;
   jarColor?: string;
+  jarDecorationEnabled?: boolean;
+  jarDecoration?: string;
   jarNameEnabled?: boolean;
   jarNameImage?: string;
   jarNameScale?: number;

@@ -98,7 +98,8 @@ export default function LandingHero() {
                   {/* Right: Jar 3D Container */}
                   <div className="relative z-10 flex flex-col items-center justify-center shrink-0">
                     <div className="relative h-40 w-40 sm:h-44 sm:w-44 animate-gift-bob">
-                      <Image src="/jar/jar_pro_1.png" alt="Jar Pro 1 3D Preview" fill className="object-contain drop-shadow-[0_10px_25px_rgba(255,0,80,0.5)]" />
+                      <Image src="/jar/jar.png" alt="Gift jar preview" fill className="object-contain drop-shadow-[0_10px_25px_rgba(255,0,80,0.5)]" />
+                      <Image src="/jar/decoration/jar_pro_1_decoration.png" alt="Pink bow jar decoration" fill className="object-contain scale-[0.86]" />
                     </div>
                   </div>
                 </div>
@@ -110,4 +111,3 @@ export default function LandingHero() {
     </>
   );
 }
-

@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { OverlaySettings } from '@/types';
 import LiveOverlayViewport from '@/features/user-dashboard/components/live-overlay-viewport';
 import OverlayPreviewControls from '@/features/overlay-designers/components/overlay-preview-controls';
-import { JAR_COLOR_PRESETS, JAR_EFFECT_OPTIONS, JAR_NAME_OPTIONS, JAR_STYLE_OPTIONS } from '../lib/jar-options';
+import { JAR_DECORATION_OPTIONS, JAR_EFFECT_OPTIONS, JAR_NAME_OPTIONS } from '../lib/jar-options';
 
 interface GiftJarDesignerPanelProps {
   language: 'vi' | 'en';
@@ -60,7 +60,6 @@ export default function GiftJarDesignerPanel({
   onSaveSettings,
   onSimulateEvent,
   fullOptions = false,
-  canSelectStyles = false,
 }: GiftJarDesignerPanelProps) {
   const [localX, setLocalX] = useState(settings.jarX !== undefined ? settings.jarX : 75);
   const [localY, setLocalY] = useState(settings.jarY !== undefined ? settings.jarY : 50);
@@ -220,57 +219,7 @@ export default function GiftJarDesignerPanel({
               />
             </div>
 
-            {/* Jar Type Selection */}
-            <div className="flex flex-col gap-2 pt-2 border-t border-border-color/20">
-              <span className="text-[0.82rem] text-text-secondary font-bold select-none">
-                {language === 'vi' ? 'Kiểu hũ quà:' : 'Jar Style:'}
-              </span>
-              <div className="grid grid-cols-2 gap-2 min-[420px]:grid-cols-3 sm:grid-cols-5">
-                {JAR_STYLE_OPTIONS.map((jarOpt) => {
-                  const isSelected =
-                    (settings.jarType || 'standard') === jarOpt.id ||
-                    (jarOpt.id === 'pro_3' && settings.jarType === 'pro') ||
-                    (jarOpt.id === 'pro_4' && settings.jarType === 'promax');
-
-                  return (
-                    <button
-                      key={jarOpt.id}
-                      type="button"
-                      onClick={() => onSaveSettings({ jarType: jarOpt.id })}
-                      disabled={savingSettings || (!canSelectStyles && jarOpt.id !== 'standard')}
-                      className={`flex flex-col items-center p-1.5 rounded-xl border transition-all duration-200 cursor-pointer outline-none disabled:opacity-40 disabled:cursor-not-allowed ${
-                        isSelected
-                          ? 'bg-primary/15 border-primary text-white shadow-[0_0_12px_var(--color-primary-glow)] scale-[1.03]'
-                          : 'bg-bg-surface border-border-color text-text-muted hover:text-white hover:bg-bg-input'
-                      }`}
-                    >
-                      <div className="w-10 h-12 relative flex items-center justify-center">
-                        <img
-                          src={jarOpt.preview}
-                          alt={language === 'vi' ? jarOpt.nameVi : jarOpt.nameEn}
-                          className="w-full h-full object-contain pointer-events-none drop-shadow"
-                        />
-                      </div>
-                      <span className="text-[0.65rem] font-bold mt-1 truncate w-full text-center">
-                        {language === 'vi' ? jarOpt.nameVi : jarOpt.nameEn}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
             {/* Colors Selection & Opacity (RGBA) */}
-            {((settings.jarType || 'standard') !== 'standard') ? (
-              <div className="p-3 bg-bg-input border border-border-color rounded-xl text-[0.74rem] text-text-muted select-none flex items-center gap-2">
-                <i className="fa-solid fa-palette text-primary" />
-                <span>
-                  {language === 'vi'
-                    ? 'Hũ Pro giữ nguyên bản sắc nét màu sắc gốc (Không hỗ trợ đổi màu).'
-                    : 'Pro Jars use original HD artwork color (Color tint disabled).'}
-                </span>
-              </div>
-            ) : (
               <div className="flex flex-col gap-3 pt-2 border-t border-border-color/20 animate-[fade-in-up_0.2s_ease-out]">
                 <div className="flex justify-between items-center text-[0.82rem] text-text-secondary font-bold select-none">
                   <span>{language === 'vi' ? 'Màu sắc & Độ trong suốt (RGBA):' : 'Jar Color & Transparency (RGBA):'}</span>
@@ -320,31 +269,61 @@ export default function GiftJarDesignerPanel({
                   />
                 </div>
 
-                {/* Preset quick colors */}
-                <div className="flex gap-1.5 grow justify-between pt-1">
-                  {JAR_COLOR_PRESETS.map((preset) => (
-                    <button
-                      key={preset.value}
-                      type="button"
-                      onClick={() => {
-                        setLocalColorInput(preset.value);
-                        const { alpha } = parseColorToHexAndAlpha(preset.value);
-                        setLocalAlpha(alpha);
-                        onSaveSettings({ jarColor: preset.value });
-                      }}
-                      disabled={savingSettings}
-                      className={`px-2 py-1.5 bg-bg-surface hover:bg-bg-input text-text-main rounded-lg text-[0.62rem] font-bold border transition-all duration-150 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
-                        settings.jarColor === preset.value
-                          ? 'border-primary text-primary shadow-[0_0_8px_var(--color-primary-glow)]'
-                          : 'border-border-color'
-                      }`}
-                    >
-                      {language === 'vi' ? preset.labelVi : preset.labelEn}
-                    </button>
-                  ))}
-                </div>
               </div>
-            )}
+
+            {/* Pro Max ornament layer for the standard jar. */}
+            <div className="flex flex-col gap-3 pt-3 border-t border-border-color/20">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <span className="flex items-center gap-2 text-[0.82rem] text-text-secondary font-bold select-none">
+                    {language === 'vi' ? 'Viền trang trí' : 'Jar decoration'}
+                    <span className="rounded-sm bg-primary/15 px-1.5 py-0.5 text-[0.58rem] font-extrabold text-primary">PRO MAX</span>
+                  </span>
+                  <p className="mt-1 text-[0.68rem] text-text-muted">
+                    {language === 'vi' ? 'Gắn viền trang trí độc lập lên hũ thường.' : 'Attach an independent ornament layer to the standard jar.'}
+                  </p>
+                </div>
+                <label className="relative inline-flex shrink-0 cursor-pointer items-center">
+                  <input
+                    type="checkbox"
+                    className="peer sr-only"
+                    disabled={savingSettings || !fullOptions}
+                    checked={fullOptions && Boolean(settings.jarDecorationEnabled)}
+                    onChange={(event) => onSaveSettings({
+                      jarType: 'standard',
+                      jarDecorationEnabled: event.target.checked,
+                      jarDecoration: settings.jarDecoration || JAR_DECORATION_OPTIONS[0].id,
+                      ...(event.target.checked && !settings.jarDecoration ? { jarColor: 'rgba(244, 155, 187, 0.85)' } : {}),
+                    })}
+                  />
+                  <span className="relative h-[20px] w-10 rounded-full border border-border-color bg-white/10 transition-all duration-300 after:absolute after:left-[2px] after:top-[2px] after:h-[14px] after:w-[14px] after:rounded-full after:bg-white after:transition-all peer-checked:border-transparent peer-checked:bg-primary peer-checked:shadow-[0_0_8px_var(--color-primary-glow)] peer-checked:after:translate-x-[20px] peer-disabled:cursor-not-allowed peer-disabled:opacity-40" />
+                </label>
+              </div>
+
+              {fullOptions && settings.jarDecorationEnabled && (
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  {JAR_DECORATION_OPTIONS.map((option) => {
+                    const isSelected = (settings.jarDecoration || JAR_DECORATION_OPTIONS[0].id) === option.id;
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => onSaveSettings({
+                          jarType: 'standard',
+                          jarDecoration: option.id,
+                          ...(option.id === 'pro_1' ? { jarColor: 'rgba(244, 155, 187, 0.85)' } : {}),
+                        })}
+                        disabled={savingSettings}
+                        className={`flex flex-col items-center rounded-xl border p-1.5 transition-all duration-200 outline-none disabled:cursor-not-allowed disabled:opacity-40 ${isSelected ? 'border-primary bg-primary/15 text-white shadow-[0_0_12px_var(--color-primary-glow)]' : 'border-border-color bg-bg-surface text-text-muted hover:bg-bg-input hover:text-white'}`}
+                      >
+                        <img src={option.preview} alt={language === 'vi' ? option.nameVi : option.nameEn} className="h-14 w-full object-contain pointer-events-none drop-shadow" />
+                        <span className="mt-1 w-full truncate text-center text-[0.65rem] font-bold">{language === 'vi' ? option.nameVi : option.nameEn}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
             {/* Pro Max chroma-key effect surrounding the jar */}
             <div className="flex flex-col gap-3 border-t border-border-color/20 pt-3">

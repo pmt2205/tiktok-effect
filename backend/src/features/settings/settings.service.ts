@@ -33,6 +33,8 @@ export class SettingsService implements OnModuleInit {
     jarFallSpeed: 1.0,
     jarType: 'standard',
     jarColor: 'silver',
+    jarDecorationEnabled: false,
+    jarDecoration: 'pro_1',
     jarNameEnabled: false,
     jarNameImage: '',
     jarNameScale: 0.55,
@@ -173,8 +175,10 @@ export class SettingsService implements OnModuleInit {
         jarClearedAt: settingsDoc.jarClearedAt !== undefined ? settingsDoc.jarClearedAt : this.defaultSettings.jarClearedAt,
         jarGiftSize: (settingsDoc as any).jarGiftSize !== undefined ? (settingsDoc as any).jarGiftSize : this.defaultSettings.jarGiftSize,
         jarFallSpeed: (settingsDoc as any).jarFallSpeed !== undefined ? (settingsDoc as any).jarFallSpeed : this.defaultSettings.jarFallSpeed,
-        jarType: subscriptionTier !== 'free' ? ((settingsDoc as any).jarType || this.defaultSettings.jarType) : 'standard',
+        jarType: 'standard',
         jarColor: (settingsDoc as any).jarColor || this.defaultSettings.jarColor,
+        jarDecorationEnabled: subscriptionTier === 'promax' && Boolean((settingsDoc as any).jarDecorationEnabled),
+        jarDecoration: subscriptionTier === 'promax' ? ((settingsDoc as any).jarDecoration || this.defaultSettings.jarDecoration) : this.defaultSettings.jarDecoration,
         jarNameEnabled: subscriptionTier === 'promax' && Boolean((settingsDoc as any).jarNameEnabled),
         jarNameImage: subscriptionTier === 'promax' ? ((settingsDoc as any).jarNameImage || '') : '',
         jarNameScale: (settingsDoc as any).jarNameScale !== undefined ? (settingsDoc as any).jarNameScale : 0.55,
@@ -261,6 +265,13 @@ export class SettingsService implements OnModuleInit {
         '/jar/name_jar/cute.png',
         '/jar/name_jar/moon.png',
       ]);
+      const jarDecorations = new Set(['pro_1', 'pro_2', 'pro_3', 'pro_4']);
+      safeSettings.jarType = 'standard';
+      if (typeof safeSettings.jarDecoration === 'string' && !jarDecorations.has(safeSettings.jarDecoration)) delete safeSettings.jarDecoration;
+      if (tier !== 'promax') {
+        delete safeSettings.jarDecorationEnabled;
+        delete safeSettings.jarDecoration;
+      }
       if (typeof safeSettings.jarNameImage === 'string' && !jarNameImages.has(safeSettings.jarNameImage)) delete safeSettings.jarNameImage;
       if (typeof safeSettings.jarNameScale === 'number') safeSettings.jarNameScale = Math.min(1.5, Math.max(0.2, safeSettings.jarNameScale));
       if (typeof safeSettings.jarNameX === 'number') safeSettings.jarNameX = Math.min(220, Math.max(-220, safeSettings.jarNameX));
@@ -357,8 +368,10 @@ export class SettingsService implements OnModuleInit {
         jarClearedAt: updated.jarClearedAt,
         jarGiftSize: (updated as any).jarGiftSize !== undefined ? (updated as any).jarGiftSize : this.defaultSettings.jarGiftSize,
         jarFallSpeed: (updated as any).jarFallSpeed !== undefined ? (updated as any).jarFallSpeed : this.defaultSettings.jarFallSpeed,
-        jarType: tier !== 'free' ? ((updated as any).jarType || this.defaultSettings.jarType) : 'standard',
+        jarType: 'standard',
         jarColor: (updated as any).jarColor || this.defaultSettings.jarColor,
+        jarDecorationEnabled: tier === 'promax' && Boolean((updated as any).jarDecorationEnabled),
+        jarDecoration: tier === 'promax' ? ((updated as any).jarDecoration || this.defaultSettings.jarDecoration) : this.defaultSettings.jarDecoration,
         jarNameEnabled: tier === 'promax' && Boolean((updated as any).jarNameEnabled),
         jarNameImage: tier === 'promax' ? ((updated as any).jarNameImage || '') : '',
         jarNameScale: (updated as any).jarNameScale !== undefined ? (updated as any).jarNameScale : 0.55,

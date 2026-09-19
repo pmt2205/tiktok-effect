@@ -160,12 +160,9 @@ export default function OverlayCanvas() {
           ? videoUrl
           : `${BACKEND_URL}/media/${videoUrl}`;
         engineRef.current.playVideoEffect(fullVideoUrl, fullSoundUrl, isSoundEnabled);
-      } else {
-        engineRef.current.spawnParticlesForGift(mappedEffect, repeatCount, settings);
-        if (fullSoundUrl && isSoundEnabled) {
-          const audio = new Audio(fullSoundUrl);
-          audio.play().catch(err => console.warn('Failed to play sound without video:', err));
-        }
+      } else if (fullSoundUrl && isSoundEnabled) {
+        const audio = new Audio(fullSoundUrl);
+        audio.play().catch(err => console.warn('Failed to play sound without video:', err));
       }
     } else if (!isVideoEnabled && isSoundEnabled && soundUrl) {
       // If video is disabled but sound is enabled, play sound only
@@ -372,7 +369,8 @@ export default function OverlayCanvas() {
   return (
     <>
       <canvas id="effect-canvas" ref={canvasRef} className="absolute inset-0 z-1 pointer-events-none bg-transparent" />
-      <div id="notification-container" className="absolute top-[20%] left-10 w-[450px] z-10 flex flex-col gap-3.5 pointer-events-none" ref={containerRef} />
+      {/* Keep the combo tracker mounted without showing the legacy flashing gift banner. */}
+      <div id="notification-container" className="hidden" ref={containerRef} aria-hidden="true" />
 
       {/* Gift Menu Overlay component */}
       <GiftMenuOverlay settings={settingsState} giftsList={giftsList} />

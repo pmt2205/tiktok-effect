@@ -541,7 +541,7 @@ export default function UserHomepage({
         </SettingsDraftBoundary>
       )}
       {activeSubTab === 'jar' && (
-        <SettingsDraftBoundary revision={[settings.jarX, settings.jarY, settings.jarScale, settings.jarGiftSize, settings.jarFallSpeed, settings.jarDanceScale, settings.jarDanceOffsetX, settings.jarColor, settings.jarNameEnabled, settings.jarNameImage, settings.jarNameScale, settings.jarNameX, settings.jarNameY, settings.jarEffectEnabled, settings.jarEffectVideo, settings.jarEffectScale, settings.jarEffectX, settings.jarEffectY, settings.jarEffectDelay].join('|')}>
+        <SettingsDraftBoundary revision={[settings.jarX, settings.jarY, settings.jarScale, settings.jarGiftSize, settings.jarFallSpeed, settings.jarDecorationEnabled, settings.jarDecoration, settings.jarDanceScale, settings.jarDanceOffsetX, settings.jarColor, settings.jarNameEnabled, settings.jarNameImage, settings.jarNameScale, settings.jarNameX, settings.jarNameY, settings.jarEffectEnabled, settings.jarEffectVideo, settings.jarEffectScale, settings.jarEffectX, settings.jarEffectY, settings.jarEffectDelay].join('|')}>
           <GiftJarDesignerPanel
           language={language}
           settings={settings}

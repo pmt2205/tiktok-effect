@@ -25,10 +25,10 @@ export const demoVideos: LandingVideo[] = [
 ];
 
 export const demoJars = [
-  { id: 'jar-pro-1', title: 'Hũ Quà Glass Neon 3D', category: 'jar', src: '/jar/jar_pro_1.png', badge: '3D Glass', desc: 'Hũ thủy tinh trong suốt phát sáng Neon Cyberpunk khi nhận gift.' },
-  { id: 'jar-pro-2', title: 'Hũ Quà VIP Metal 3D', category: 'jar', src: '/jar/jar_pro_2.png', badge: 'Metal VIP', desc: 'Hũ kim loại cao cấp tích tụ năng lượng quà rơi tự nhiên.' },
-  { id: 'jar-pro-3', title: 'Hũ Quà Crystal 4K', category: 'jar', src: '/jar/jar_pro_3.png', badge: 'Crystal 4K', desc: 'Hũ pha lê rực rỡ phản chiếu ánh sáng sống động trên OBS.' },
-  { id: 'jar-pro-4', title: 'Hũ Quà Hoàng Gia Pro', category: 'jar', src: '/jar/jar_pro_4.png', badge: 'Legendary', desc: 'Hũ phong cách hoàng gia đính đá quý dành cho streamer đỉnh cao.' },
+  { id: 'jar-decoration-1', title: 'Viền Nơ Hồng', category: 'jar', src: '/jar/decoration/jar_pro_1_decoration.png', badge: 'Decoration', desc: 'Viền nơ, trái tim và phụ kiện âm nhạc gắn độc lập lên hũ quà.' },
+  { id: 'jar-decoration-2', title: 'Viền Mây Trái Tim', category: 'jar', src: '/jar/decoration/jar_pro_2_decoration.png', badge: 'Decoration', desc: 'Mây, sao và trái tim trong suốt bao quanh hũ quà.' },
+  { id: 'jar-decoration-3', title: 'Viền Pha Lê Sao', category: 'jar', src: '/jar/decoration/jar_pro_3_decoration.png', badge: 'Decoration', desc: 'Dây pha lê và ngôi sao lấp lánh phủ quanh hũ thường.' },
+  { id: 'jar-decoration-4', title: 'Viền Thỏ Pha Lê', category: 'jar', src: '/jar/decoration/jar_pro_4_decoration.png', badge: 'Decoration', desc: 'Viền thỏ, ngọc trai và trái tim dành cho hũ quà.' },
   { id: 'tree-1', title: 'Cây Quà Tích Lũy', category: 'jar', src: '/tree/tree.png', badge: 'Tree Effect', desc: 'Mô hình Cây Quà tự động nở hoa theo tổng xu tích lũy phiên live.' },
   { id: 'tree-2', title: 'Cây Quà Tích Lũy 3D', category: 'jar', src: '/tree/tree_pro.png', badge: 'Tree Effect', desc: 'Mô hình Cây Quà tự động nở hoa theo tổng xu tích lũy phiên live.' },
 ];

@@ -4,7 +4,7 @@
 import React, { useEffect, useRef, useMemo, useImperativeHandle, forwardRef } from 'react';
 import { GiftEvent, OverlaySettings } from '@/types';
 import { getJarImage } from '@/features/overlay/lib/jar-assets';
-import { getJarBottomY } from '@/features/overlay/lib/jar-geometry';
+import { getJarBottomY, getJarDecoration, getJarProfile, getJarWallBounds } from '@/features/overlay/lib/jar-geometry';
 import { useChromaKeyVideo } from '@/features/overlay/hooks/use-chroma-key-video';
 
 interface JarGift {
@@ -23,6 +23,8 @@ interface JarGift {
   targetY: number;
   isOutside?: boolean;
 }
+
+const JAR_FALL_LEAD = 300;
 
 export interface GiftJarOverlayRef {
   spawnGift: (giftData: GiftEvent) => void;
@@ -84,7 +86,7 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
           const neckLeft = 115;
           const neckRight = 205;
           const spawnX = neckLeft + Math.random() * (neckRight - neckLeft);
-          const spawnY = -20 - i * 30;
+          const spawnY = -JAR_FALL_LEAD + 20 - i * 30;
 
           jarGifts.push({
             id: `${giftData.uniqueId}-${giftData.giftName}-${Date.now()}-${i}-${Math.random()}`,
@@ -259,96 +261,11 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
         const screenW = overflowCanvasRef.current ? overflowCanvasRef.current.width : 1080;
         const screenH = overflowCanvasRef.current ? overflowCanvasRef.current.height : 1920;
 
-        const currentJarType = settings.jarType || 'standard';
-        const isProMax = currentJarType === 'promax';
+        const currentJarType = 'standard';
+        const jarProfile = getJarProfile(currentJarType);
 
-        const getWallLeft = (y: number) => {
-          if (isProMax) {
-            let wL = 88;
-            if (y < 90) wL = 108;
-            else { const t = Math.min(1, (y - 90) / 40); wL = 108 - t * (108 - 88); }
-            if (y >= 231) {
-              const dy = (y - 231) / 35;
-              if (dy < 1) wL = Math.max(wL, 160 - 80 * Math.sqrt(1 - dy * dy));
-            }
-            return wL;
-          }
-          if (currentJarType === 'pro') {
-            let wL: number;
-            if (y < 100) {
-              wL = 74;
-            } else if (y < 130) {
-              const t = Math.min(1, (y - 100) / 30);
-              wL = 74 - t * (74 - 47);
-            } else {
-              wL = 47;
-            }
-            if (y >= 305) {
-              const dy = (y - 305) / 63;
-              if (dy < 1) wL = Math.max(wL, 160 - 137 * Math.sqrt(1 - dy * dy));
-            }
-            return wL;
-          }
-          // Standard Jar (jar.png): follow the actual inner glass edge closely.
-          let wL: number;
-          if (y < 78) {
-            wL = 48;
-          } else if (y < 112) {
-            const t = Math.min(1, (y - 78) / 34);
-            wL = 48 - t * (48 - 42);
-          } else {
-            wL = 42;
-          }
-          if (y >= 300) {
-            const dy = (y - 300) / 42;
-            if (dy < 1) wL = Math.max(wL, 161 - 118 * Math.sqrt(1 - dy * dy));
-          }
-          return wL;
-        };
-
-        const getWallRight = (y: number) => {
-          if (isProMax) {
-            let wR = 240;
-            if (y < 90) wR = 218;
-            else { const t = Math.min(1, (y - 90) / 40); wR = 218 + t * (240 - 218); }
-            if (y >= 231) {
-              const dy = (y - 231) / 35;
-              if (dy < 1) wR = Math.min(wR, 160 + 80 * Math.sqrt(1 - dy * dy));
-            }
-            return wR;
-          }
-          if (currentJarType === 'pro') {
-            let wR: number;
-            if (y < 100) {
-              wR = 248;
-            } else if (y < 130) {
-              const t = Math.min(1, (y - 100) / 30);
-              wR = 248 + t * (256 - 248);
-            } else {
-              wR = 256;
-            }
-            if (y >= 305) {
-              const dy = (y - 305) / 63;
-              if (dy < 1) wR = Math.min(wR, 160 + 100 * Math.sqrt(1 - dy * dy));
-            }
-            return wR;
-          }
-          // Standard Jar (jar.png): follow the actual inner glass edge closely.
-          let wR: number;
-          if (y < 78) {
-            wR = 272;
-          } else if (y < 112) {
-            const t = Math.min(1, (y - 78) / 34);
-            wR = 272 + t * (278 - 272);
-          } else {
-            wR = 278;
-          }
-          if (y >= 300) {
-            const dy = (y - 300) / 42;
-            if (dy < 1) wR = Math.min(wR, 161 + 118 * Math.sqrt(1 - dy * dy));
-          }
-          return wR;
-        };
+        const getWallLeft = (y: number) => getJarWallBounds(y, currentJarType).left;
+        const getWallRight = (y: number) => getJarWallBounds(y, currentJarType).right;
 
         // === STEP 0: Support check for settled items ===
         const settledItems = gifts.filter(p => p.settled);
@@ -421,7 +338,7 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
           if (p.settled) return;
           
           // Disable horizontal boundaries above neck mouth rim (y < neckLevel) to let gifts spill sideways
-          const neckLevel = isProMax ? 90 : (currentJarType === 'pro' ? 100 : 78);
+          const neckLevel = jarProfile.wall.neckY;
           if (p.y >= neckLevel) {
             const wallL = getWallLeft(p.y) + DRAW_R;
             const wallR = getWallRight(p.y) - DRAW_R;
@@ -523,7 +440,7 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
           if (p.settled) return;
 
           // Transition to screen-wide overflow if pushed beyond neck boundaries while above neck level
-          const neckLevel = isProMax ? 90 : (currentJarType === 'pro' ? 100 : 78);
+          const neckLevel = jarProfile.wall.neckY;
           if (p.y < neckLevel) {
             const wL = getWallLeft(p.y);
             const wR = getWallRight(p.y);
@@ -832,7 +749,7 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
         gifts.forEach(p => {
           ctx.save();
           ctx.globalAlpha = p.opacity;
-          ctx.translate(p.x, p.y);
+          ctx.translate(p.x, p.y + JAR_FALL_LEAD);
           ctx.rotate(p.rotation);
 
           ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
@@ -858,51 +775,13 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
     }, [settings.jarEnabled, settings.jarClearedAt, settings.jarFallSpeed, settings.jarGiftSize, settings.jarScale, settings.jarType, settings.jarX, settings.jarY]);
 
     const jarImages = useMemo(() => {
-      const jarType = settings.jarType || 'standard';
+      return getJarProfile('standard').assets;
+    }, []);
 
-      if (jarType === 'pro_1' || jarType === 'pro1') {
-        return {
-          back: '/jar/jar_pro_1.png',
-          front: '',
-          colorized: false,
-          scale: 0.90,
-        };
-      }
-
-      if (jarType === 'pro_2' || jarType === 'pro2') {
-        return {
-          back: '/jar/jar_pro_2.png',
-          front: '',
-          colorized: false,
-          scale: 0.90,
-        };
-      }
-
-      if (jarType === 'pro_3' || jarType === 'pro3' || jarType === 'pro') {
-        return {
-          back: '/jar/jar_pro_3.png',
-          front: '',
-          colorized: false,
-          scale: 0.90,
-        };
-      }
-
-      if (jarType === 'pro_4' || jarType === 'pro4' || jarType === 'promax') {
-        return {
-          back: '/jar/jar_pro_4.png',
-          front: '',
-          colorized: false,
-          scale: 0.90,
-        };
-      }
-
-      return {
-        back: '/jar/jar_back.png',
-        front: '/jar/jar_front.png',
-        colorized: true,
-        scale: 1.0,
-      };
-    }, [settings.jarType]);
+    const jarDecoration = useMemo(
+      () => settings.jarDecorationEnabled ? getJarDecoration(settings.jarDecoration) : null,
+      [settings.jarDecoration, settings.jarDecorationEnabled],
+    );
 
     if (!settings.jarEnabled) return null;
 
@@ -973,7 +852,13 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
           )}
 
           {/* Layer 2: Physics Canvas in the middle (where gifts are drawn) */}
-          <canvas ref={jarCanvasRef} width={320} height={380} className="absolute inset-0 z-2 bg-transparent" />
+          <canvas
+            ref={jarCanvasRef}
+            width={320}
+            height={380 + JAR_FALL_LEAD}
+            className="absolute left-0 z-2 bg-transparent pointer-events-none"
+            style={{ top: `-${JAR_FALL_LEAD}px` }}
+          />
 
           {/* Layer 3: Jar Foreground (Front bottom glass thickness & glass highlights overlay) */}
           {jarImages.front ? (
@@ -1010,6 +895,19 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
               alt=""
               className="absolute inset-0 w-full h-full object-contain z-3 pointer-events-none mix-blend-screen opacity-35"
               style={jarImages.scale && jarImages.scale !== 1.0 ? { transform: `scale(${jarImages.scale})`, transformOrigin: 'center center' } : undefined}
+            />
+          )}
+
+          {/* Independent ornament artwork, separated from the glass jar body. */}
+          {jarDecoration && (
+            <img
+              src={jarDecoration.src}
+              alt=""
+              className="absolute inset-0 w-full h-full object-contain z-4 pointer-events-none"
+              style={{
+                transform: `translate(${jarDecoration.x}px, ${jarDecoration.y}px) scaleX(${jarDecoration.scaleX}) scaleY(${jarDecoration.scaleY})`,
+                transformOrigin: 'center center',
+              }}
             />
           )}
 

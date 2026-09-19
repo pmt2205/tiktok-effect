@@ -84,6 +84,12 @@ export class Settings extends Document {
   jarColor: string;
 
   @Prop({ required: true, default: false })
+  jarDecorationEnabled: boolean;
+
+  @Prop({ required: true, default: 'pro_1' })
+  jarDecoration: string;
+
+  @Prop({ required: true, default: false })
   jarNameEnabled: boolean;
 
   @Prop({ required: true, default: '' })
