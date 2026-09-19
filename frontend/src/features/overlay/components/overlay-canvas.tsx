@@ -58,26 +58,27 @@ export default function OverlayCanvas() {
 
   const handleGift = useCallback((giftData: GiftEvent) => {
     const settings = settingsRef.current;
-    // 1. Add to Gift Jar if enabled (always drop gifts to jar if enabled, independent of mode/video toggles)
-    if (settings.jarEnabled) {
-      jarRef.current?.spawnGift(giftData);
-    }
-
-    // 2. Add to Gift Tree if enabled (always drop gifts to tree if enabled)
-    if (settings.treeEnabled) {
-      treeRef.current?.spawnGift(giftData);
-    }
-
     const isVideoEnabled = settings.videoEnabled !== false;
     const isSoundEnabled = settings.soundEnabled !== false;
 
     const { nickname, uniqueId, giftName, repeatCount, giftPictureUrl, profilePictureUrl, diamondCount } = giftData;
     const bannerKey = `${uniqueId}_${giftName}`;
     const mappings = mappingsRef.current;
+    const currentBanner = bannersRef.current.get(bannerKey);
+    const particleCount = !giftData.isSimulated && currentBanner
+      ? Math.max(0, repeatCount - currentBanner.combo)
+      : Math.max(1, repeatCount);
+
+    // TikTok emits cumulative streak counts. Spawn only the newly added quantity.
+    if (particleCount > 0) {
+      const particleGift = { ...giftData, repeatCount: particleCount };
+      if (settings.jarEnabled) jarRef.current?.spawnGift(particleGift);
+      if (settings.treeEnabled) treeRef.current?.spawnGift(particleGift);
+    }
 
     // Check if this is a duplicate repeat count for an ongoing streak (only for real, non-simulated events)
-    if (!giftData.isSimulated && bannersRef.current.has(bannerKey)) {
-      const info = bannersRef.current.get(bannerKey)!;
+    if (!giftData.isSimulated && currentBanner) {
+      const info = currentBanner;
       if (repeatCount === info.combo && !info.lastRepeatEnd) {
         // Just refresh the duration timer for the existing banner so it doesn't expire early
         clearTimeout(info.timer);

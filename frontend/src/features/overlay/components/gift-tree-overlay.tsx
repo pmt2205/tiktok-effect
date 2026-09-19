@@ -365,11 +365,6 @@ export const GiftTreeOverlay = forwardRef<GiftTreeOverlayRef, GiftTreeOverlayPro
           const drawR = BASE_GIFT_R;
           if (img && img.complete && img.naturalWidth > 0) {
             tCtx.drawImage(img, -drawR, -drawR, drawR * 2, drawR * 2);
-          } else {
-            tCtx.beginPath();
-            tCtx.arc(0, 0, drawR, 0, Math.PI * 2);
-            tCtx.fillStyle = '#ff0050';
-            tCtx.fill();
           }
 
           tCtx.restore();
@@ -437,11 +432,6 @@ export const GiftTreeOverlay = forwardRef<GiftTreeOverlayRef, GiftTreeOverlayPro
           const drawR = g.radius;
           if (img && img.complete && img.naturalWidth > 0) {
             fCtx.drawImage(img, -drawR, -drawR, drawR * 2, drawR * 2);
-          } else {
-            fCtx.beginPath();
-            fCtx.arc(0, 0, drawR, 0, Math.PI * 2);
-            fCtx.fillStyle = '#ff0050';
-            fCtx.fill();
           }
 
           fCtx.restore();

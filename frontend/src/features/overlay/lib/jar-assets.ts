@@ -6,6 +6,7 @@ export function getJarImage(url: string) {
   if (cached) return cached;
   const image = new Image();
   image.decoding = 'async';
+  image.referrerPolicy = 'no-referrer';
   image.src = url;
   imageCache.set(url, image);
   return image;

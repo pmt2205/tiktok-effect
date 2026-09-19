@@ -289,19 +289,19 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
             }
             return wL;
           }
-          // Standard Jar (Symmetric jar.png)
+          // Standard Jar (jar.png): follow the actual inner glass edge closely.
           let wL: number;
-          if (y < 90) {
-            wL = 71;
-          } else if (y < 120) {
-            const t = Math.min(1, (y - 90) / 30);
-            wL = 71 - t * (71 - 65);
+          if (y < 78) {
+            wL = 48;
+          } else if (y < 112) {
+            const t = Math.min(1, (y - 78) / 34);
+            wL = 48 - t * (48 - 42);
           } else {
-            wL = 65;
+            wL = 42;
           }
-          if (y >= 286) {
-            const dy = (y - 286) / 46;
-            if (dy < 1) wL = Math.max(wL, 161 - 90 * Math.sqrt(1 - dy * dy));
+          if (y >= 300) {
+            const dy = (y - 300) / 42;
+            if (dy < 1) wL = Math.max(wL, 161 - 118 * Math.sqrt(1 - dy * dy));
           }
           return wL;
         };
@@ -333,19 +333,19 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
             }
             return wR;
           }
-          // Standard Jar (Symmetric jar.png)
+          // Standard Jar (jar.png): follow the actual inner glass edge closely.
           let wR: number;
-          if (y < 90) {
-            wR = 251;
-          } else if (y < 120) {
-            const t = Math.min(1, (y - 90) / 30);
-            wR = 251 + t * (257 - 251);
+          if (y < 78) {
+            wR = 272;
+          } else if (y < 112) {
+            const t = Math.min(1, (y - 78) / 34);
+            wR = 272 + t * (278 - 272);
           } else {
-            wR = 257;
+            wR = 278;
           }
-          if (y >= 286) {
-            const dy = (y - 286) / 46;
-            if (dy < 1) wR = Math.min(wR, 161 + 90 * Math.sqrt(1 - dy * dy));
+          if (y >= 300) {
+            const dy = (y - 300) / 42;
+            if (dy < 1) wR = Math.min(wR, 161 + 118 * Math.sqrt(1 - dy * dy));
           }
           return wR;
         };
@@ -421,7 +421,7 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
           if (p.settled) return;
           
           // Disable horizontal boundaries above neck mouth rim (y < neckLevel) to let gifts spill sideways
-          const neckLevel = isProMax ? 90 : (currentJarType === 'pro' ? 100 : 90);
+          const neckLevel = isProMax ? 90 : (currentJarType === 'pro' ? 100 : 78);
           if (p.y >= neckLevel) {
             const wallL = getWallLeft(p.y) + DRAW_R;
             const wallR = getWallRight(p.y) - DRAW_R;
@@ -523,7 +523,7 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
           if (p.settled) return;
 
           // Transition to screen-wide overflow if pushed beyond neck boundaries while above neck level
-          const neckLevel = isProMax ? 90 : (currentJarType === 'pro' ? 100 : 90);
+          const neckLevel = isProMax ? 90 : (currentJarType === 'pro' ? 100 : 78);
           if (p.y < neckLevel) {
             const wL = getWallLeft(p.y);
             const wR = getWallRight(p.y);
@@ -820,11 +820,6 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
 
             if (img && img.complete && img.naturalWidth > 0) {
               sCtx.drawImage(img, -p.radius, -p.radius, p.radius * 2, p.radius * 2);
-            } else {
-              sCtx.beginPath();
-              sCtx.arc(0, 0, p.radius, 0, Math.PI * 2);
-              sCtx.fillStyle = '#ff0050';
-              sCtx.fill();
             }
 
             sCtx.restore();
@@ -847,11 +842,6 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
 
           if (img && img.complete && img.naturalWidth > 0) {
             ctx.drawImage(img, -DRAW_R, -DRAW_R, DRAW_R * 2, DRAW_R * 2);
-          } else {
-            ctx.beginPath();
-            ctx.arc(0, 0, DRAW_R, 0, Math.PI * 2);
-            ctx.fillStyle = '#ff0050';
-            ctx.fill();
           }
 
           ctx.restore();

@@ -93,6 +93,7 @@ export default function LikeLeaderboardOverlay({ settings, items }: LikeLeaderbo
                 <img
                   src={top2.profilePictureUrl || `https://i.pravatar.cc/100?u=${top2.uniqueId}`}
                   alt={top2.nickname}
+                  referrerPolicy="no-referrer"
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = 'https://i.pravatar.cc/100';
@@ -130,6 +131,7 @@ export default function LikeLeaderboardOverlay({ settings, items }: LikeLeaderbo
                 <img
                   src={top1.profilePictureUrl || `https://i.pravatar.cc/100?u=${top1.uniqueId}`}
                   alt={top1.nickname}
+                  referrerPolicy="no-referrer"
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = 'https://i.pravatar.cc/100';
@@ -163,6 +165,7 @@ export default function LikeLeaderboardOverlay({ settings, items }: LikeLeaderbo
                 <img
                   src={top3.profilePictureUrl || `https://i.pravatar.cc/100?u=${top3.uniqueId}`}
                   alt={top3.nickname}
+                  referrerPolicy="no-referrer"
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = 'https://i.pravatar.cc/100';

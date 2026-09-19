@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { TikTokLiveConnection } from 'tiktok-live-connector';
 import { TiktokStatus, ChatEvent, GiftEvent, TopGifterJoinEvent, LikeEvent, LikeLeaderboardItem } from '../../common/interfaces/events.interface';
+import * as vnGiftsData from '../gifts/data/vn_gifts.json';
 
 const TIKTOK_GIFT_IDS: Record<number, string> = {
   5655: 'Rose',
@@ -20,6 +21,34 @@ const TIKTOK_GIFT_IDS: Record<number, string> = {
   5825: 'Lion',
   6101: 'TikTok Universe',
 };
+
+function getFirstImageUrl(...sources: any[]): string {
+  for (const source of sources) {
+    if (typeof source === 'string' && source) return source;
+    if (Array.isArray(source)) {
+      const url = source.find((item): item is string => typeof item === 'string' && item.length > 0);
+      if (url) return url;
+    }
+    if (source && typeof source === 'object') {
+      const url = getFirstImageUrl(
+        source.urlList,
+        source.url_list,
+        source.url,
+        source.imageUrl,
+      );
+      if (url) return url;
+    }
+  }
+  return '';
+}
+
+const VN_GIFTS = (Array.isArray(vnGiftsData) ? vnGiftsData : (vnGiftsData as any).default || []) as Array<{
+  giftId: number;
+  name: string;
+  coins: number;
+  icon: string;
+}>;
+const VN_GIFTS_BY_ID = new Map(VN_GIFTS.map((gift) => [Number(gift.giftId), gift]));
 
 interface UserConnectionState {
   connection: any;
@@ -203,7 +232,7 @@ export class TiktokService {
                 id: g.id || g.gift_id,
                 name: g.name,
                 diamondCount: g.diamond_count || g.cost || 0,
-                image: g.image?.url_list?.[0] || g.icon?.url_list?.[0] || '',
+                image: getFirstImageUrl(g.image, g.icon, g.giftImage),
               }));
               this.onGiftsList?.(appUsername, state.availableGifts);
             }
@@ -226,7 +255,7 @@ export class TiktokService {
           nickname: data.nickname || data.user?.nickname || data.uniqueId || 'Anonymous',
           uniqueId: data.uniqueId || data.user?.uniqueId || 'anonymous',
           comment: data.comment,
-          profilePictureUrl: data.profilePictureUrl || data.user?.avatarMedium?.url_list?.[0] || '',
+          profilePictureUrl: getFirstImageUrl(data.profilePictureUrl, data.user?.avatarMedium),
         };
         this.onChat?.(appUsername, chatData);
       });
@@ -234,9 +263,12 @@ export class TiktokService {
       // Gift handler
       state.connection.on('gift', (data: any) => {
         const giftId = data.giftId || data.gift?.gift_id;
+        const catalogGift = state.availableGifts.find((gift) => String(gift.id) === String(giftId));
+        const localGift = giftId ? VN_GIFTS_BY_ID.get(Number(giftId)) : undefined;
         const resolvedName = data.extendedGiftInfo?.name || 
                              data.giftName || 
                              data.gift?.gift_name || 
+                             localGift?.name ||
                              (giftId ? TIKTOK_GIFT_IDS[giftId] : null) || 
                              (giftId ? `Gift ${giftId}` : 'Rose');
         const giftData: GiftEvent = {
@@ -244,14 +276,24 @@ export class TiktokService {
           uniqueId: data.uniqueId || data.user?.uniqueId || 'anonymous',
           giftName: resolvedName,
           repeatCount: data.repeatCount || 1,
-          diamondCount: data.extendedGiftInfo?.diamond_count || data.diamondCount || 0,
-          giftPictureUrl: data.extendedGiftInfo?.image?.url_list?.[0] || data.extendedGiftInfo?.icon?.url_list?.[0] || data.giftPictureUrl || data.giftDetails?.giftImage?.url_list?.[0] || '',
-          profilePictureUrl: data.profilePictureUrl || data.user?.avatarMedium?.url_list?.[0] || '',
+          diamondCount: data.extendedGiftInfo?.diamond_count || data.diamondCount || localGift?.coins || 0,
+          giftPictureUrl: getFirstImageUrl(
+            data.extendedGiftInfo?.image,
+            data.extendedGiftInfo?.icon,
+            data.giftPictureUrl,
+            data.giftDetails?.giftImage,
+            catalogGift?.image,
+            localGift?.icon,
+          ),
+          profilePictureUrl: getFirstImageUrl(data.profilePictureUrl, data.user?.avatarMedium),
           isSimulated: false,
           repeatEnd: !!data.repeatEnd,
           giftType: data.gift?.gift_type || data.giftDetails?.giftType,
           giftId: giftId,
         };
+        if (!giftData.giftPictureUrl) {
+          this.logger.warn(`[${appUsername}] Gift ${giftData.giftName} (${giftId || 'unknown id'}) has no image URL`);
+        }
         // Track Top Gifters
         const diamonds = (data.extendedGiftInfo?.diamond_count || data.diamondCount || 1) * (data.repeatCount || 1);
         let appGifters = this.userTopGifters.get(appUsername);
@@ -281,7 +323,12 @@ export class TiktokService {
         const likeData: LikeEvent = {
           nickname: data.nickname || data.user?.nickname || data.uniqueId || 'Anonymous',
           uniqueId: data.uniqueId || data.user?.uniqueId || 'anonymous',
-          profilePictureUrl: data.profilePictureUrl || data.user?.avatarMedium?.url_list?.[0] || '',
+          profilePictureUrl: getFirstImageUrl(
+            data.profilePictureUrl,
+            data.user?.avatarMedium,
+            data.user?.avatarLarge,
+            data.user?.avatarThumb,
+          ),
           likeCount: data.likeCount || 1,
           totalLikeCount: data.totalLikeCount || 0,
           isSimulated: false,
@@ -294,7 +341,12 @@ export class TiktokService {
         const uniqueId = data.uniqueId || data.user?.uniqueId;
         if (!uniqueId) return;
         const nickname = data.nickname || data.user?.nickname || uniqueId;
-        const profilePictureUrl = data.profilePictureUrl || data.user?.avatarMedium?.url_list?.[0] || '';
+        const profilePictureUrl = getFirstImageUrl(
+          data.profilePictureUrl,
+          data.user?.avatarMedium,
+          data.user?.avatarLarge,
+          data.user?.avatarThumb,
+        );
 
         const appGifters = this.userTopGifters.get(appUsername);
         if (!appGifters) return;
