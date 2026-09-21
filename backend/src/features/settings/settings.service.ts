@@ -175,7 +175,7 @@ export class SettingsService implements OnModuleInit {
         jarClearedAt: settingsDoc.jarClearedAt !== undefined ? settingsDoc.jarClearedAt : this.defaultSettings.jarClearedAt,
         jarGiftSize: (settingsDoc as any).jarGiftSize !== undefined ? (settingsDoc as any).jarGiftSize : this.defaultSettings.jarGiftSize,
         jarFallSpeed: (settingsDoc as any).jarFallSpeed !== undefined ? (settingsDoc as any).jarFallSpeed : this.defaultSettings.jarFallSpeed,
-        jarType: 'standard',
+        jarType: subscriptionTier === 'promax' && (settingsDoc as any).jarType === 'custom_1' ? 'custom_1' : 'standard',
         jarColor: (settingsDoc as any).jarColor || this.defaultSettings.jarColor,
         jarDecorationEnabled: subscriptionTier === 'promax' && Boolean((settingsDoc as any).jarDecorationEnabled),
         jarDecoration: subscriptionTier === 'promax' ? ((settingsDoc as any).jarDecoration || this.defaultSettings.jarDecoration) : this.defaultSettings.jarDecoration,
@@ -265,8 +265,9 @@ export class SettingsService implements OnModuleInit {
         '/jar/name_jar/cute.png',
         '/jar/name_jar/moon.png',
       ]);
-      const jarDecorations = new Set(['pro_1', 'pro_2', 'pro_3', 'pro_4']);
-      safeSettings.jarType = 'standard';
+      const jarDecorations = new Set(['pro_1', 'pro_2', 'pro_3', 'pro_4', 'custom_1']);
+      const jarTypes = new Set(['standard', 'custom_1']);
+      if (typeof safeSettings.jarType !== 'string' || !jarTypes.has(safeSettings.jarType) || tier !== 'promax') safeSettings.jarType = 'standard';
       if (typeof safeSettings.jarDecoration === 'string' && !jarDecorations.has(safeSettings.jarDecoration)) delete safeSettings.jarDecoration;
       if (tier !== 'promax') {
         delete safeSettings.jarDecorationEnabled;
@@ -368,7 +369,7 @@ export class SettingsService implements OnModuleInit {
         jarClearedAt: updated.jarClearedAt,
         jarGiftSize: (updated as any).jarGiftSize !== undefined ? (updated as any).jarGiftSize : this.defaultSettings.jarGiftSize,
         jarFallSpeed: (updated as any).jarFallSpeed !== undefined ? (updated as any).jarFallSpeed : this.defaultSettings.jarFallSpeed,
-        jarType: 'standard',
+        jarType: tier === 'promax' && (updated as any).jarType === 'custom_1' ? 'custom_1' : 'standard',
         jarColor: (updated as any).jarColor || this.defaultSettings.jarColor,
         jarDecorationEnabled: tier === 'promax' && Boolean((updated as any).jarDecorationEnabled),
         jarDecoration: tier === 'promax' ? ((updated as any).jarDecoration || this.defaultSettings.jarDecoration) : this.defaultSettings.jarDecoration,

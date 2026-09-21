@@ -30,7 +30,14 @@ export class UsersService {
     return this.userModel.findByIdAndDelete(id).exec();
   }
 
-  async updatePermissions(id: string, permissions: { allowConnect?: boolean; allowNpc?: boolean; allowedNpcCategories?: string[]; subscriptionTier?: 'free' | 'pro' | 'promax' }): Promise<User | null> {
+  async updatePermissions(id: string, permissions: {
+    allowConnect?: boolean;
+    allowNpc?: boolean;
+    allowedNpcCategories?: string[];
+    subscriptionTier?: 'free' | 'pro' | 'promax';
+    subscriptionStartedAt?: Date | null;
+    subscriptionExpiresAt?: Date | null;
+  }): Promise<User | null> {
     return this.userModel.findByIdAndUpdate(id, { $set: permissions }, { new: true }).select('-passwordHash').exec();
   }
 }

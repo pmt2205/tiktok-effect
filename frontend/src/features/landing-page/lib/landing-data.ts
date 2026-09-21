@@ -25,7 +25,7 @@ export const demoVideos: LandingVideo[] = [
 ];
 
 export const demoJars = [
-  { id: 'jar-decoration-1', title: 'Viền Nơ Hồng', category: 'jar', src: '/jar/decoration/jar_pro_1_decoration.png', badge: 'Decoration', desc: 'Viền nơ, trái tim và phụ kiện âm nhạc gắn độc lập lên hũ quà.' },
+  { id: 'jar-custom-1', title: 'Hũ Mèo Hồng Custom', category: 'jar', src: '/jar/jar_custom/jar_ct1/jar.png', badge: 'Custom Jar', desc: 'Hũ quà mèo hồng nhiều lớp với nơ, pha lê và phụ kiện dễ thương dành cho hiệu ứng quà rơi.' },
   { id: 'jar-decoration-2', title: 'Viền Mây Trái Tim', category: 'jar', src: '/jar/decoration/jar_pro_2_decoration.png', badge: 'Decoration', desc: 'Mây, sao và trái tim trong suốt bao quanh hũ quà.' },
   { id: 'jar-decoration-3', title: 'Viền Pha Lê Sao', category: 'jar', src: '/jar/decoration/jar_pro_3_decoration.png', badge: 'Decoration', desc: 'Dây pha lê và ngôi sao lấp lánh phủ quanh hũ thường.' },
   { id: 'jar-decoration-4', title: 'Viền Thỏ Pha Lê', category: 'jar', src: '/jar/decoration/jar_pro_4_decoration.png', badge: 'Decoration', desc: 'Viền thỏ, ngọc trai và trái tim dành cho hũ quà.' },

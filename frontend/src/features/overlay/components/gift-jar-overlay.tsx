@@ -38,6 +38,7 @@ interface GiftJarOverlayProps {
 export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>(
   ({ settings }, ref) => {
     const jarCanvasRef = useRef<HTMLCanvasElement | null>(null);
+    const jarMaskedCanvasRef = useRef<HTMLCanvasElement | null>(null);
     const jarContainerRef = useRef<HTMLDivElement | null>(null);
     const overflowCanvasRef = useRef<HTMLCanvasElement | null>(null);
     const danceCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -80,11 +81,13 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
         const jarGifts = jarGiftsRef.current;
         const icon = giftData.giftPictureUrl || 'https://sf16-website-nos.sofproxy.com/obj/tiktok-web-tx/tiktok/web/gift/rose.png';
         const spawnCount = Math.min(10, giftData.repeatCount || 1);
+        const profile = getJarProfile(settings.jarType);
+        const spawnInset = 18;
+        const neckLeft = profile.wall.neckLeft + spawnInset;
+        const neckRight = profile.wall.neckRight - spawnInset;
 
         for (let i = 0; i < spawnCount; i++) {
-          // Spawn across the neck width
-          const neckLeft = 115;
-          const neckRight = 205;
+          // Spawn through the selected jar's opening instead of a fixed standard-jar range.
           const spawnX = neckLeft + Math.random() * (neckRight - neckLeft);
           const spawnY = -JAR_FALL_LEAD + 20 - i * 30;
 
@@ -261,7 +264,7 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
         const screenW = overflowCanvasRef.current ? overflowCanvasRef.current.width : 1080;
         const screenH = overflowCanvasRef.current ? overflowCanvasRef.current.height : 1920;
 
-        const currentJarType = 'standard';
+        const currentJarType = settings.jarType || 'standard';
         const jarProfile = getJarProfile(currentJarType);
 
         const getWallLeft = (y: number) => getJarWallBounds(y, currentJarType).left;
@@ -746,23 +749,50 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
         // === DRAW JAR GIFTS ===
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        gifts.forEach(p => {
-          ctx.save();
-          ctx.globalAlpha = p.opacity;
-          ctx.translate(p.x, p.y + JAR_FALL_LEAD);
-          ctx.rotate(p.rotation);
+        const middleMaskUrl = jarProfile.assets.middleMask;
+        let maskedCanvas: HTMLCanvasElement | null = null;
+        let maskedCtx: CanvasRenderingContext2D | null = null;
+        if (middleMaskUrl) {
+          if (!jarMaskedCanvasRef.current) jarMaskedCanvasRef.current = document.createElement('canvas');
+          maskedCanvas = jarMaskedCanvasRef.current;
+          if (maskedCanvas.width !== canvas.width) maskedCanvas.width = canvas.width;
+          if (maskedCanvas.height !== canvas.height) maskedCanvas.height = canvas.height;
+          maskedCtx = maskedCanvas.getContext('2d');
+          maskedCtx?.clearRect(0, 0, maskedCanvas.width, maskedCanvas.height);
+        }
 
-          ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-          ctx.shadowBlur = 4;
+        gifts.forEach(p => {
+          const drawCtx = maskedCtx && p.y >= jarProfile.wall.neckY ? maskedCtx : ctx;
+          drawCtx.save();
+          drawCtx.globalAlpha = p.opacity;
+          drawCtx.translate(p.x, p.y + JAR_FALL_LEAD);
+          drawCtx.rotate(p.rotation);
+
+          drawCtx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+          drawCtx.shadowBlur = 4;
 
           const img = getJarImage(p.iconUrl);
 
           if (img && img.complete && img.naturalWidth > 0) {
-            ctx.drawImage(img, -DRAW_R, -DRAW_R, DRAW_R * 2, DRAW_R * 2);
+            drawCtx.drawImage(img, -DRAW_R, -DRAW_R, DRAW_R * 2, DRAW_R * 2);
           }
 
-          ctx.restore();
+          drawCtx.restore();
         });
+
+        if (maskedCanvas && maskedCtx && middleMaskUrl) {
+          const maskImage = getJarImage(middleMaskUrl);
+          if (maskImage && maskImage.complete && maskImage.naturalWidth > 0) {
+            const maskHeight = 380;
+            const maskWidth = maskHeight * (maskImage.naturalWidth / maskImage.naturalHeight);
+            const maskX = (320 - maskWidth) / 2;
+            maskedCtx.save();
+            maskedCtx.globalCompositeOperation = 'destination-in';
+            maskedCtx.drawImage(maskImage, maskX, JAR_FALL_LEAD, maskWidth, maskHeight);
+            maskedCtx.restore();
+            ctx.drawImage(maskedCanvas, 0, 0);
+          }
+        }
 
         animationFrameId = requestAnimationFrame(updatePhysics);
       };
@@ -775,8 +805,8 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
     }, [settings.jarEnabled, settings.jarClearedAt, settings.jarFallSpeed, settings.jarGiftSize, settings.jarScale, settings.jarType, settings.jarX, settings.jarY]);
 
     const jarImages = useMemo(() => {
-      return getJarProfile('standard').assets;
-    }, []);
+      return getJarProfile(settings.jarType).assets;
+    }, [settings.jarType]);
 
     const jarDecoration = useMemo(
       () => settings.jarDecorationEnabled ? getJarDecoration(settings.jarDecoration) : null,

@@ -5,6 +5,8 @@ interface User {
   role: 'admin' | 'user';
   allowConnect?: boolean;
   subscriptionTier?: 'free' | 'pro' | 'promax';
+  subscriptionStartedAt?: string | null;
+  subscriptionExpiresAt?: string | null;
 }
 
 interface AuthState {

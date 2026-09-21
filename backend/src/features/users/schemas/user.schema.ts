@@ -15,6 +15,12 @@ export class User extends Document {
   @Prop({ required: true, enum: ['free', 'pro', 'promax'], default: 'free', index: true })
   subscriptionTier: 'free' | 'pro' | 'promax';
 
+  @Prop({ type: Date, required: false, default: null })
+  subscriptionStartedAt?: Date | null;
+
+  @Prop({ type: Date, required: false, default: null, index: true })
+  subscriptionExpiresAt?: Date | null;
+
   @Prop({ required: false, default: false })
   allowConnect: boolean;
 

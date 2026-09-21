@@ -14,4 +14,5 @@ export const JAR_DECORATION_OPTIONS = [
   { id: 'pro_2', nameVi: 'Mây Trái Tim', nameEn: 'Cloud Hearts', preview: '/jar/decoration/jar_pro_2_decoration.png' },
   { id: 'pro_3', nameVi: 'Pha Lê Sao', nameEn: 'Crystal Stars', preview: '/jar/decoration/jar_pro_3_decoration.png' },
   { id: 'pro_4', nameVi: 'Thỏ Pha Lê', nameEn: 'Crystal Bunny', preview: '/jar/decoration/jar_pro_4_decoration.png' },
+  { id: 'custom_1', nameVi: 'Hũ Mèo Hồng', nameEn: 'Pink Cat Jar', preview: '/jar/jar_custom/jar_ct1/jar_decoration.png' },
 ] as const;

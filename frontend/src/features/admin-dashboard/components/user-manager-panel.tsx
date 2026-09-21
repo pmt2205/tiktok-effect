@@ -15,7 +15,20 @@ interface UserRecord {
   allowNpc?: boolean;
   allowedNpcCategories?: string[];
   subscriptionTier?: 'free' | 'pro' | 'promax';
+  subscriptionStartedAt?: string | null;
+  subscriptionExpiresAt?: string | null;
   createdAt?: string;
+}
+
+function toDateInputValue(value?: string | null) {
+  return value ? value.slice(0, 10) : '';
+}
+
+function getDefaultSubscriptionDates() {
+  const start = new Date();
+  const end = new Date(start);
+  end.setDate(end.getDate() + 30);
+  return { subscriptionStartedAt: start.toISOString(), subscriptionExpiresAt: end.toISOString() };
 }
 
 export default function UserManagerPanel() {
@@ -164,17 +177,29 @@ export default function UserManagerPanel() {
     }
   };
 
-  const handleUpdateTier = async (id: string, subscriptionTier: 'free' | 'pro' | 'promax') => {
+  const handleUpdateSubscription = async (id: string, updates: Pick<UserRecord, 'subscriptionTier' | 'subscriptionStartedAt' | 'subscriptionExpiresAt'>) => {
     const token = localStorage.getItem('auth_token');
     try {
-      const res = await fetch(`${BACKEND_URL}/api/users/${id}/permissions`, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ subscriptionTier }) });
+      const res = await fetch(`${BACKEND_URL}/api/users/${id}/permissions`, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(updates) });
       if (!res.ok) throw new Error(`Update failed (${res.status})`);
-      setUsers((current) => current.map((user) => user._id === id ? { ...user, subscriptionTier } : user));
+      const updatedUser = await res.json();
+      setUsers((current) => current.map((user) => user._id === id ? { ...user, ...updatedUser } : user));
       toast.success(language === 'vi' ? 'Đã cập nhật gói người dùng.' : 'User plan updated.');
     } catch (error) {
       console.error('Failed to update subscription tier:', error);
       toast.error(language === 'vi' ? 'Không thể cập nhật gói.' : 'Could not update plan.');
     }
+  };
+
+  const handleUpdateTier = (user: UserRecord, subscriptionTier: 'free' | 'pro' | 'promax') => {
+    const dates = subscriptionTier === 'free'
+      ? { subscriptionStartedAt: null, subscriptionExpiresAt: null }
+      : getDefaultSubscriptionDates();
+    void handleUpdateSubscription(user._id, { subscriptionTier, ...dates });
+  };
+
+  const handleUpdateSubscriptionDate = (user: UserRecord, field: 'subscriptionStartedAt' | 'subscriptionExpiresAt', value: string) => {
+    void handleUpdateSubscription(user._id, { [field]: value ? new Date(`${value}T00:00:00`).toISOString() : null });
   };
 
   const handleDelete = async (user: UserRecord) => {
@@ -263,8 +288,20 @@ export default function UserManagerPanel() {
                         {u.role === 'admin' ? t.adminRole : t.userRole}
                       </span>
                     </td>
-                    <td className="py-4.5 px-5">
-                      {u.role === 'admin' ? <span className="text-xs font-bold text-primary">PRO MAX</span> : <select value={u.subscriptionTier || 'free'} onChange={(event) => handleUpdateTier(u._id, event.target.value as 'free' | 'pro' | 'promax')} className="rounded-md border border-border-color bg-bg-input px-2.5 py-2 text-xs font-bold text-text-main outline-none transition-all duration-200 focus:border-secondary focus:ring-3 focus:ring-secondary-glow/25"><option value="free">Thường · Free</option><option value="pro">Pro · 99K lần đầu · 49K gia hạn</option><option value="promax">Pro Max · 299K lần đầu · 149K gia hạn</option></select>}
+                    <td className="min-w-[260px] py-4.5 px-5">
+                      {u.role === 'admin' ? <span className="text-xs font-bold text-primary">PRO MAX</span> : <div className="flex flex-col gap-2.5">
+                        <select value={u.subscriptionTier || 'free'} onChange={(event) => handleUpdateTier(u, event.target.value as 'free' | 'pro' | 'promax')} className="rounded-md border border-border-color bg-bg-input px-2.5 py-2 text-xs font-bold text-text-main outline-none transition-all duration-200 focus:border-secondary focus:ring-3 focus:ring-secondary-glow/25"><option value="free">Thường · Free</option><option value="pro">Pro · 99K lần đầu · 49K gia hạn</option><option value="promax">Pro Max · 299K lần đầu · 149K gia hạn</option></select>
+                        {u.subscriptionTier !== 'free' && <div className="grid grid-cols-2 gap-2">
+                          <label className="flex flex-col gap-1 text-[0.65rem] font-semibold text-text-muted">
+                            {language === 'vi' ? 'Bắt đầu' : 'Starts'}
+                            <input type="date" value={toDateInputValue(u.subscriptionStartedAt)} onChange={(event) => handleUpdateSubscriptionDate(u, 'subscriptionStartedAt', event.target.value)} className="min-w-0 rounded-md border border-border-color bg-bg-input px-2 py-1.5 text-[0.7rem] text-text-main outline-none transition-all duration-200 focus:border-secondary focus:ring-3 focus:ring-secondary-glow/25" />
+                          </label>
+                          <label className="flex flex-col gap-1 text-[0.65rem] font-semibold text-text-muted">
+                            {language === 'vi' ? 'Hết hạn' : 'Expires'}
+                            <input type="date" min={toDateInputValue(u.subscriptionStartedAt)} value={toDateInputValue(u.subscriptionExpiresAt)} onChange={(event) => handleUpdateSubscriptionDate(u, 'subscriptionExpiresAt', event.target.value)} className="min-w-0 rounded-md border border-border-color bg-bg-input px-2 py-1.5 text-[0.7rem] text-text-main outline-none transition-all duration-200 focus:border-secondary focus:ring-3 focus:ring-secondary-glow/25" />
+                          </label>
+                        </div>}
+                      </div>}
                     </td>
                     <td className="py-4.5 px-5">
                       {u.role !== 'admin' ? (

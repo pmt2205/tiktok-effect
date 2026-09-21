@@ -1,7 +1,15 @@
+'use client';
+
+import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { plans } from '../lib/landing-data';
 
+const ContactSubscriptionModal = dynamic(() => import('./contact-subscription-modal'));
+
 export default function PricingSection() {
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+
   return (
     <>
       {/* Pricing Section */}
@@ -52,21 +60,28 @@ export default function PricingSection() {
                   ))}
                 </ul>
 
-                <Link
+                {plan.price === 'Miễn phí' ? <Link
                   href="/login"
-                  className={`mt-8 block rounded-xl py-3 text-center text-xs font-extrabold transition-all duration-300 ${
+                  className="mt-8 block rounded-xl border border-border-color bg-white/5 py-3 text-center text-xs font-extrabold text-white transition-all duration-300 hover:border-secondary focus:border-secondary focus:outline-none focus:ring-3 focus:ring-secondary-glow"
+                >
+                  Dùng thử miễn phí
+                </Link> : <button
+                  type="button"
+                  onClick={() => setSelectedPlan(plan.name)}
+                  className={`mt-8 block w-full cursor-pointer rounded-xl py-3 text-center text-xs font-extrabold transition-all duration-300 focus:outline-none focus:ring-3 focus:ring-secondary-glow ${
                     plan.popular
                       ? 'keep-white bg-gradient-to-r from-primary to-secondary text-white shadow-[0_4px_16px_var(--color-primary-glow)] hover:-translate-y-0.5'
                       : 'border border-border-color bg-white/5 text-white hover:border-secondary'
                   }`}
                 >
-                  {plan.price === 'Miễn phí' ? 'Dùng thử miễn phí' : `Đăng ký ${plan.name}`}
-                </Link>
+                  Đăng ký {plan.name}
+                </button>}
               </article>
             ))}
           </div>
         </div>
       </section>
+      {selectedPlan && <ContactSubscriptionModal planName={selectedPlan} onClose={() => setSelectedPlan(null)} />}
     </>
   );
 }

@@ -301,7 +301,7 @@ export default function GiftJarDesignerPanel({
               </div>
 
               {fullOptions && settings.jarDecorationEnabled && (
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
                   {JAR_DECORATION_OPTIONS.map((option) => {
                     const isSelected = (settings.jarDecoration || JAR_DECORATION_OPTIONS[0].id) === option.id;
                     return (
@@ -309,7 +309,7 @@ export default function GiftJarDesignerPanel({
                         key={option.id}
                         type="button"
                         onClick={() => onSaveSettings({
-                          jarType: 'standard',
+                          jarType: option.id === 'custom_1' ? 'custom_1' : 'standard',
                           jarDecoration: option.id,
                           ...(option.id === 'pro_1' ? { jarColor: 'rgba(244, 155, 187, 0.85)' } : {}),
                         })}

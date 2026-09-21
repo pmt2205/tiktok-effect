@@ -40,6 +40,8 @@ export class AuthService {
       username: user.username,
       role: user.role,
       subscriptionTier: user.subscriptionTier || 'free',
+      subscriptionStartedAt: user.subscriptionStartedAt ?? null,
+      subscriptionExpiresAt: user.subscriptionExpiresAt ?? null,
     };
   }
 
@@ -72,6 +74,8 @@ export class AuthService {
         username: user.username,
         role: user.role,
         subscriptionTier: user.subscriptionTier || 'free',
+        subscriptionStartedAt: user.subscriptionStartedAt ?? null,
+        subscriptionExpiresAt: user.subscriptionExpiresAt ?? null,
         allowConnect: user.allowConnect ?? false,
         allowNpc: user.allowNpc ?? false,
       },
@@ -132,6 +136,8 @@ export class AuthService {
           username: user.username,
           role: user.role,
           subscriptionTier: user.subscriptionTier || 'free',
+          subscriptionStartedAt: user.subscriptionStartedAt ?? null,
+          subscriptionExpiresAt: user.subscriptionExpiresAt ?? null,
           allowConnect: user.allowConnect ?? false,
           allowNpc: user.allowNpc ?? false,
         },

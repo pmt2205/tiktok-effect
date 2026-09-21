@@ -1,6 +1,7 @@
 export interface JarLayerAssets {
   back: string;
   front: string;
+  middleMask?: string;
   colorized: boolean;
   scale: number;
 }
@@ -68,6 +69,32 @@ export const JAR_PROFILES: readonly JarProfile[] = [
     wall: STANDARD_WALL,
     floor: STANDARD_FLOOR,
   },
+  {
+    id: 'custom_1',
+    aliases: ['custom_1', 'jar_ct1'],
+    assets: {
+      back: '/jar/jar_custom/jar_ct1/jar_back.png',
+      front: '/jar/jar_custom/jar_ct1/jar_front.png',
+      middleMask: '/jar/jar_custom/jar_ct1/jar_middle_mask.png',
+      colorized: false,
+      scale: 1,
+    },
+    wall: {
+      neckY: 70,
+      transitionEndY: 112,
+      neckLeft: 54,
+      neckRight: 266,
+      bodyLeft: 30,
+      bodyRight: 290,
+    },
+    floor: {
+      centerX: 160,
+      centerY: 310,
+      radiusLeft: 126,
+      radiusRight: 126,
+      radiusY: 28,
+    },
+  },
 ];
 
 const JAR_DECORATIONS = {
@@ -75,6 +102,7 @@ const JAR_DECORATIONS = {
   pro_2: { src: '/jar/decoration/jar_pro_2_decoration.png', scaleX: 1, scaleY: 1, x: 0, y: 0 },
   pro_3: { src: '/jar/decoration/jar_pro_3_decoration.png', scaleX: 1, scaleY: 1, x: 0, y: 0 },
   pro_4: { src: '/jar/decoration/jar_pro_4_decoration.png', scaleX: 1, scaleY: 1, x: 0, y: 0 },
+  custom_1: { src: '/jar/jar_custom/jar_ct1/jar_decoration.png', scaleX: 1, scaleY: 1, x: 0, y: 0 },
 } as const;
 
 export function getJarDecoration(id?: string) {

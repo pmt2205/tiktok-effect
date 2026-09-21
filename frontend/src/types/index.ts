@@ -103,6 +103,8 @@ export interface OverlaySettings {
   liveMode?: string;
   singleGiftIds?: number[];
   subscriptionTier?: 'free' | 'pro' | 'promax';
+  subscriptionStartedAt?: string | null;
+  subscriptionExpiresAt?: string | null;
   activeNpcCategory?: string;
   allowNpc?: boolean;
   allowedNpcCategories?: string[];
