@@ -268,7 +268,7 @@ export class SettingsService implements OnModuleInit {
         '/jar/name_jar/moon.png',
         '/jar/name_jar/tien.png',
       ]);
-      const jarDanceVideos = new Set(['/dance/capy_dance.mp4', '/dance/chibi_tien.mp4']);
+      const jarDanceVideos = new Set(['/dance/capy_dance.mp4', '/dance/chibi_tien.mp4', '/dance/tien.png']);
       const jarDecorations = new Set(['pro_1', 'pro_2', 'pro_3', 'pro_4', 'custom_1', 'custom_tien']);
       const jarTypes = new Set(['standard', 'custom_1', 'custom_tien']);
       // Settings are patched field-by-field. Do not inject `standard` when the

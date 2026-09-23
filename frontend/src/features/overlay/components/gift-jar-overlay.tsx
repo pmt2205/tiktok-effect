@@ -153,6 +153,7 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
       if (!isEnabled) return;
 
       const videoSrc = settings.jarDanceVideo || '/dance/capy_dance.mp4';
+      if (/\.(?:png|jpe?g|webp|gif)$/i.test(videoSrc)) return;
       const video = document.createElement('video');
       video.src = videoSrc;
       video.loop = true;
@@ -836,6 +837,8 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
       () => settings.jarDecorationEnabled ? getJarDecoration(settings.jarDecoration) : null,
       [settings.jarDecoration, settings.jarDecorationEnabled],
     );
+    const danceMediaSrc = settings.jarDanceVideo || '/dance/capy_dance.mp4';
+    const danceIsImage = /\.(?:png|jpe?g|webp|gif)$/i.test(danceMediaSrc);
 
     if (!settings.jarEnabled) return null;
 
@@ -983,19 +986,35 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
 
           {/* Layer 5: Dance Mascot Decoration (positioned beside jar) */}
           {settings.jarDanceEnabled !== false && (
-            <canvas
-              ref={danceCanvasRef}
-              className="absolute pointer-events-none z-4 transition-all duration-300"
-              style={{
-                bottom: '10px',
-                ...(settings.jarDancePosition === 'right'
-                  ? { left: `${320 + ((settings.jarDanceOffsetX !== undefined ? settings.jarDanceOffsetX : 185) - 185)}px` }
-                  : { left: `-${settings.jarDanceOffsetX !== undefined ? settings.jarDanceOffsetX : 185}px` }),
-                width: `${Math.round(190 * (settings.jarDanceScale || 1.0))}px`,
-                height: 'auto',
-                filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.45))',
-              }}
-            />
+            danceIsImage ? (
+              <img
+                src={danceMediaSrc}
+                alt=""
+                className="absolute pointer-events-none z-4 h-auto object-contain transition-all duration-300"
+                style={{
+                  bottom: '10px',
+                  ...(settings.jarDancePosition === 'right'
+                    ? { left: `${320 + ((settings.jarDanceOffsetX !== undefined ? settings.jarDanceOffsetX : 185) - 185)}px` }
+                    : { left: `-${settings.jarDanceOffsetX !== undefined ? settings.jarDanceOffsetX : 185}px` }),
+                  width: `${Math.round(190 * (settings.jarDanceScale || 1.0))}px`,
+                  filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.45))',
+                }}
+              />
+            ) : (
+              <canvas
+                ref={danceCanvasRef}
+                className="absolute pointer-events-none z-4 transition-all duration-300"
+                style={{
+                  bottom: '10px',
+                  ...(settings.jarDancePosition === 'right'
+                    ? { left: `${320 + ((settings.jarDanceOffsetX !== undefined ? settings.jarDanceOffsetX : 185) - 185)}px` }
+                    : { left: `-${settings.jarDanceOffsetX !== undefined ? settings.jarDanceOffsetX : 185}px` }),
+                  width: `${Math.round(190 * (settings.jarDanceScale || 1.0))}px`,
+                  height: 'auto',
+                  filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.45))',
+                }}
+              />
+            )
           )}
         </div>
 

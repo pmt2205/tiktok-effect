@@ -6,8 +6,9 @@ export const JAR_NAME_OPTIONS = [
 ] as const;
 
 export const JAR_DANCE_OPTIONS = [
-  { id: 'capybara', label: 'Capybara Dance', src: '/dance/capy_dance.mp4' },
-  { id: 'chibi-tien', label: 'Chibi Tiên', src: '/dance/chibi_tien.mp4' },
+  { id: 'capybara', label: 'Capybara Dance', src: '/dance/capy_dance.mp4', type: 'video' },
+  { id: 'chibi-tien-video', label: 'Chibi Tiên Video', src: '/dance/chibi_tien.mp4', type: 'video' },
+  { id: 'chibi-tien-image', label: 'Chibi Tiên Ảnh', src: '/dance/tien.png', type: 'image' },
 ] as const;
 
 export const JAR_EFFECT_OPTIONS = [

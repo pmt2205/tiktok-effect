@@ -517,7 +517,11 @@ export default function GiftJarDesignerPanel({
                             onClick={() => onSaveSettings({ jarDanceVideo: option.src })}
                             className={`overflow-hidden rounded-xl border p-2 text-left transition-all duration-200 disabled:opacity-40 ${selected ? 'border-primary bg-primary/15 shadow-[0_0_10px_var(--color-primary-glow)]' : 'border-border-color bg-bg-surface hover:border-primary/40'}`}
                           >
-                            <video src={option.src} muted loop autoPlay playsInline className="h-20 w-full rounded-lg bg-bg-input object-contain" />
+                            {option.type === 'video' ? (
+                              <video src={option.src} muted loop autoPlay playsInline className="h-20 w-full rounded-lg bg-bg-input object-contain" />
+                            ) : (
+                              <img src={option.src} alt={option.label} className="h-20 w-full rounded-lg bg-bg-input object-contain" />
+                            )}
                             <span className="mt-1.5 block truncate text-center text-[0.68rem] font-bold text-white">{option.label}</span>
                           </button>
                         );
@@ -609,7 +613,7 @@ export default function GiftJarDesignerPanel({
                       </span>
                     </span>
                     <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded-md text-[0.62rem] font-mono shrink-0">
-                      Auto Chroma Key
+                      {(settings.jarDanceVideo || JAR_DANCE_OPTIONS[0].src).endsWith('.mp4') ? 'Auto Chroma Key' : 'PNG'}
                     </span>
                   </div>
                 </div>
