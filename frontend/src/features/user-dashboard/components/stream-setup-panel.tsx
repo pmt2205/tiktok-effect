@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Button from '@/components/ui/button';
+import LoadingIndicator from '@/components/ui/loading-indicator';
 import { useToast } from '@/hooks/use-toast';
 import { BACKEND_URL } from '@/lib/constants';
 import { useAppSelector } from '@/store/hooks';
@@ -14,6 +15,7 @@ export default function StreamSetupPanel({ socketConnected }: { socketConnected:
   const streamerUsername = selectedStreamer || user?.username || '';
   const [overlayToken, setOverlayToken] = useState('');
   const [overlayError, setOverlayError] = useState('');
+  const [isCreatingLink, setIsCreatingLink] = useState(false);
 
   const createOverlayLink = useCallback(async () => {
     const authToken = localStorage.getItem('auth_token');
@@ -22,6 +24,7 @@ export default function StreamSetupPanel({ socketConnected }: { socketConnected:
       return;
     }
     setOverlayError('');
+    setIsCreatingLink(true);
     try {
       const response = await fetch(`${BACKEND_URL}/api/auth/overlay-token?username=${encodeURIComponent(streamerUsername)}`, { headers: { Authorization: `Bearer ${authToken}` } });
       if (!response.ok) throw new Error('overlay-token');
@@ -29,6 +32,8 @@ export default function StreamSetupPanel({ socketConnected }: { socketConnected:
       setOverlayToken(data.accessToken);
     } catch {
       setOverlayError(language === 'vi' ? 'Không tạo được link overlay. Kiểm tra Backend, sau đó thử lại.' : 'Could not create the overlay link. Check Backend and try again.');
+    } finally {
+      setIsCreatingLink(false);
     }
   }, [language, streamerUsername]);
 
@@ -49,12 +54,12 @@ export default function StreamSetupPanel({ socketConnected }: { socketConnected:
     <section className="glass-card rounded-2xl p-5 md:p-6">
       <div className="mb-5 flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
         <div><h2 className="font-header text-lg font-bold text-white"><i className="fa-solid fa-tower-broadcast mr-2 text-secondary" />{language === 'vi' ? 'Thiết lập & Trạng thái' : 'Setup & Status'}</h2><p className="mt-1 text-sm text-text-muted">{language === 'vi' ? 'Kiểm tra kết nối trước khi bắt đầu livestream.' : 'Check every connection before going live.'}</p></div>
-        <Button type="button" variant="secondary" onClick={() => { void createOverlayLink(); }} className="text-xs"><i className="fa-solid fa-rotate" />{language === 'vi' ? 'Kiểm tra lại' : 'Refresh'}</Button>
+        <Button type="button" variant="secondary" disabled={isCreatingLink} onClick={() => { void createOverlayLink(); }} className="min-w-24 text-xs">{isCreatingLink ? <LoadingIndicator size="sm" /> : <><i className="fa-solid fa-rotate" />{language === 'vi' ? 'Kiểm tra lại' : 'Refresh'}</>}</Button>
       </div>
 
       <div className="mt-5 rounded-xl border border-border-color bg-bg-input p-4">
         <div className="mb-2 flex items-center justify-between gap-3"><span className="text-sm font-bold text-white">{language === 'vi' ? 'Link OBS Browser Source' : 'OBS Browser Source URL'}</span>{overlayUrl && <Button type="button" variant="secondary" onClick={copyOverlayLink} className="px-3 py-1.5 text-xs"><i className="fa-regular fa-copy" />{language === 'vi' ? 'Sao chép' : 'Copy'}</Button>}</div>
-        <code className="block overflow-x-auto rounded-lg border border-border-color bg-black/30 p-3 text-xs text-secondary">{overlayUrl || (language === 'vi' ? 'Đang tạo link bảo mật…' : 'Creating a secure link…')}</code>
+        <div className="min-h-11 overflow-x-auto rounded-lg border border-border-color bg-black/30 p-3 text-xs text-secondary">{isCreatingLink ? <span className="flex justify-center"><LoadingIndicator size="sm" /></span> : overlayUrl}</div>
         {overlayError && <p className="mt-2 text-xs text-danger"><i className="fa-solid fa-circle-exclamation mr-1" />{overlayError}</p>}
         <ol className="mt-4 space-y-1.5 pl-5 text-xs text-text-muted list-decimal"><li>{language === 'vi' ? 'Mở OBS → Sources → + → Browser.' : 'Open OBS → Sources → + → Browser.'}</li><li>{language === 'vi' ? 'Dán link ở trên, đặt kích thước 1080 × 1920.' : 'Paste the URL above and set it to 1080 × 1920.'}</li><li>{language === 'vi' ? 'Giữ nền trong suốt, sau đó bắt đầu kết nối TikTok.' : 'Keep the background transparent, then connect TikTok Live.'}</li></ol>
       </div>

@@ -2,6 +2,12 @@ export const JAR_NAME_OPTIONS = [
   { id: 'pink', label: 'Kenaly Pink', src: '/jar/name_jar/teddy.png' },
   { id: 'violet', label: 'Kenaly Violet', src: '/jar/name_jar/cute.png' },
   { id: 'moon', label: 'Kenaly Moon', src: '/jar/name_jar/moon.png' },
+  { id: 'tien', label: 'Tiên', src: '/jar/name_jar/tien.png' },
+] as const;
+
+export const JAR_DANCE_OPTIONS = [
+  { id: 'capybara', label: 'Capybara Dance', src: '/dance/capy_dance.mp4' },
+  { id: 'chibi-tien', label: 'Chibi Tiên', src: '/dance/chibi_tien.mp4' },
 ] as const;
 
 export const JAR_EFFECT_OPTIONS = [
@@ -15,4 +21,5 @@ export const JAR_DECORATION_OPTIONS = [
   { id: 'pro_3', nameVi: 'Pha Lê Sao', nameEn: 'Crystal Stars', preview: '/jar/decoration/jar_pro_3_decoration.png' },
   { id: 'pro_4', nameVi: 'Thỏ Pha Lê', nameEn: 'Crystal Bunny', preview: '/jar/decoration/jar_pro_4_decoration.png' },
   { id: 'custom_1', nameVi: 'Hũ Mèo Hồng', nameEn: 'Pink Cat Jar', preview: '/jar/jar_custom/jar_ct1/jar_decoration.png' },
+  { id: 'custom_tien', nameVi: 'Hũ Tiền Hồng', nameEn: 'Pink Money Jar', preview: '/jar/jar_custom/jar_tien/jar.png' },
 ] as const;

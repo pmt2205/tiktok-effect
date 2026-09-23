@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import GlassCard from '@/components/ui/glass-card';
 import Button from '@/components/ui/button';
 import Select from '@/components/ui/select';
+import LoadingIndicator from '@/components/ui/loading-indicator';
 import { Gift, NpcCategory } from '@/types';
 import { BACKEND_URL } from '@/lib/constants';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
@@ -606,10 +607,7 @@ export default function NpcManagerPanel() {
 
             {/* NPC Custom Gifts Directory */}
             {giftsLoading ? (
-              <div className="text-center py-20 text-[0.88rem] text-text-muted select-none">
-                <i className="fa-solid fa-spinner animate-spin text-[1.8rem] text-secondary mb-3 block" />
-                <span>Loading NPC custom gifts catalog...</span>
-              </div>
+              <div className="flex justify-center py-20"><LoadingIndicator size="lg" /></div>
             ) : (
               <div className="flex flex-col gap-3.5 max-h-[500px] overflow-y-auto pr-1.5 custom-scrollbar">
                 {npcGifts.length === 0 ? (
@@ -789,8 +787,7 @@ export default function NpcManagerPanel() {
                   {isAdmin && (
                     <div className="mt-1 select-none">
                       <label className="relative inline-flex items-center justify-center px-4 py-2.5 bg-secondary/15 hover:bg-secondary/25 border border-secondary/20 hover:border-secondary/35 rounded-xl text-secondary font-body text-[0.82rem] font-bold cursor-pointer outline-none transition-all duration-200 w-full text-center active:scale-[0.98] shadow-sm">
-                        <i className={`fa-solid ${uploading ? 'fa-spinner animate-spin' : 'fa-cloud-arrow-up'} mr-2`} />
-                        {uploading ? t.uploadingText : t.uploadBtn}
+                        {uploading ? <LoadingIndicator size="sm" /> : <><i className="fa-solid fa-cloud-arrow-up mr-2" />{t.uploadBtn}</>}
                         <input
                           type="file"
                           accept="video/mp4"
@@ -861,8 +858,7 @@ export default function NpcManagerPanel() {
                   {isAdmin && (
                     <div className="mt-1 select-none">
                       <label className="relative inline-flex items-center justify-center px-4 py-2.5 bg-secondary/15 hover:bg-secondary/25 border border-secondary/20 hover:border-secondary/35 rounded-xl text-secondary font-body text-[0.82rem] font-bold cursor-pointer outline-none transition-all duration-200 w-full text-center active:scale-[0.98] shadow-sm">
-                        <i className={`fa-solid ${uploadingSound ? 'fa-spinner animate-spin' : 'fa-cloud-arrow-up'} mr-2`} />
-                        {uploadingSound ? t.uploadingSoundText : t.uploadSoundBtn}
+                        {uploadingSound ? <LoadingIndicator size="sm" /> : <><i className="fa-solid fa-cloud-arrow-up mr-2" />{t.uploadSoundBtn}</>}
                         <input
                           type="file"
                           accept="audio/*"

@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { OverlaySettings } from '@/types';
 import LiveOverlayViewport from '@/features/user-dashboard/components/live-overlay-viewport';
 import OverlayPreviewControls from '@/features/overlay-designers/components/overlay-preview-controls';
-import { JAR_DECORATION_OPTIONS, JAR_EFFECT_OPTIONS, JAR_NAME_OPTIONS } from '../lib/jar-options';
+import { JAR_DANCE_OPTIONS, JAR_DECORATION_OPTIONS, JAR_EFFECT_OPTIONS, JAR_NAME_OPTIONS } from '../lib/jar-options';
 
 interface GiftJarDesignerPanelProps {
   language: 'vi' | 'en';
@@ -197,6 +197,11 @@ export default function GiftJarDesignerPanel({
                 disabled={savingSettings}
                 className="w-full accent-primary cursor-pointer h-1.5 bg-white/10 rounded-lg outline-none disabled:opacity-40 disabled:cursor-not-allowed"
               />
+              <p className="text-[0.68rem] leading-relaxed text-text-muted">
+                {language === 'vi'
+                  ? 'Theo xu: 1–9 nhỏ · 10–99 vừa · 100–999 lớn · 1.000–9.999 XL · 10.000+ XXL'
+                  : 'By coins: 1–9 small · 10–99 medium · 100–999 large · 1,000–9,999 XL · 10,000+ XXL'}
+              </p>
             </div>
 
             {/* Fall Speed Slider */}
@@ -309,7 +314,7 @@ export default function GiftJarDesignerPanel({
                         key={option.id}
                         type="button"
                         onClick={() => onSaveSettings({
-                          jarType: option.id === 'custom_1' ? 'custom_1' : 'standard',
+                          jarType: option.id.startsWith('custom_') ? option.id : 'standard',
                           jarDecoration: option.id,
                           ...(option.id === 'pro_1' ? { jarColor: 'rgba(244, 155, 187, 0.85)' } : {}),
                         })}
@@ -497,6 +502,29 @@ export default function GiftJarDesignerPanel({
 
               {settings.jarDanceEnabled !== false && (
                 <div className="flex flex-col gap-3 pl-2">
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-[0.78rem] font-bold text-text-muted">
+                      {language === 'vi' ? 'Chọn nhân vật:' : 'Choose mascot:'}
+                    </span>
+                    <div className="grid grid-cols-2 gap-2">
+                      {JAR_DANCE_OPTIONS.map((option) => {
+                        const selected = (settings.jarDanceVideo || JAR_DANCE_OPTIONS[0].src) === option.src;
+                        return (
+                          <button
+                            key={option.id}
+                            type="button"
+                            disabled={savingSettings}
+                            onClick={() => onSaveSettings({ jarDanceVideo: option.src })}
+                            className={`overflow-hidden rounded-xl border p-2 text-left transition-all duration-200 disabled:opacity-40 ${selected ? 'border-primary bg-primary/15 shadow-[0_0_10px_var(--color-primary-glow)]' : 'border-border-color bg-bg-surface hover:border-primary/40'}`}
+                          >
+                            <video src={option.src} muted loop autoPlay playsInline className="h-20 w-full rounded-lg bg-bg-input object-contain" />
+                            <span className="mt-1.5 block truncate text-center text-[0.68rem] font-bold text-white">{option.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   {/* Position selector: Left vs Right */}
                   <div className="flex flex-col gap-1.5">
                     <span className="text-[0.78rem] text-text-muted font-bold select-none">
@@ -576,7 +604,9 @@ export default function GiftJarDesignerPanel({
                   <div className="flex items-center justify-between p-2 bg-bg-input rounded-xl border border-border-color text-[0.7rem] text-text-muted">
                     <span className="flex items-center gap-1.5 truncate">
                       <i className="fa-solid fa-film text-primary" />
-                      <span className="truncate">Capybara Dance (capy_dance.mp4)</span>
+                      <span className="truncate">
+                        {JAR_DANCE_OPTIONS.find((option) => option.src === (settings.jarDanceVideo || JAR_DANCE_OPTIONS[0].src))?.label || 'Dance video'}
+                      </span>
                     </span>
                     <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded-md text-[0.62rem] font-mono shrink-0">
                       Auto Chroma Key

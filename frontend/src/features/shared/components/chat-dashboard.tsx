@@ -6,6 +6,7 @@ import { setActiveChatUser, setMessages, ChatMessage } from '../store/chat-slice
 import { BACKEND_URL } from '@/lib/constants';
 import GlassCard from '@/components/ui/glass-card';
 import Button from '@/components/ui/button';
+import LoadingIndicator from '@/components/ui/loading-indicator';
 
 interface ChatDashboardProps {
   onSendMessage: (receiver: string, message: string) => void;
@@ -179,7 +180,7 @@ export default function ChatDashboard({ onSendMessage }: ChatDashboardProps) {
                 className="w-10 h-10 rounded-xl bg-bg-input border border-border-color flex items-center justify-center text-text-secondary hover:text-primary hover:border-primary/40 transition-all duration-200 cursor-pointer outline-none active:scale-95 disabled:opacity-40"
               >
                 {isUploading ? (
-                  <i className="fa-solid fa-spinner animate-spin text-[0.85rem]" />
+                  <LoadingIndicator size="sm" />
                 ) : (
                   <i className="fa-solid fa-paperclip text-[0.95rem]" />
                 )}
@@ -358,7 +359,7 @@ export function ChatWidget({ onSendMessage }: ChatWidgetProps) {
               className="w-9 h-9 rounded-xl bg-bg-input border border-border-color flex items-center justify-center text-text-muted hover:text-primary hover:border-primary/40 transition-all duration-200 cursor-pointer outline-none active:scale-95 disabled:opacity-40 shrink-0"
             >
               {isUploading ? (
-                <i className="fa-solid fa-spinner animate-spin text-[0.8rem]" />
+                <LoadingIndicator size="sm" />
               ) : (
                 <i className="fa-solid fa-paperclip text-[0.85rem]" />
               )}

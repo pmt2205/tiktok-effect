@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Select from '@/components/ui/select';
+import LoadingIndicator from '@/components/ui/loading-indicator';
 import { Gift, OverlaySettings } from '@/types';
 import { COIN_RANGES } from '@/features/gift-catalog';
 import LiveOverlayViewport from '@/features/user-dashboard/components/live-overlay-viewport';
@@ -573,7 +574,7 @@ export default function GiftMenuDesignerPanel({
                       />
                       <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center justify-center">
                         {isSaving ? (
-                          <i className="fa-solid fa-spinner animate-spin text-[0.8rem] text-primary" />
+                          <LoadingIndicator size="sm" />
                         ) : gift.menuText ? (
                           <i className="fa-solid fa-circle-check text-[0.8rem] text-success" />
                         ) : (
@@ -714,7 +715,7 @@ export default function GiftMenuDesignerPanel({
                           className="shrink-0 px-2.5 py-1.5 rounded-lg bg-primary/20 border border-primary/40 text-primary hover:bg-primary hover:text-white font-bold text-[0.75rem] transition-all duration-150 cursor-pointer outline-none flex items-center gap-1.5"
                         >
                           {isSaving ? (
-                            <i className="fa-solid fa-spinner animate-spin" />
+                            <LoadingIndicator size="sm" />
                           ) : (
                             <>
                               <i className="fa-solid fa-check" />
@@ -730,7 +731,7 @@ export default function GiftMenuDesignerPanel({
                           className="shrink-0 px-2.5 py-1.5 rounded-lg bg-bg-surface border border-border-color text-white hover:bg-primary hover:border-transparent font-bold text-[0.75rem] transition-all duration-150 cursor-pointer outline-none flex items-center gap-1.5"
                         >
                           {isSaving ? (
-                            <i className="fa-solid fa-spinner animate-spin text-primary" />
+                            <LoadingIndicator size="sm" />
                           ) : (
                             <>
                               <i className="fa-solid fa-plus" />

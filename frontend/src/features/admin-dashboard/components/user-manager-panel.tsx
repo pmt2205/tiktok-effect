@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import GlassCard from '@/components/ui/glass-card';
+import LoadingIndicator from '@/components/ui/loading-indicator';
 import { BACKEND_URL } from '@/lib/constants';
 import { useToast } from '@/hooks/use-toast';
 import { useAppSelector } from '@/store/hooks';
@@ -244,10 +245,7 @@ export default function UserManagerPanel() {
         headerTitle={t.listTitle}
       >
         {loading ? (
-          <div className="text-center py-16 text-[0.9rem] text-text-muted select-none">
-            <i className="fa-solid fa-spinner animate-spin text-[1.6rem] text-secondary mb-3 block" />
-            <span>Loading user registry...</span>
-          </div>
+          <div className="flex justify-center py-16"><LoadingIndicator size="lg" /></div>
         ) : users.length === 0 ? (
           <div className="text-center py-12 text-[0.88rem] text-text-muted">
             {t.noUsers}

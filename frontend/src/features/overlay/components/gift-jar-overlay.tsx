@@ -4,7 +4,7 @@
 import React, { useEffect, useRef, useMemo, useImperativeHandle, forwardRef } from 'react';
 import { GiftEvent, OverlaySettings } from '@/types';
 import { getJarImage } from '@/features/overlay/lib/jar-assets';
-import { getJarBottomY, getJarDecoration, getJarProfile, getJarWallBounds } from '@/features/overlay/lib/jar-geometry';
+import { getJarBottomY, getJarDecoration, getJarGiftRadius, getJarProfile, getJarWallBounds } from '@/features/overlay/lib/jar-geometry';
 import { useChromaKeyVideo } from '@/features/overlay/hooks/use-chroma-key-video';
 
 interface JarGift {
@@ -97,7 +97,7 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
             y: spawnY,
             vx: (Math.random() - 0.5) * 2.5,
             vy: 0.5 + Math.random() * 1.0,
-            radius: 14,
+            radius: getJarGiftRadius(giftData.diamondCount),
             iconUrl: icon,
             rotation: Math.random() * Math.PI * 2,
             angularVelocity: (Math.random() - 0.5) * 0.06,
@@ -244,14 +244,28 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
+      // Keep the 320 x 680 logical physics space, but render at HiDPI resolution
+      // so small TikTok gift thumbnails stay crisp when coin tiers enlarge them.
+      const canvasWidth = 320;
+      const canvasHeight = 380 + JAR_FALL_LEAD;
+      const jarRenderScale = Math.max(1, settings.jarScale || 1);
+      const pixelRatio = Math.min((window.devicePixelRatio || 1) * jarRenderScale, 4);
+      canvas.width = Math.round(canvasWidth * pixelRatio);
+      canvas.height = Math.round(canvasHeight * pixelRatio);
+      canvas.style.width = `${canvasWidth}px`;
+      canvas.style.height = `${canvasHeight}px`;
+      ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+
       let animationFrameId: number;
 
       const updatePhysics = () => {
         const gifts = jarGiftsRef.current;
         const sizeMultiplier = settings.jarGiftSize !== undefined ? settings.jarGiftSize : 1.0;
         const speedMultiplier = settings.jarFallSpeed !== undefined ? settings.jarFallSpeed : 1.0;
-        const DRAW_R = 16 * sizeMultiplier;
-        const COL_R = 13 * sizeMultiplier;
+        const getDrawRadius = (gift: JarGift) => gift.radius * sizeMultiplier;
+        const getCollisionRadius = (gift: JarGift) => getDrawRadius(gift) * 0.82;
         const GRAVITY = 0.22 * speedMultiplier;
         const LIN_DAMP = 0.985;
         const ANG_DAMP = 0.80;
@@ -275,15 +289,13 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
         if (settledItems.length > 0) {
           const supported = new Set<string>();
           settledItems.forEach(p => {
-            const floorY = getJarBottomY(p.x, currentJarType) - COL_R;
+            const floorY = getJarBottomY(p.x, currentJarType) - getDrawRadius(p);
             if (p.y >= floorY - 2) {
               supported.add(p.id);
             }
           });
 
           const maxIters = 8;
-          const minD = COL_R * 2;
-          const tolDistSq = (minD + 2) * (minD + 2);
 
           for (let iter = 0; iter < maxIters; iter++) {
             let added = false;
@@ -299,6 +311,8 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
                   const dx = other.x - p.x;
                   const dy = other.y - p.y;
                   const distSq = dx * dx + dy * dy;
+                  const supportDistance = getCollisionRadius(p) + getCollisionRadius(other) + 2;
+                  const tolDistSq = supportDistance * supportDistance;
                   if (distSq <= tolDistSq) {
                     supported.add(p.id);
                     added = true;
@@ -343,8 +357,9 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
           // Disable horizontal boundaries above neck mouth rim (y < neckLevel) to let gifts spill sideways
           const neckLevel = jarProfile.wall.neckY;
           if (p.y >= neckLevel) {
-            const wallL = getWallLeft(p.y) + DRAW_R;
-            const wallR = getWallRight(p.y) - DRAW_R;
+            const drawRadius = getDrawRadius(p);
+            const wallL = getWallLeft(p.y) + drawRadius;
+            const wallR = getWallRight(p.y) - drawRadius;
 
             if (p.x < wallL) {
               p.x = wallL;
@@ -359,7 +374,7 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
             }
           }
 
-          const floorY = getJarBottomY(p.x, currentJarType) - COL_R;
+          const floorY = getJarBottomY(p.x, currentJarType) - getDrawRadius(p);
           if (p.y >= floorY) {
             p.y = floorY;
             const impactVy = Math.abs(p.vy);
@@ -384,7 +399,7 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
               const dx = b.x - a.x;
               const dy = b.y - a.y;
               const distSq = dx * dx + dy * dy;
-              const minD = COL_R * 2;
+              const minD = getCollisionRadius(a) + getCollisionRadius(b);
               if (distSq >= minD * minD || distSq === 0) continue;
 
               const dist = Math.sqrt(distSq);
@@ -460,7 +475,7 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
                 y: screenY,
                 vx: p.vx * scale + (p.x < 160 ? -1.2 : 1.2) * (0.8 + Math.random() * 1.5), // outward push
                 vy: p.vy * scale - 0.5, // slight upward bounce
-                radius: DRAW_R * scale,
+                radius: getDrawRadius(p) * scale,
                 iconUrl: p.iconUrl,
                 rotation: p.rotation,
                 angularVelocity: p.angularVelocity,
@@ -478,11 +493,12 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
 
           // Only clamp to walls if below neck mouth level (y >= neckLevel) to let gifts spill sideways
           if (p.y >= neckLevel) {
-            const wallL = getWallLeft(p.y) + DRAW_R;
-            const wallR = getWallRight(p.y) - DRAW_R;
+            const drawRadius = getDrawRadius(p);
+            const wallL = getWallLeft(p.y) + drawRadius;
+            const wallR = getWallRight(p.y) - drawRadius;
             p.x = Math.max(wallL, Math.min(wallR, p.x));
           }
-          const floorY = getJarBottomY(p.x, currentJarType) - COL_R;
+          const floorY = getJarBottomY(p.x, currentJarType) - getDrawRadius(p);
 
           let touchingFloor = false;
           if (p.y >= floorY) {
@@ -495,11 +511,11 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
 
           let touchingSettled = false;
           if (!touchingFloor) {
-            const minD = COL_R * 2;
-            const tolDistSq = (minD + 1) * (minD + 1);
             for (let i = 0; i < gifts.length; i++) {
               const other = gifts[i];
               if (other === p || !other.settled) continue;
+              const minD = getCollisionRadius(p) + getCollisionRadius(other);
+              const tolDistSq = (minD + 1) * (minD + 1);
               const dx = other.x - p.x;
               const dy = other.y - p.y;
               const distSq = dx * dx + dy * dy;
@@ -747,7 +763,7 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
         }
 
         // === DRAW JAR GIFTS ===
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
         const middleMaskUrl = jarProfile.assets.middleMask;
         let maskedCanvas: HTMLCanvasElement | null = null;
@@ -758,7 +774,12 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
           if (maskedCanvas.width !== canvas.width) maskedCanvas.width = canvas.width;
           if (maskedCanvas.height !== canvas.height) maskedCanvas.height = canvas.height;
           maskedCtx = maskedCanvas.getContext('2d');
-          maskedCtx?.clearRect(0, 0, maskedCanvas.width, maskedCanvas.height);
+          if (maskedCtx) {
+            maskedCtx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+            maskedCtx.imageSmoothingEnabled = true;
+            maskedCtx.imageSmoothingQuality = 'high';
+            maskedCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+          }
         }
 
         gifts.forEach(p => {
@@ -768,13 +789,16 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
           drawCtx.translate(p.x, p.y + JAR_FALL_LEAD);
           drawCtx.rotate(p.rotation);
 
-          drawCtx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-          drawCtx.shadowBlur = 4;
+          // A canvas shadow becomes heavily blurred when the whole jar is CSS-scaled.
+          // Gift artwork already contains its own highlights, so draw it unfiltered.
+          drawCtx.shadowColor = 'transparent';
+          drawCtx.shadowBlur = 0;
 
           const img = getJarImage(p.iconUrl);
 
           if (img && img.complete && img.naturalWidth > 0) {
-            drawCtx.drawImage(img, -DRAW_R, -DRAW_R, DRAW_R * 2, DRAW_R * 2);
+            const drawRadius = getDrawRadius(p);
+            drawCtx.drawImage(img, -drawRadius, -drawRadius, drawRadius * 2, drawRadius * 2);
           }
 
           drawCtx.restore();
@@ -790,7 +814,7 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
             maskedCtx.globalCompositeOperation = 'destination-in';
             maskedCtx.drawImage(maskImage, maskX, JAR_FALL_LEAD, maskWidth, maskHeight);
             maskedCtx.restore();
-            ctx.drawImage(maskedCanvas, 0, 0);
+            ctx.drawImage(maskedCanvas, 0, 0, canvasWidth, canvasHeight);
           }
         }
 

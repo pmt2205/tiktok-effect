@@ -95,6 +95,32 @@ export const JAR_PROFILES: readonly JarProfile[] = [
       radiusY: 28,
     },
   },
+  {
+    id: 'custom_tien',
+    aliases: ['custom_tien', 'jar_tien'],
+    assets: {
+      back: '/jar/jar_custom/jar_tien/jar_back.png',
+      front: '/jar/jar_custom/jar_tien/jar_front.png',
+      middleMask: '/jar/jar_custom/jar_tien/jar_middle_mask.png',
+      colorized: false,
+      scale: 1,
+    },
+    wall: {
+      neckY: 0,
+      transitionEndY: 108,
+      neckLeft: 72,
+      neckRight: 248,
+      bodyLeft: 44,
+      bodyRight: 276,
+    },
+    floor: {
+      centerX: 160,
+      centerY: 330,
+      radiusLeft: 104,
+      radiusRight: 104,
+      radiusY: 28,
+    },
+  },
 ];
 
 const JAR_DECORATIONS = {
@@ -106,6 +132,7 @@ const JAR_DECORATIONS = {
 } as const;
 
 export function getJarDecoration(id?: string) {
+  if (id === 'custom_tien') return null;
   return JAR_DECORATIONS[(id || 'pro_1') as keyof typeof JAR_DECORATIONS] || JAR_DECORATIONS.pro_1;
 }
 
@@ -141,4 +168,14 @@ export function getJarWallBounds(y: number, jarType?: string): { left: number; r
   }
 
   return { left, right };
+}
+
+/** Visual radius in the fixed 320px jar coordinate system, based on gift coin value. */
+export function getJarGiftRadius(coins?: number): number {
+  const value = Math.max(1, Number(coins) || 1);
+  if (value <= 9) return 10;
+  if (value <= 99) return 13;
+  if (value <= 999) return 16;
+  if (value <= 9999) return 20;
+  return 24;
 }

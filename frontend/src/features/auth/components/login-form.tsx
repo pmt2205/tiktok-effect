@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Button from '@/components/ui/button';
+import LoadingIndicator from '@/components/ui/loading-indicator';
 import { BACKEND_URL } from '@/lib/constants';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { authStart, loginSuccess, authFailure } from '@/features/auth/store/auth-slice';
@@ -166,7 +167,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       </div>
 
       <Button type="submit" disabled={loading} variant="gradient" fullWidth>
-        {loading ? 'ĐANG XỬ LÝ...' : 'ĐĂNG NHẬP'}
+        {loading ? <LoadingIndicator size="sm" /> : 'ĐĂNG NHẬP'}
       </Button>
     </form>
   );

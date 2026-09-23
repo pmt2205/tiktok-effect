@@ -175,7 +175,9 @@ export class SettingsService implements OnModuleInit {
         jarClearedAt: settingsDoc.jarClearedAt !== undefined ? settingsDoc.jarClearedAt : this.defaultSettings.jarClearedAt,
         jarGiftSize: (settingsDoc as any).jarGiftSize !== undefined ? (settingsDoc as any).jarGiftSize : this.defaultSettings.jarGiftSize,
         jarFallSpeed: (settingsDoc as any).jarFallSpeed !== undefined ? (settingsDoc as any).jarFallSpeed : this.defaultSettings.jarFallSpeed,
-        jarType: subscriptionTier === 'promax' && (settingsDoc as any).jarType === 'custom_1' ? 'custom_1' : 'standard',
+        jarType: subscriptionTier === 'promax' && ['custom_1', 'custom_tien'].includes((settingsDoc as any).jarType)
+          ? (settingsDoc as any).jarType
+          : 'standard',
         jarColor: (settingsDoc as any).jarColor || this.defaultSettings.jarColor,
         jarDecorationEnabled: subscriptionTier === 'promax' && Boolean((settingsDoc as any).jarDecorationEnabled),
         jarDecoration: subscriptionTier === 'promax' ? ((settingsDoc as any).jarDecoration || this.defaultSettings.jarDecoration) : this.defaultSettings.jarDecoration,
@@ -264,10 +266,18 @@ export class SettingsService implements OnModuleInit {
         '/jar/name_jar/teddy.png',
         '/jar/name_jar/cute.png',
         '/jar/name_jar/moon.png',
+        '/jar/name_jar/tien.png',
       ]);
-      const jarDecorations = new Set(['pro_1', 'pro_2', 'pro_3', 'pro_4', 'custom_1']);
-      const jarTypes = new Set(['standard', 'custom_1']);
-      if (typeof safeSettings.jarType !== 'string' || !jarTypes.has(safeSettings.jarType) || tier !== 'promax') safeSettings.jarType = 'standard';
+      const jarDanceVideos = new Set(['/dance/capy_dance.mp4', '/dance/chibi_tien.mp4']);
+      const jarDecorations = new Set(['pro_1', 'pro_2', 'pro_3', 'pro_4', 'custom_1', 'custom_tien']);
+      const jarTypes = new Set(['standard', 'custom_1', 'custom_tien']);
+      // Settings are patched field-by-field. Do not inject `standard` when the
+      // request only changes an unrelated jar control (name/dance scale, etc.).
+      if (Object.prototype.hasOwnProperty.call(safeSettings, 'jarType')) {
+        if (typeof safeSettings.jarType !== 'string' || !jarTypes.has(safeSettings.jarType) || tier !== 'promax') {
+          safeSettings.jarType = 'standard';
+        }
+      }
       if (typeof safeSettings.jarDecoration === 'string' && !jarDecorations.has(safeSettings.jarDecoration)) delete safeSettings.jarDecoration;
       if (tier !== 'promax') {
         delete safeSettings.jarDecorationEnabled;
@@ -277,6 +287,7 @@ export class SettingsService implements OnModuleInit {
       if (typeof safeSettings.jarNameScale === 'number') safeSettings.jarNameScale = Math.min(1.5, Math.max(0.2, safeSettings.jarNameScale));
       if (typeof safeSettings.jarNameX === 'number') safeSettings.jarNameX = Math.min(220, Math.max(-220, safeSettings.jarNameX));
       if (typeof safeSettings.jarNameY === 'number') safeSettings.jarNameY = Math.min(160, Math.max(-180, safeSettings.jarNameY));
+      if (typeof safeSettings.jarDanceVideo === 'string' && !jarDanceVideos.has(safeSettings.jarDanceVideo)) delete safeSettings.jarDanceVideo;
       const jarEffectVideos = new Set(['/jar/effect_jar/effect1.mp4', '/jar/effect_jar/effect2.mp4']);
       if (typeof safeSettings.jarEffectVideo === 'string' && !jarEffectVideos.has(safeSettings.jarEffectVideo)) delete safeSettings.jarEffectVideo;
       if (typeof safeSettings.jarEffectScale === 'number') safeSettings.jarEffectScale = Math.min(2, Math.max(0.1, safeSettings.jarEffectScale));
@@ -369,7 +380,9 @@ export class SettingsService implements OnModuleInit {
         jarClearedAt: updated.jarClearedAt,
         jarGiftSize: (updated as any).jarGiftSize !== undefined ? (updated as any).jarGiftSize : this.defaultSettings.jarGiftSize,
         jarFallSpeed: (updated as any).jarFallSpeed !== undefined ? (updated as any).jarFallSpeed : this.defaultSettings.jarFallSpeed,
-        jarType: tier === 'promax' && (updated as any).jarType === 'custom_1' ? 'custom_1' : 'standard',
+        jarType: tier === 'promax' && ['custom_1', 'custom_tien'].includes((updated as any).jarType)
+          ? (updated as any).jarType
+          : 'standard',
         jarColor: (updated as any).jarColor || this.defaultSettings.jarColor,
         jarDecorationEnabled: tier === 'promax' && Boolean((updated as any).jarDecorationEnabled),
         jarDecoration: tier === 'promax' ? ((updated as any).jarDecoration || this.defaultSettings.jarDecoration) : this.defaultSettings.jarDecoration,

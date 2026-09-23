@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminSidebar from '@/components/layout/admin-sidebar';
 import BackgroundGlows from '@/components/layout/background-glows';
+import LoadingIndicator from '@/components/ui/loading-indicator';
 import GiftManagerPanel from '@/features/admin-dashboard/components/gift-manager-panel';
 import UserManagerPanel from '@/features/admin-dashboard/components/user-manager-panel';
 import NpcManagerPanel from '@/features/admin-dashboard/components/npc-manager-panel';
@@ -296,9 +297,7 @@ export default function DashboardPage() {
     return (
       <div className="relative w-full min-h-screen overflow-hidden bg-bg-dark flex items-center justify-center">
         <BackgroundGlows />
-        <div className="text-secondary text-[1.2rem] font-header tracking-[2px]">
-          VERIFYING SECURITY SESSION...
-        </div>
+        <LoadingIndicator size="lg" />
       </div>
     );
   }

@@ -5,6 +5,7 @@ import GlassCard from '@/components/ui/glass-card';
 import Button from '@/components/ui/button';
 import InputGroup from '@/components/ui/input-group';
 import StatusBadge from '@/components/ui/status-badge';
+import LoadingIndicator from '@/components/ui/loading-indicator';
 import { formatNumber } from '@/lib/constants';
 import { useAppSelector } from '@/store/hooks';
 
@@ -99,7 +100,12 @@ export default function ConnectionPanel({ onConnect, onDisconnect, className, t 
                 <i className="fa-solid fa-link" /> {t?.connect || 'Connect'}
               </Button>
             )}
-            {!isDisconnected && (
+            {isConnecting && (
+              <Button type="button" variant="secondary" disabled id="btn-connecting" className="w-full py-2.5 h-[48px]">
+                <LoadingIndicator size="sm" />
+              </Button>
+            )}
+            {isConnected && (
               <Button type="button" variant="danger" onClick={onDisconnect} id="btn-disconnect" className="w-full py-2.5 h-[48px] whitespace-nowrap">
                 <i className="fa-solid fa-link-slash" /> {t?.disconnect || 'Disconnect'}
               </Button>

@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element -- Gift icons come from the TikTok catalog. */
 import { useMemo, useState } from 'react';
 import { Gift } from '@/types';
+import LoadingIndicator from '@/components/ui/loading-indicator';
 
 export default function SingleGiftPickerModal({ gifts, selectedIds, language, saving, maxGifts, onClose, onSave }: {
   gifts: Gift[];
@@ -101,8 +102,7 @@ export default function SingleGiftPickerModal({ gifts, selectedIds, language, sa
             onClick={() => onSave(draftIds)}
             className="keep-white rounded-xl bg-gradient-to-r from-primary to-accent px-5 py-2 text-sm font-extrabold text-white shadow-[0_4px_16px_var(--color-primary-glow)] transition-all duration-200 hover:-translate-y-0.5 disabled:opacity-50 cursor-pointer"
           >
-            {saving && <i className="fa-solid fa-spinner mr-2 animate-spin" />}
-            {language === 'vi' ? 'Lưu lựa chọn' : 'Save selection'}
+            {saving ? <LoadingIndicator size="sm" /> : (language === 'vi' ? 'Lưu lựa chọn' : 'Save selection')}
           </button>
         </div>
       </div>

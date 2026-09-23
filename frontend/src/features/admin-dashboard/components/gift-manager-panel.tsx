@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import GlassCard from '@/components/ui/glass-card';
 import Button from '@/components/ui/button';
 import Select from '@/components/ui/select';
+import LoadingIndicator from '@/components/ui/loading-indicator';
 import { Gift } from '@/types';
 import { BACKEND_URL } from '@/lib/constants';
 import { useToast } from '@/hooks/use-toast';
@@ -485,10 +486,7 @@ export default function GiftManagerPanel() {
           }
         >
           {gifts.length === 0 && loading ? (
-            <div className="text-center py-12 text-[0.9rem] text-text-muted select-none flex flex-col items-center justify-center gap-3">
-              <i className="fa-solid fa-spinner animate-spin text-[1.5rem] text-secondary mb-3.5 block" />
-              <span>Loading catalog directory...</span>
-            </div>
+            <div className="flex justify-center py-12"><LoadingIndicator size="lg" /></div>
           ) : (
             <div className={`relative transition-all duration-200 ${loading ? 'opacity-40 pointer-events-none' : ''}`}>
               {gifts.length === 0 ? (
@@ -554,10 +552,7 @@ export default function GiftManagerPanel() {
 
               {loading && (
                 <div className="absolute inset-0 flex items-center justify-center bg-transparent z-10 pointer-events-none">
-                  <div className="bg-bg-surface/85 border border-border-color backdrop-blur-md px-5 py-3 rounded-full flex items-center gap-3.5 shadow-2xl animate-[fade-in_0.2s_ease-out]">
-                    <i className="fa-solid fa-spinner animate-spin text-[1.1rem] text-secondary" />
-                    <span className="text-[0.82rem] font-semibold text-white tracking-[0.5px]">Updating directory...</span>
-                  </div>
+                  <LoadingIndicator size="md" />
                 </div>
               )}
             </div>
@@ -678,8 +673,7 @@ export default function GiftManagerPanel() {
                   {isAdmin && (
                     <div className="mt-1">
                       <label className="relative inline-flex items-center justify-center px-4 py-2.5 bg-secondary/15 hover:bg-secondary/25 border border-secondary/20 hover:border-secondary/35 rounded-sm text-secondary font-body text-[0.8rem] font-semibold cursor-pointer outline-none transition-all duration-150 select-none w-full text-center active:scale-[0.98]">
-                        <i className={`fa-solid ${uploading ? 'fa-spinner animate-spin' : 'fa-cloud-arrow-up'} mr-2`} />
-                        {uploading ? t.uploadingText : t.uploadBtn}
+                        {uploading ? <LoadingIndicator size="sm" /> : <><i className="fa-solid fa-cloud-arrow-up mr-2" />{t.uploadBtn}</>}
                         <input
                            type="file"
                            accept="video/mp4"
@@ -750,8 +744,7 @@ export default function GiftManagerPanel() {
                   {isAdmin && (
                     <div className="mt-1">
                       <label className="relative inline-flex items-center justify-center px-4 py-2.5 bg-secondary/15 hover:bg-secondary/25 border border-secondary/20 hover:border-secondary/35 rounded-sm text-secondary font-body text-[0.8rem] font-semibold cursor-pointer outline-none transition-all duration-150 select-none w-full text-center active:scale-[0.98]">
-                        <i className={`fa-solid ${uploadingSound ? 'fa-spinner animate-spin' : 'fa-cloud-arrow-up'} mr-2`} />
-                        {uploadingSound ? t.uploadingSoundText : t.uploadSoundBtn}
+                        {uploadingSound ? <LoadingIndicator size="sm" /> : <><i className="fa-solid fa-cloud-arrow-up mr-2" />{t.uploadSoundBtn}</>}
                         <input
                           type="file"
                           accept="audio/*"

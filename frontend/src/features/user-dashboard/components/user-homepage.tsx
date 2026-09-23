@@ -13,6 +13,7 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setSettings, setCustomGifts, setLikeLeaderboard } from '@/features/admin-dashboard/store/dashboard-slice';
 import { useToast } from '@/hooks/use-toast';
 import Select from '@/components/ui/select';
+import LoadingIndicator from '@/components/ui/loading-indicator';
 import SettingsDraftBoundary from './settings-draft-boundary';
 import StreamSetupPanel from './stream-setup-panel';
 import { UserSubTab } from '@/components/layout/user-sidebar';
@@ -282,7 +283,7 @@ export default function UserHomepage({
                 <div className="flex flex-col gap-1 select-none">
                   <h3 className="font-header text-[1.1rem] font-bold text-white uppercase tracking-[0.5px] flex items-center gap-2">
                     {savingSettings ? (
-                      <i className="fa-solid fa-spinner animate-spin text-secondary" />
+                      <LoadingIndicator size="sm" />
                     ) : (
                       <i className="fa-solid fa-sliders text-secondary animate-pulse" />
                     )}
@@ -438,10 +439,7 @@ export default function UserHomepage({
 
             {activeTab === 'npc' ? (
               npcLoading ? (
-                <div className="text-center py-24 text-[0.9rem] text-text-muted select-none">
-                  <i className="fa-solid fa-spinner animate-spin text-[2rem] text-primary mb-3 block" />
-                  <span>Loading NPC category configs...</span>
-                </div>
+                <div className="flex justify-center py-24"><LoadingIndicator size="lg" /></div>
               ) : filteredNpcGifts.length === 0 ? (
                 <div className="text-center py-16 text-[0.85rem] text-text-muted select-none">
                   {language === 'vi' ? 'Không tìm thấy quà tặng phù hợp.' : 'No matching gifts found.'}
@@ -541,7 +539,7 @@ export default function UserHomepage({
         </SettingsDraftBoundary>
       )}
       {activeSubTab === 'jar' && (
-        <SettingsDraftBoundary revision={[settings.jarX, settings.jarY, settings.jarScale, settings.jarGiftSize, settings.jarFallSpeed, settings.jarDecorationEnabled, settings.jarDecoration, settings.jarDanceScale, settings.jarDanceOffsetX, settings.jarColor, settings.jarNameEnabled, settings.jarNameImage, settings.jarNameScale, settings.jarNameX, settings.jarNameY, settings.jarEffectEnabled, settings.jarEffectVideo, settings.jarEffectScale, settings.jarEffectX, settings.jarEffectY, settings.jarEffectDelay].join('|')}>
+        <SettingsDraftBoundary revision={[settings.jarX, settings.jarY, settings.jarScale, settings.jarGiftSize, settings.jarFallSpeed, settings.jarType, settings.jarDecorationEnabled, settings.jarDecoration, settings.jarDanceEnabled, settings.jarDanceVideo, settings.jarDancePosition, settings.jarDanceScale, settings.jarDanceOffsetX, settings.jarColor, settings.jarNameEnabled, settings.jarNameImage, settings.jarNameScale, settings.jarNameX, settings.jarNameY, settings.jarEffectEnabled, settings.jarEffectVideo, settings.jarEffectScale, settings.jarEffectX, settings.jarEffectY, settings.jarEffectDelay].join('|')}>
           <GiftJarDesignerPanel
           language={language}
           settings={settings}

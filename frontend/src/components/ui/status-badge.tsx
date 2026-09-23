@@ -1,4 +1,5 @@
 import React from 'react';
+import LoadingIndicator from './loading-indicator';
 
 interface StatusBadgeProps {
   status: 'disconnected' | 'connecting' | 'connected';
@@ -6,6 +7,10 @@ interface StatusBadgeProps {
 }
 
 export default function StatusBadge({ status, text }: StatusBadgeProps) {
+  if (status === 'connecting') {
+    return <LoadingIndicator size="sm" />;
+  }
+
   let badgeClass = '';
   let dotClass = '';
 
@@ -13,10 +18,6 @@ export default function StatusBadge({ status, text }: StatusBadgeProps) {
     case 'disconnected':
       badgeClass = 'bg-danger/8 border-danger/18 text-[#ef4444]';
       dotClass = 'bg-danger shadow-[0_0_8px_#ef4444]';
-      break;
-    case 'connecting':
-      badgeClass = 'bg-warning/8 border-warning/18 text-warning';
-      dotClass = 'bg-warning animate-status-pulse shadow-[0_0_8px_var(--color-warning)]';
       break;
     case 'connected':
       badgeClass = 'bg-success/8 border-success/18 text-success';
