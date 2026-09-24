@@ -177,6 +177,8 @@ export interface BannerInfo {
   bannerEl?: HTMLDivElement;
   timer: ReturnType<typeof setTimeout>;
   combo: number;
+  lastRepeatCount?: number;
+  isStreak?: boolean;
   lastRepeatEnd?: boolean;
 }
 

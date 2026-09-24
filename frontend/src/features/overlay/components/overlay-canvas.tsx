@@ -65,8 +65,15 @@ export default function OverlayCanvas() {
     const bannerKey = `${uniqueId}_${giftName}`;
     const mappings = mappingsRef.current;
     const currentBanner = bannersRef.current.get(bannerKey);
-    const particleCount = !giftData.isSimulated && currentBanner
-      ? Math.max(0, repeatCount - currentBanner.combo)
+    const previousRepeatCount = currentBanner?.lastRepeatCount ?? currentBanner?.combo ?? 0;
+    // giftType 1 is a TikTok streak gift. The repeat count of a streak is cumulative,
+    // while normal gifts are independent events even if they arrive at the same time.
+    // The comparison also covers connectors that omit giftType after the first packet.
+    const isCumulativeStreak = giftData.giftType === 1
+      || currentBanner?.isStreak === true
+      || (!!currentBanner && repeatCount > previousRepeatCount);
+    const particleCount = !giftData.isSimulated && currentBanner && isCumulativeStreak
+      ? Math.max(0, repeatCount - previousRepeatCount)
       : Math.max(1, repeatCount);
 
     // TikTok emits cumulative streak counts. Spawn only the newly added quantity.
@@ -77,9 +84,9 @@ export default function OverlayCanvas() {
     }
 
     // Check if this is a duplicate repeat count for an ongoing streak (only for real, non-simulated events)
-    if (!giftData.isSimulated && currentBanner) {
+    if (!giftData.isSimulated && currentBanner && isCumulativeStreak) {
       const info = currentBanner;
-      if (repeatCount === info.combo && !info.lastRepeatEnd) {
+      if (repeatCount === previousRepeatCount && !info.lastRepeatEnd) {
         // Just refresh the duration timer for the existing banner so it doesn't expire early
         clearTimeout(info.timer);
         info.timer = setTimeout(() => removeBanner(bannerKey), settings.duration * 1000);
@@ -184,12 +191,14 @@ export default function OverlayCanvas() {
       // Update existing banner
       const info = bannersRef.current.get(bannerKey)!;
       clearTimeout(info.timer);
-      info.combo = repeatCount;
+      info.combo = isCumulativeStreak ? repeatCount : info.combo + Math.max(1, repeatCount);
+      info.lastRepeatCount = repeatCount;
+      info.isStreak = isCumulativeStreak;
       info.lastRepeatEnd = !!giftData.repeatEnd;
 
       const badge = info.bannerEl?.querySelector('.combo-badge');
       if (badge) {
-        badge.textContent = `x${repeatCount}`;
+        badge.textContent = `x${info.combo}`;
         badge.classList.remove('pulse');
         void (badge as HTMLElement).offsetWidth;
         badge.classList.add('pulse');
@@ -243,7 +252,14 @@ export default function OverlayCanvas() {
       container.appendChild(bannerEl);
 
       const timer = setTimeout(() => removeBanner(bannerKey), settings.duration * 1000);
-      bannersRef.current.set(bannerKey, { bannerEl, timer, combo: repeatCount, lastRepeatEnd: !!giftData.repeatEnd });
+      bannersRef.current.set(bannerKey, {
+        bannerEl,
+        timer,
+        combo: repeatCount,
+        lastRepeatCount: repeatCount,
+        isStreak: giftData.giftType === 1,
+        lastRepeatEnd: !!giftData.repeatEnd,
+      });
     }
   }, []);
 

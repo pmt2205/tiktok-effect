@@ -291,7 +291,10 @@ export class TiktokService {
           profilePictureUrl: getFirstImageUrl(data.profilePictureUrl, data.user?.avatarMedium),
           isSimulated: false,
           repeatEnd: !!data.repeatEnd,
-          giftType: data.gift?.gift_type || data.giftDetails?.giftType,
+          giftType: data.gift?.gift_type
+            ?? data.giftDetails?.giftType
+            ?? data.extendedGiftInfo?.type
+            ?? data.giftType,
           giftId: giftId,
         };
         if (!giftData.giftPictureUrl) {
