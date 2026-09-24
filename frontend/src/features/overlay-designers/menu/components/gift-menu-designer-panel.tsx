@@ -612,7 +612,7 @@ export default function GiftMenuDesignerPanel({
                 </div>
                 <div className="flex flex-col">
                   <h4 className="font-header text-[1rem] font-bold text-white uppercase tracking-[0.5px]">
-                    {language === 'vi' ? 'Kho Quà Tặng (511 món quà)' : 'Gift Catalog (511 items)'}
+                    {language === 'vi' ? `Kho Quà Tặng (${gifts.length} món quà)` : `Gift Catalog (${gifts.length} items)`}
                   </h4>
                   <p className="text-[0.72rem] text-text-muted">
                     {language === 'vi' ? 'Bấm "+ Thêm" món quà bạn muốn hiển thị trên Bảng Quà stream.' : 'Click "+ Add" gifts to include them in your stream menu.'}

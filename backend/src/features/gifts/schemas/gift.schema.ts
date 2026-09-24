@@ -12,6 +12,9 @@ export class Gift extends Document {
   @Prop({ required: true })
   name: string;
 
+  @Prop({ required: false, index: true })
+  nameKey?: string;
+
   @Prop({ required: true, default: 1 })
   coins: number;
 
@@ -39,4 +42,5 @@ export class Gift extends Document {
 
 export const GiftSchema = SchemaFactory.createForClass(Gift);
 GiftSchema.index({ username: 1, giftId: 1 }, { unique: true });
+GiftSchema.index({ username: 1, nameKey: 1 });
 

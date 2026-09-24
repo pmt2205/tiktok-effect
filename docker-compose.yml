@@ -34,10 +34,13 @@ services:
       MONGO_PASSWORD: ${MONGO_ROOT_PASSWORD:-tiktok_local_password}
       JWT_SECRET: ${JWT_SECRET:-local-docker-jwt-secret-change-before-production-2026}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      PUBLIC_BACKEND_URL: ${PUBLIC_BACKEND_URL:-http://localhost:3001}
+      DISCOVERED_GIFTS_PATH: /app/data/gifts/discovered_gifts.json
     ports:
       - "${BACKEND_PORT:-3001}:3001"
     volumes:
       - backend_media:/app/public/media
+      - gift_catalog_data:/app/data/gifts
     depends_on:
       mongo:
         condition: service_healthy
@@ -75,3 +78,4 @@ services:
 volumes:
   mongo_data:
   backend_media:
+  gift_catalog_data:

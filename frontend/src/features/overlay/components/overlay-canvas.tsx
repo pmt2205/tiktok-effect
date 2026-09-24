@@ -97,11 +97,13 @@ export default function OverlayCanvas() {
     let hasDatabaseGift = false;
 
     // 1. Check custom database gifts first
-    const dbGift = giftsRef.current.find(
-      (g) => (giftData.giftId !== undefined && Number(g.giftId) === Number(giftData.giftId)) ||
-        g.name.toLowerCase().trim() === giftKey ||
+    const dbGiftByName = giftsRef.current.find(
+      (g) => g.name.toLowerCase().trim() === giftKey ||
         (giftKey === 'rose' && g.name.toLowerCase().trim() === 'hoa hồng') ||
         (giftKey === 'tiktok' && g.name.toLowerCase().trim() === 'logo tiktok')
+    );
+    const dbGift = dbGiftByName || giftsRef.current.find(
+      (g) => giftData.giftId !== undefined && Number(g.giftId) === Number(giftData.giftId)
     );
 
     if (dbGift) {

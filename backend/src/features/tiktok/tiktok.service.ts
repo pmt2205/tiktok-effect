@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { TikTokLiveConnection } from 'tiktok-live-connector';
 import { TiktokStatus, ChatEvent, GiftEvent, TopGifterJoinEvent, LikeEvent, LikeLeaderboardItem } from '../../common/interfaces/events.interface';
 import * as vnGiftsData from '../gifts/data/vn_gifts.json';
+import { GiftsService } from '../gifts/gifts.service';
 
 const TIKTOK_GIFT_IDS: Record<number, string> = {
   5655: 'Rose',
@@ -69,6 +70,8 @@ export interface TopGifterRecord {
 @Injectable()
 export class TiktokService {
   private readonly logger = new Logger(TiktokService.name);
+
+  constructor(private readonly giftsService: GiftsService) {}
 
   // Keyed by App User's username
   private userStates = new Map<string, UserConnectionState>();
@@ -294,6 +297,15 @@ export class TiktokService {
         if (!giftData.giftPictureUrl) {
           this.logger.warn(`[${appUsername}] Gift ${giftData.giftName} (${giftId || 'unknown id'}) has no image URL`);
         }
+
+        // Never delay the live event: learn/cache unknown gifts in the background.
+        void this.giftsService.discoverGiftForUser(appUsername, {
+          giftId: giftData.giftId,
+          name: giftData.giftName,
+          coins: giftData.diamondCount,
+          icon: giftData.giftPictureUrl,
+        });
+
         // Track Top Gifters
         const diamonds = (data.extendedGiftInfo?.diamond_count || data.diamondCount || 1) * (data.repeatCount || 1);
         let appGifters = this.userTopGifters.get(appUsername);
