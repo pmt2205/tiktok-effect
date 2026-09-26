@@ -217,34 +217,41 @@ export class TiktokService {
       availableGifts: [],
     };
     this.userStates.set(appUsername, state);
+    this.setConnectionStatus(appUsername, 'connecting');
 
     try {
       state.connection = new TikTokLiveConnection(tiktokUsername, {
         enableExtendedGiftInfo: false,
       });
 
-      state.connection
-        .connect()
+      let connectionTimeout: ReturnType<typeof setTimeout> | undefined;
+      const connectionAttempt = Promise.race([
+        state.connection.connect(),
+        new Promise<never>((_, reject) => {
+          connectionTimeout = setTimeout(
+            () => reject(new Error('TikTok connection timed out after 20 seconds. Check that the room is LIVE and the username is correct.')),
+            20_000,
+          );
+        }),
+      ]).finally(() => {
+        if (connectionTimeout) clearTimeout(connectionTimeout);
+      });
+
+      connectionAttempt
         .then(async (conState: any) => {
+          if (this.userStates.get(appUsername) !== state) return;
           this.setConnectionStatus(appUsername, 'connected');
           this.logger.log(`[${appUsername}] Successfully connected to room ID: ${conState.roomId}`);
-          try {
-            const giftsList = await state.connection.fetchAvailableGifts();
-            if (Array.isArray(giftsList)) {
-              state.availableGifts = giftsList.map((g: any) => ({
-                id: g.id || g.gift_id,
-                name: g.name,
-                diamondCount: g.diamond_count || g.cost || 0,
-                image: getFirstImageUrl(g.image, g.icon, g.giftImage),
-              }));
-              this.onGiftsList?.(appUsername, state.availableGifts);
-            }
-          } catch (err) {
-            this.logger.error(`[${appUsername}] Failed to fetch available gifts:`, err);
-          }
+
          })
         .catch((err: Error) => {
+          if (this.userStates.get(appUsername) !== state) return;
           this.logger.error(`[${appUsername}] Failed to connect:`, err);
+          try {
+            state.connection?.disconnect();
+          } catch (disconnectError) {
+            this.logger.warn(`[${appUsername}] Could not close timed-out connection:`, disconnectError);
+          }
           this.setConnectionStatus(
             appUsername,
             'disconnected',
@@ -266,7 +273,6 @@ export class TiktokService {
       // Gift handler
       state.connection.on('gift', (data: any) => {
         const giftId = data.giftId || data.gift?.gift_id;
-        const catalogGift = state.availableGifts.find((gift) => String(gift.id) === String(giftId));
         const localGift = giftId ? VN_GIFTS_BY_ID.get(Number(giftId)) : undefined;
         const resolvedName = data.extendedGiftInfo?.name || 
                              data.giftName || 
@@ -282,7 +288,6 @@ export class TiktokService {
           diamondCount: data.extendedGiftInfo?.diamond_count || data.diamondCount || localGift?.coins || 0,
           giftPictureUrl: getFirstImageUrl(
             localGift?.icon,
-            catalogGift?.image,
             data.extendedGiftInfo?.image,
             data.extendedGiftInfo?.icon,
             data.giftPictureUrl,

@@ -38,6 +38,7 @@ export class Gift extends Document {
 
   @Prop({ type: Boolean, required: true, default: false })
   menuShow: boolean;
+
 }
 
 export const GiftSchema = SchemaFactory.createForClass(Gift);

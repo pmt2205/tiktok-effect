@@ -11,6 +11,7 @@ import { GiftTreeOverlay, GiftTreeOverlayRef } from './gift-tree-overlay';
 import TopGifterOverlay from './top-gifter-overlay';
 import LikeLeaderboardOverlay from './like-leaderboard-overlay';
 import { useTtsQueue } from '../hooks/use-tts-queue';
+import { preloadGiftIcons } from '../lib/preload-gift-icons';
 
 export default function OverlayCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -18,6 +19,7 @@ export default function OverlayCanvas() {
   const settingsRef = useRef<OverlaySettings>({ ...DEFAULT_SETTINGS });
   const mappingsRef = useRef<GiftMappings>({});
   const giftsRef = useRef<Gift[]>([]);
+  const preloadedGiftIconUrlsRef = useRef<Set<string>>(new Set());
   const [settingsState, setSettingsState] = useState<OverlaySettings>({ ...DEFAULT_SETTINGS });
   const [giftsList, setGiftsList] = useState<Gift[]>([]);
   const [topGifterQueue, setTopGifterQueue] = useState<TopGifterJoinEvent[]>([]);
@@ -348,6 +350,7 @@ export default function OverlayCanvas() {
         const newGifts = (packet.data as Gift[]) || [];
         giftsRef.current = newGifts;
         setGiftsList(newGifts);
+        preloadGiftIcons(newGifts, preloadedGiftIconUrlsRef.current);
       } else if (packet.type === 'top-gifter-join') {
         const joinEvent = packet.data as TopGifterJoinEvent;
         setTopGifterQueue((prev) => [...prev, joinEvent]);
