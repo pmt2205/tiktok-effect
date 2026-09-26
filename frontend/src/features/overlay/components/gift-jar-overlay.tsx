@@ -43,6 +43,7 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
     const overflowCanvasRef = useRef<HTMLCanvasElement | null>(null);
     const danceCanvasRef = useRef<HTMLCanvasElement | null>(null);
     const jarEffectCanvasRef = useRef<HTMLCanvasElement | null>(null);
+    const overflowRenderScaleRef = useRef(1);
     const danceVideoRef = useRef<HTMLVideoElement | null>(null);
     const jarGiftsRef = useRef<JarGift[]>([]);
     const overflowGiftsRef = useRef<JarGift[]>([]);
@@ -80,7 +81,9 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
         if (!settings.jarEnabled) return;
         const jarGifts = jarGiftsRef.current;
         const icon = giftData.giftPictureUrl || 'https://sf16-website-nos.sofproxy.com/obj/tiktok-web-tx/tiktok/web/gift/rose.png';
-        const spawnCount = Math.min(10, giftData.repeatCount || 1);
+        // Keep every gift in normal combos. The jar retains at most 300 physical
+        // objects below, so bound pathological packets to the same real capacity.
+        const spawnCount = Math.min(300, Math.max(1, Math.floor(giftData.repeatCount || 1)));
         const profile = getJarProfile(settings.jarType);
         const spawnInset = 18;
         const neckLeft = profile.wall.neckLeft + spawnInset;
@@ -89,7 +92,9 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
         for (let i = 0; i < spawnCount; i++) {
           // Spawn through the selected jar's opening instead of a fixed standard-jar range.
           const spawnX = neckLeft + Math.random() * (neckRight - neckLeft);
-          const spawnY = -JAR_FALL_LEAD + 20 - i * 30;
+          // Use short rows instead of one very tall column. Large combos (for
+          // example x50) therefore enter promptly while still looking staggered.
+          const spawnY = -JAR_FALL_LEAD + 20 - Math.floor(i / 6) * 30;
 
           jarGifts.push({
             id: `${giftData.uniqueId}-${giftData.giftName}-${Date.now()}-${i}-${Math.random()}`,
@@ -123,13 +128,17 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
         const canvas = overflowCanvasRef.current;
         if (canvas) {
           const parent = canvas.parentElement;
-          if (parent && parent.clientWidth > 0 && parent.clientHeight > 0) {
-            canvas.width = parent.clientWidth;
-            canvas.height = parent.clientHeight;
-          } else {
-            canvas.width = 1080;
-            canvas.height = 1920;
-          }
+          const logicalWidth = parent?.clientWidth || 1080;
+          const logicalHeight = parent?.clientHeight || 1920;
+          // The overflow layer used to have one backing pixel per CSS pixel,
+          // unlike the supersampled jar canvas. Render it at HiDPI as well so
+          // tiny TikTok thumbnails stay sharp after OBS/browser scaling.
+          const renderScale = Math.min(Math.max((window.devicePixelRatio || 1) * 1.5, 1.5), 2.5);
+          overflowRenderScaleRef.current = renderScale;
+          canvas.width = Math.round(logicalWidth * renderScale);
+          canvas.height = Math.round(logicalHeight * renderScale);
+          canvas.style.width = `${logicalWidth}px`;
+          canvas.style.height = `${logicalHeight}px`;
         }
       };
       handleResize();
@@ -250,7 +259,15 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
       const canvasWidth = 320;
       const canvasHeight = 380 + JAR_FALL_LEAD;
       const jarRenderScale = Math.max(1, settings.jarScale || 1);
-      const pixelRatio = Math.min((window.devicePixelRatio || 1) * jarRenderScale, 4);
+      // The jar itself is CSS-scaled, so DPR alone is not enough: a 4x jar
+      // would otherwise stretch each canvas pixel across four screen pixels.
+      // A small supersampling factor keeps tiny CDN thumbnails as sharp as the
+      // same assets rendered by a normal <img>, without changing physics size.
+      const renderSupersampling = 1.5;
+      const pixelRatio = Math.min(
+        Math.max(1, (window.devicePixelRatio || 1) * jarRenderScale * renderSupersampling),
+        8,
+      );
       canvas.width = Math.round(canvasWidth * pixelRatio);
       canvas.height = Math.round(canvasHeight * pixelRatio);
       canvas.style.width = `${canvasWidth}px`;
@@ -276,8 +293,10 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
         const FLOOR_FRICTION = 0.82;
         const SETTLE_VEL = 0.08;
 
-        const screenW = overflowCanvasRef.current ? overflowCanvasRef.current.width : 1080;
-        const screenH = overflowCanvasRef.current ? overflowCanvasRef.current.height : 1920;
+        // Physics stays in CSS pixels; the overflow canvas backing store is
+        // larger only for rendering quality.
+        const screenW = overflowCanvasRef.current?.clientWidth || 1080;
+        const screenH = overflowCanvasRef.current?.clientHeight || 1920;
 
         const currentJarType = settings.jarType || 'standard';
         const jarProfile = getJarProfile(currentJarType);
@@ -742,7 +761,11 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
         // === DRAW OVERFLOWED GIFTS ===
         const sCtx = overflowCanvasRef.current ? overflowCanvasRef.current.getContext('2d') : null;
         if (sCtx && overflowCanvasRef.current) {
-          sCtx.clearRect(0, 0, overflowCanvasRef.current.width, overflowCanvasRef.current.height);
+          const overflowRenderScale = overflowRenderScaleRef.current;
+          sCtx.setTransform(overflowRenderScale, 0, 0, overflowRenderScale, 0, 0);
+          sCtx.clearRect(0, 0, screenW, screenH);
+          sCtx.imageSmoothingEnabled = false;
+          sCtx.filter = 'none';
 
           overflowGifts.forEach(p => {
             sCtx.save();
@@ -799,6 +822,13 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
 
           if (img && img.complete && img.naturalWidth > 0) {
             const drawRadius = getDrawRadius(p);
+            // TikTok thumbnails are already small. Bilinear filtering here is
+            // applied again when a rotated gift is composited through the jar
+            // mask, which visibly softens it. Nearest sampling on the HiDPI
+            // supersampled canvas preserves edges; the final screen downscale
+            // still provides natural anti-aliasing.
+            drawCtx.imageSmoothingEnabled = false;
+            drawCtx.filter = 'none';
             drawCtx.drawImage(img, -drawRadius, -drawRadius, drawRadius * 2, drawRadius * 2);
           }
 
@@ -815,7 +845,10 @@ export const GiftJarOverlay = forwardRef<GiftJarOverlayRef, GiftJarOverlayProps>
             maskedCtx.globalCompositeOperation = 'destination-in';
             maskedCtx.drawImage(maskImage, maskX, JAR_FALL_LEAD, maskWidth, maskHeight);
             maskedCtx.restore();
+            ctx.imageSmoothingEnabled = false;
             ctx.drawImage(maskedCanvas, 0, 0, canvasWidth, canvasHeight);
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
           }
         }
 

@@ -68,13 +68,15 @@ export default function OverlayCanvas() {
     const mappings = mappingsRef.current;
     const currentBanner = bannersRef.current.get(bannerKey);
     const previousRepeatCount = currentBanner?.lastRepeatCount ?? currentBanner?.combo ?? 0;
-    // giftType 1 is a TikTok streak gift. The repeat count of a streak is cumulative,
-    // while normal gifts are independent events even if they arrive at the same time.
-    // The comparison also covers connectors that omit giftType after the first packet.
+    // Only type 1 gifts are cumulative streaks. Do not infer this from an increasing
+    // repeatCount: a normal x50 gift is one independent event and must spawn all 50.
     const isCumulativeStreak = giftData.giftType === 1
-      || currentBanner?.isStreak === true
-      || (!!currentBanner && repeatCount > previousRepeatCount);
-    const particleCount = !giftData.isSimulated && currentBanner && isCumulativeStreak
+      || currentBanner?.isStreak === true;
+    const continuesOpenStreak = !giftData.isSimulated
+      && currentBanner
+      && isCumulativeStreak
+      && !currentBanner.lastRepeatEnd;
+    const particleCount = continuesOpenStreak
       ? Math.max(0, repeatCount - previousRepeatCount)
       : Math.max(1, repeatCount);
 

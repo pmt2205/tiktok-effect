@@ -142,7 +142,9 @@ export const GiftTreeOverlay = forwardRef<GiftTreeOverlayRef, GiftTreeOverlayPro
         if (!settings.treeEnabled) return;
         const activeGifts = activeGiftsRef.current;
         const icon = giftData.giftPictureUrl || 'https://sf16-website-nos.sofproxy.com/obj/tiktok-web-tx/tiktok/web/gift/rose.png';
-        const spawnCount = Math.min(5, giftData.repeatCount || 1);
+        // Do not silently discard the rest of a combo. Extra gifts knock existing
+        // branch gifts into the falling layer, which is the tree's intended flow.
+        const spawnCount = Math.min(300, Math.max(1, Math.floor(giftData.repeatCount || 1)));
 
         for (let i = 0; i < spawnCount; i++) {
           // Find empty branch indices

@@ -66,7 +66,11 @@ export function useTtsQueue(settingsState?: OverlaySettings) {
   const processNextRef = useRef<() => void>(() => {});
 
   const getGoogleTtsUrl = useCallback((text: string) => {
-    const token = typeof window === 'undefined' ? '' : new URLSearchParams(window.location.search).get('token') || '';
+    const token = typeof window === 'undefined'
+      ? ''
+      : new URLSearchParams(window.location.search).get('token')
+        || window.localStorage.getItem('auth_token')
+        || '';
     const parameters = new URLSearchParams({ text });
     if (token) parameters.set('token', token);
     return `${BACKEND_URL}/api/tts/google?${parameters.toString()}`;
@@ -127,7 +131,7 @@ export function useTtsQueue(settingsState?: OverlaySettings) {
 
   // Process queue item by item
   const processNextInQueue = useCallback(() => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    if (typeof window === 'undefined') return;
     if (isMuted || queueRef.current.length === 0) {
       isProcessingRef.current = false;
       setIsSpeaking(false);
@@ -143,8 +147,11 @@ export function useTtsQueue(settingsState?: OverlaySettings) {
     setQueueLength(queueRef.current.length);
 
     const settings = settingsRef.current;
+    let itemFinished = false;
 
     const handleEnd = () => {
+      if (itemFinished) return;
+      itemFinished = true;
       setSpokenLogs((prev) => [
         {
           id: item.id,
@@ -162,6 +169,24 @@ export function useTtsQueue(settingsState?: OverlaySettings) {
       }, 350);
     };
 
+    const handleFailure = (reason: unknown) => {
+      if (itemFinished) return;
+      itemFinished = true;
+      console.warn('TTS playback failed:', reason);
+      setSpokenLogs((prev) => [
+        {
+          id: item.id,
+          time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+          nickname: item.nickname,
+          comment: item.rawComment,
+          processedText: item.text,
+          status: 'skipped',
+        },
+        ...prev.slice(0, 29),
+      ]);
+      setTimeout(() => processNextRef.current(), 200);
+    };
+
     // Support Google Translate official voice via backend proxy
     if (settings.ttsVoice === 'google_translate') {
       const url = getGoogleTtsUrl(item.text);
@@ -169,11 +194,13 @@ export function useTtsQueue(settingsState?: OverlaySettings) {
       audio.playbackRate = settings.ttsRate ?? 1.0;
       audio.volume = settings.ttsVolume ?? 1.0;
       audio.onended = handleEnd;
-      audio.onerror = (e) => {
-        console.warn('Google Translate TTS Error, falling back:', e);
-        handleEnd();
-      };
-      audio.play().catch(handleEnd);
+      audio.onerror = handleFailure;
+      audio.play().catch(handleFailure);
+      return;
+    }
+
+    if (!('speechSynthesis' in window)) {
+      handleFailure(new Error('Web Speech API is unavailable in this browser'));
       return;
     }
 
@@ -193,12 +220,7 @@ export function useTtsQueue(settingsState?: OverlaySettings) {
 
     utterance.onend = handleEnd;
 
-    utterance.onerror = (e) => {
-      console.warn('TTS Speech error:', e);
-      setTimeout(() => {
-        processNextRef.current();
-      }, 200);
-    };
+    utterance.onerror = handleFailure;
 
     window.speechSynthesis.speak(utterance);
   }, [isMuted, getGoogleTtsUrl, getSelectedVoice]);

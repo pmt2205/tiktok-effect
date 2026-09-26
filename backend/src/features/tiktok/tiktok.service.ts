@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { TikTokLiveConnection } from 'tiktok-live-connector';
+import { ControlEvent, TikTokLiveConnection, WebcastEvent } from 'tiktok-live-connector';
 import { TiktokStatus, ChatEvent, GiftEvent, TopGifterJoinEvent, LikeEvent, LikeLeaderboardItem } from '../../common/interfaces/events.interface';
 import * as vnGiftsData from '../gifts/data/vn_gifts.json';
 import { GiftsService } from '../gifts/gifts.service';
@@ -48,6 +48,7 @@ const VN_GIFTS = (Array.isArray(vnGiftsData) ? vnGiftsData : (vnGiftsData as any
   name: string;
   coins: number;
   icon: string;
+  giftType?: number;
 }>;
 const VN_GIFTS_BY_ID = new Map(VN_GIFTS.map((gift) => [Number(gift.giftId), gift]));
 
@@ -58,6 +59,8 @@ interface UserConnectionState {
   viewerCount: number;
   lastError: string | null;
   availableGifts: any[];
+  recentGiftPackets: Map<string, number>;
+  recentChatPackets: Map<string, number>;
 }
 
 export interface TopGifterRecord {
@@ -215,6 +218,8 @@ export class TiktokService {
       viewerCount: 0,
       lastError: null,
       availableGifts: [],
+      recentGiftPackets: new Map(),
+      recentChatPackets: new Map(),
     };
     this.userStates.set(appUsername, state);
     this.setConnectionStatus(appUsername, 'connecting');
@@ -259,20 +264,80 @@ export class TiktokService {
           );
         });
 
-      // Chat handler
-      state.connection.on('chat', (data: any) => {
+      // Chat handler. Keep the decoded-data fallback because TikTok occasionally
+      // delivers chat payloads that are decoded but not forwarded by the high-
+      // level event mapper, while gift events from the same room still work.
+      const handleChat = (data: any) => {
+        const comment = data.comment ?? data.content ?? data.text;
+        if (typeof comment !== 'string' || !comment.trim()) return;
+
+        const messageId = data.msgId
+          ?? data.messageId
+          ?? data.common?.msgId
+          ?? data.common?.messageId;
+        const uniqueId = data.uniqueId || data.user?.uniqueId || data.user?.unique_id || 'anonymous';
+        const chatKey = messageId !== undefined && messageId !== null
+          ? String(messageId)
+          : `${uniqueId}:${comment.trim()}:${Math.floor(Date.now() / 1_000)}`;
+        const now = Date.now();
+        const lastSeenAt = state.recentChatPackets.get(chatKey);
+        if (lastSeenAt && now - lastSeenAt < 30_000) return;
+        state.recentChatPackets.set(chatKey, now);
+        if (state.recentChatPackets.size > 2_000) {
+          const cutoff = now - 60_000;
+          for (const [key, seenAt] of state.recentChatPackets) {
+            if (seenAt < cutoff) state.recentChatPackets.delete(key);
+          }
+        }
+
         const chatData: ChatEvent = {
-          nickname: data.nickname || data.user?.nickname || data.uniqueId || 'Anonymous',
-          uniqueId: data.uniqueId || data.user?.uniqueId || 'anonymous',
-          comment: data.comment,
+          nickname: data.nickname || data.user?.nickname || uniqueId || 'Anonymous',
+          uniqueId,
+          comment: comment.trim(),
           profilePictureUrl: getFirstImageUrl(data.profilePictureUrl, data.user?.avatarMedium),
         };
+        this.logger.log(`[${appUsername}] Chat @${chatData.uniqueId}: ${chatData.comment}`);
         this.onChat?.(appUsername, chatData);
+      };
+
+      state.connection.on(WebcastEvent.CHAT, handleChat);
+      state.connection.on(ControlEvent.DECODED_DATA, (type: string, event: any) => {
+        if (type === 'WebcastChatMessage') handleChat(event);
       });
 
       // Gift handler
       state.connection.on('gift', (data: any) => {
         const giftId = data.giftId || data.gift?.gift_id;
+        const eventId = data.msgId
+          ?? data.messageId
+          ?? data.eventId
+          ?? data.transactionId
+          ?? data.logId;
+        if (eventId !== undefined && eventId !== null && String(eventId)) {
+          // A streak keeps the same transaction while repeatCount increases,
+          // so count/end-state are part of the key. An upstream retry of the
+          // exact same packet is ignored without suppressing a real combo step.
+          const packetKey = [
+            String(eventId),
+            String(data.repeatCount || 1),
+            data.repeatEnd ? 'end' : 'open',
+          ].join(':');
+          const now = Date.now();
+          const lastSeenAt = state.recentGiftPackets.get(packetKey);
+          if (lastSeenAt && now - lastSeenAt < 30_000) {
+            this.logger.debug(`[${appUsername}] Ignored duplicate gift packet ${packetKey}`);
+            return;
+          }
+          state.recentGiftPackets.set(packetKey, now);
+
+          // Keep the per-room dedupe cache bounded during long livestreams.
+          if (state.recentGiftPackets.size > 2_000) {
+            const cutoff = now - 60_000;
+            for (const [key, seenAt] of state.recentGiftPackets) {
+              if (seenAt < cutoff) state.recentGiftPackets.delete(key);
+            }
+          }
+        }
         const localGift = giftId ? VN_GIFTS_BY_ID.get(Number(giftId)) : undefined;
         const resolvedName = data.extendedGiftInfo?.name || 
                              data.giftName || 
@@ -299,7 +364,8 @@ export class TiktokService {
           giftType: data.gift?.gift_type
             ?? data.giftDetails?.giftType
             ?? data.extendedGiftInfo?.type
-            ?? data.giftType,
+            ?? data.giftType
+            ?? localGift?.giftType,
           giftId: giftId,
         };
         if (!giftData.giftPictureUrl) {
