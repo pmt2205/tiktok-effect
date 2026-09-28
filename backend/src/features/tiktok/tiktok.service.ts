@@ -405,20 +405,42 @@ export class TiktokService {
       });
 
       // Like handler
-      state.connection.on('like', (data: any) => {
+      state.connection.on(WebcastEvent.LIKE, (data: any) => {
+        // Connector v2.4.x decodes the v3 like schema as `count`/`total` and
+        // identifies viewers through user.displayId/user.id. Older flattened
+        // fields are retained as fallbacks for compatibility and simulations.
+        const uniqueId = String(
+          data.uniqueId
+          || data.user?.uniqueId
+          || data.user?.displayId
+          || data.user?.id
+          || data.userId
+          || data.user?.secUid
+          || '',
+        ).trim();
+        if (!uniqueId) {
+          this.logger.warn(`[${appUsername}] Ignored like packet without a viewer identity`);
+          return;
+        }
+
+        const packetLikes = Number(data.likeCount ?? data.count ?? 1);
+        const roomTotalLikes = Number(data.totalLikeCount ?? data.total ?? 0);
         const likeData: LikeEvent = {
-          nickname: data.nickname || data.user?.nickname || data.uniqueId || 'Anonymous',
-          uniqueId: data.uniqueId || data.user?.uniqueId || 'anonymous',
+          nickname: data.nickname || data.user?.nickname || data.user?.displayId || uniqueId,
+          uniqueId,
           profilePictureUrl: getFirstImageUrl(
             data.profilePictureUrl,
             data.user?.avatarMedium,
             data.user?.avatarLarge,
             data.user?.avatarThumb,
           ),
-          likeCount: data.likeCount || 1,
-          totalLikeCount: data.totalLikeCount || 0,
+          likeCount: Number.isFinite(packetLikes) && packetLikes > 0 ? packetLikes : 1,
+          // This is TikTok's room-wide total and is intentionally not used as
+          // the viewer score. recordLike adds only the packet delta above.
+          totalLikeCount: Number.isFinite(roomTotalLikes) ? roomTotalLikes : 0,
           isSimulated: false,
         };
+        this.logger.debug(`[${appUsername}] Likes @${uniqueId}: +${likeData.likeCount}`);
         this.recordLike(appUsername, likeData);
       });
 
